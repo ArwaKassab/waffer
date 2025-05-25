@@ -2,60 +2,35 @@
 
 namespace App\Http\Controllers;
 
+use App\Http\Requests\LoginCustomerRequest;
+use App\Http\Requests\RegisterCustomerRequest;
 use App\Http\Resources\CustomerResource;
-use App\Models\User;
 use App\Models\Address;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\DB;
 use Illuminate\Support\Facades\Hash;
+use App\Repositories\Contracts\UserRepositoryInterface;
+use App\Services\UserService;
 
 class CustomerAuthController extends Controller
 {
-    public function register(Request $request)
+    protected $userService;
+
+    public function __construct(UserService $userService)
     {
-        $request->merge([
-            'phone' => '00963' . substr($request->phone, 1)
-        ]);
-        $validated = $request->validate([
-            'name'              => 'required|string|max:255',
-            'phone'             => 'required|unique:users',
-            'password'          => 'required|string|min:6|confirmed',
-            'area_id'           => 'required|exists:areas,id',
-            'address_details'   => 'required|string',
-            'latitude'          => 'required|numeric',
-            'longitude'         => 'required|numeric',
-        ]);
+        $this->userService = $userService;
+    }
 
-        DB::beginTransaction();
-
+    public function register(RegisterCustomerRequest $request)
+    {
         try {
-            $user = User::create([
-                'name'     => $validated['name'],
-                'phone'    => $validated['phone'],
-                'password' => Hash::make($validated['password']),
-                'type'     => 'customer',
-                'area_id'  => $validated['area_id'],
-            ]);
-
-            Address::create([
-                'user_id'         => $user->id,
-                'area_id'         => $validated['area_id'],
-                'address_details' => $validated['address_details'],
-                'latitude'        => $validated['latitude'],
-                'longitude'       => $validated['longitude'],
-                'is_default'      => true,
-            ]);
-
-            DB::commit();
+            $user = $this->userService->registerCustomer($request->validated());
 
             return response()->json([
                 'message' => 'تم تسجيل العميل بنجاح',
                 'user'    => new CustomerResource($user),
             ], 201);
-
         } catch (\Exception $e) {
-            DB::rollBack();
-
             return response()->json([
                 'message' => 'حدث خطأ أثناء تسجيل العميل',
                 'error'   => $e->getMessage()
@@ -63,22 +38,11 @@ class CustomerAuthController extends Controller
         }
     }
 
-    public function login(Request $request)
+    public function login(LoginCustomerRequest $request)
     {
-        $validated = $request->validate([
-            'phone'    => 'required|regex:/^0\d{9}$/',
-            'password' => 'required|string',
-        ], [
-            'phone.regex' => 'يجب أن يبدأ رقم الهاتف بـ 0 ويتكون من 10 خانات.',
-        ]);
+        $user = $this->userRepo->findByPhoneAndType($request->phone, 'customer');
 
-        $processedPhone = '00963' . substr($validated['phone'], 1);
-
-        $user = User::where('phone', $processedPhone)
-            ->where('type', 'customer')
-            ->first();
-
-        if (!$user || !Hash::check($validated['password'], $user->password)) {
+        if (!$user || !Hash::check($request->password, $user->password)) {
             return response()->json(['message' => 'بيانات الدخول غير صحيحة'], 401);
         }
 

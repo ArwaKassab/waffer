@@ -9,7 +9,6 @@ class RegisterCustomerRequest extends FormRequest
     protected function prepareForValidation()
     {
         if ($this->has('phone')) {
-            // حول رقم الهاتف لصيغة 00963xxxxxxxx
             $processedPhone = '00963' . substr($this->phone, 1);
             $this->merge([
                 'phone' => $processedPhone,
