@@ -14,6 +14,19 @@ class UserRepository implements UserRepositoryInterface
 
     public function findByPhoneAndType(string $phone, string $type)
     {
-        return User::where('phone', $phone)->where('type', $type)->first();
+        $processedPhone = $this->processPhoneNumber($phone);
+
+        return User::where('phone', $processedPhone)
+            ->where('type', $type)
+            ->first();
     }
+    public function processPhoneNumber(string $phone): string
+    {
+        if (preg_match('/^0\d{9}$/', $phone)) {
+            return '00963' . substr($phone, 1);
+        }
+        return $phone;
+    }
+
+
 }

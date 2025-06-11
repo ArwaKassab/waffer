@@ -23,13 +23,5 @@ class LoginCustomerRequest extends FormRequest
         ];
     }
 
-    protected function prepareForValidation()
-    {
-        if ($this->has('phone')) {
-            $processedPhone = '00963' . substr($this->phone, 1);
-            $this->merge([
-                'phone' => $processedPhone,
-            ]);
-        }
-    }
+
 }

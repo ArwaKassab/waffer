@@ -24,7 +24,7 @@ class User extends Model
         return $this->hasMany(Address::class);
     }
 
-    public function storeCategories()
+    public function categories()
     {
         return $this->belongsToMany(Category::class, 'store_category', 'store_id', 'category_id');
     }

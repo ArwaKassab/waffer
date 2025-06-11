@@ -22,7 +22,7 @@ class AddressService
             'address_details' => $addressData['address_details'],
             'latitude' => $addressData['latitude'],
             'longitude' => $addressData['longitude'],
-            'is_default' => true,  // هنا تحدد القيمة
+            'is_default' => true,
         ];
 
         try {

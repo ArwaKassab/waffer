@@ -13,6 +13,7 @@ class CreateOfferProductTable extends Migration
             $table->foreignId('offer_id')->constrained('offers')->onDelete('cascade');
             $table->primary(['offer_id', 'product_id']);
             $table->timestamps();
+            $table->softDeletes();
         });
     }
 

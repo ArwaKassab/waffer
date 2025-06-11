@@ -73,4 +73,6 @@ class StoreAuthController extends Controller
 
         return response()->json(['message' => 'Logged out successfully']);
     }
+
+
 }

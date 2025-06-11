@@ -2,6 +2,7 @@
 
 namespace App\Models;
 
+use Carbon\Carbon;
 use Illuminate\Database\Eloquent\Model;
 use Illuminate\Database\Eloquent\SoftDeletes;
 
@@ -26,7 +27,7 @@ class Product extends Model
             ->withPivot('quantity', 'price', 'store_id')->withTimestamps();
     }
 
-    public function discount()
+    public function discounts()
     {
         return $this->hasOne(Discount::class);
     }
@@ -34,5 +35,17 @@ class Product extends Model
     public function offers()
     {
         return $this->belongsToMany(Offer::class, 'offer_product', 'product_id', 'offer_id');
+    }
+
+    public function activeDiscountToday()
+    {
+        $today = Carbon::today()->toDateString();
+
+        return $this->discounts()
+            ->where('start_date', '<=', $today)
+            ->where('end_date', '>=', $today)
+            ->where('status', 'active')
+            ->orderByDesc('id')
+            ->first();
     }
 }
