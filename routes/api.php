@@ -1,6 +1,7 @@
 <?php
 
 use App\Http\Controllers\AreaController;
+use App\Http\Controllers\CartController;
 use App\Http\Controllers\CategoryController;
 use App\Http\Controllers\OfferDiscountController;
 use App\Http\Controllers\ProductController;
@@ -62,33 +63,28 @@ Route::prefix('customer')->group(function () {
     Route::post('verify-reset-password-code', [CustomerAuthController::class, 'verifyResetPasswordCode']);
     Route::post('reset-password', [CustomerAuthController::class, 'resetPassword'])->middleware('verify.temp.token');;
 
-
-    // الطلباتverifyResetPasswordCode
-
 });
 
 Route::prefix('customer')->group(function () {
 
     Route::get('/areas', [AreaController::class, 'index']);
-    // مناطق متاحة للجميع
     Route::post('/set-area', [AreaController::class, 'setArea']);
 
 });
-
-// مشروط بوجود visitor_id + area
 Route::prefix('customer')->middleware(['ensure.visitor', 'detect.area'])->group(function () {
 
 
     Route::get('categories', [CategoryController::class, 'index']);
     Route::get('/stores', [StoreController::class, 'index']);
-    Route::get('available-offers-discounts', [OfferDiscountController::class, 'available']);
     Route::get('/stores/{id}', [StoreController::class, 'show']);
+    Route::get('products', [ProductController::class, 'index']);
     Route::get('/products/{id}', [ProductController::class, 'show']);
-    // المنتجات حسب المتجر
-    Route::get('products', [ProductController::class, 'index']); // ?store_id=5
+    Route::get('available-offers-discounts', [OfferDiscountController::class, 'available']);
+    Route::get('/cart', [CartController::class, 'index']);
+    Route::post('/cart/add', [CartController::class, 'add']);
+    Route::post('/cart/update', [CartController::class, 'update']);
+    Route::delete('/cart/remove', [CartController::class, 'remove']);
 
-    // تفاصيل منتج
-    Route::get('products/{id}', [ProductController::class, 'show']);
 
     // إدارة سلة الزائر (في Session أو Redis)
     Route::prefix('guest')->group(function () {

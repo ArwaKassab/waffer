@@ -4,30 +4,33 @@ namespace App\Services;
 
 use App\Repositories\Contracts\UserRepositoryInterface;
 use App\Services\AddressService;
+use App\Services\RedisCartService;
 use Illuminate\Support\Facades\DB;
 use Illuminate\Support\Facades\Hash;
 use Exception;
-use Illuminate\Support\Facades\Redis;
-use Illuminate\Support\Str;
 
 class UserService
 {
     protected UserRepositoryInterface $userRepo;
     protected AddressService $addressService;
+    protected RedisCartService $redisCartService;
 
-    public function __construct(UserRepositoryInterface $userRepo, AddressService $addressService)
+    public function __construct(UserRepositoryInterface $userRepo, AddressService $addressService, RedisCartService $redisCartService)
     {
         $this->userRepo = $userRepo;
         $this->addressService = $addressService;
+        $this->redisCartService = $redisCartService;
     }
+
     /**
      * تسجيل مستخدم جديد من نوع عميل مع إنشاء العنوان المرتبط به
      *
-     * @param array $data بيانات التسجيل (name, phone, password, area_id, address_details, latitude, longitude)
+     * @param array $data
+     * @param string|null $visitorId معرف سلة الزائر (اختياري)
      * @return \App\Models\User
      * @throws Exception
      */
-    public function registerCustomer(array $data)
+    public function registerCustomer(array $data, ?string $visitorId = null)
     {
         DB::beginTransaction();
 
@@ -43,7 +46,18 @@ class UserService
                 'latitude' => $data['latitude'],
                 'longitude' => $data['longitude'],
             ]);
-//            $this->migrateGuestCartToUser($request->session()->getId(), $user->id);
+
+            // 2. إنشاء سلة للمستخدم (إذا لم تكن موجودة)
+            $userCart = $this->cartRepo->getCartByUserId($user->id);
+            if (!$userCart) {
+                $userCart = $this->cartRepo->createCartForUser($user->id);
+            }
+
+            // 3. ترحيل سلة الزائر إن وجدت visitor_id
+            if ($visitorId) {
+                $this->cartMigrationService->migrateVisitorCartToUserCart($visitorId, $user->id);
+            }
+
 
             DB::commit();
 
@@ -55,7 +69,8 @@ class UserService
         }
     }
 
-    public function sendResetPasswordCode(string $phone): array
+
+public function sendResetPasswordCode(string $phone): array
     {
         $processedPhone = $this->userRepo->processPhoneNumber($phone);
 

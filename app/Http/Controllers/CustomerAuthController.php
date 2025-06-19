@@ -30,7 +30,10 @@ class CustomerAuthController extends Controller
     public function register(RegisterCustomerRequest $request)
     {
         try {
-            $user = $this->userService->registerCustomer($request->validated());
+            // جلب visitor_id من الكوكيز (أو من الطلب)
+            $visitorId = $request->cookie('visitor_id');
+
+            $user = $this->userService->registerCustomer($request->validated(), $visitorId);
 
             return response()->json([
                 'message' => 'تم تسجيل العميل بنجاح',
@@ -43,6 +46,7 @@ class CustomerAuthController extends Controller
             ], 500);
         }
     }
+
 
     public function login(LoginCustomerRequest $request)
     {

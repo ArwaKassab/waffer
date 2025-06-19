@@ -2,6 +2,7 @@
 
 namespace App\Providers;
 
+use App\Repositories\CartRepositoryInterface;
 use Illuminate\Support\ServiceProvider;
 use App\Repositories\Contracts\{ProductRepositoryInterface,
     UserRepositoryInterface,
@@ -9,7 +10,8 @@ use App\Repositories\Contracts\{ProductRepositoryInterface,
     StoreRepositoryInterface,
     AreaRepositoryInterface,
     CategoryRepositoryInterface};
-use App\Repositories\Eloquent\{ProductRepository,
+use App\Repositories\Eloquent\{CartRepository,
+    ProductRepository,
     UserRepository,
     AddressRepository,
     StoreRepository,
@@ -26,6 +28,7 @@ class AppServiceProvider extends ServiceProvider
         $this->app->bind(AreaRepositoryInterface::class, AreaRepository::class);
         $this->app->bind(CategoryRepositoryInterface::class, CategoryRepository::class);
         $this->app->bind(ProductRepositoryInterface::class, ProductRepository::class);
+        $this->app->bind(CartRepositoryInterface::class, CartRepository::class);
     }
 
     public function boot(): void
