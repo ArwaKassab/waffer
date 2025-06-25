@@ -90,7 +90,7 @@ class CartService
 
         if ($userId) {
             DB::transaction(function () use ($userId, $productId, $quantity) {
-                $cart = $this->cartRepo->getCartByUserId($userId) ?? $this->cartRepo->createCartForUser($userId);
+                $cart = $this->cartRepo->getCartByUserId($userId) ;
                 $this->cartRepo->addItem($cart->id, $productId, $quantity);
             });
             return;

@@ -9,4 +9,11 @@ use Illuminate\Database\Eloquent\SoftDeletes;
 class Notification extends Model
 {
     use HasFactory;
+    protected $fillable = [
+        'title',
+        'message',
+        'image',
+        'type',
+        'recipient_id',
+    ];
 }

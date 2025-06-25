@@ -8,7 +8,12 @@ use Illuminate\Database\Eloquent\SoftDeletes;
 class Area extends Model
 {
     use SoftDeletes;
-
+    protected $fillable = [
+        'name',
+        'governorate',
+        'delivery_fee',
+        'free_delivery_from',
+    ];
     public function users()
     {
         return $this->hasMany(User::class);

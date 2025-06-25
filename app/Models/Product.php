@@ -9,6 +9,14 @@ use Illuminate\Database\Eloquent\SoftDeletes;
 class Product extends Model
 {
     use SoftDeletes;
+    protected $fillable = [
+        'name',
+        'price',
+        'image',
+        'status',
+        'unit',
+        'store_id',
+    ];
 
     public function store()
     {

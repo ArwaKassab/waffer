@@ -3,23 +3,28 @@
 namespace App\Services;
 
 use App\Repositories\Contracts\UserRepositoryInterface;
+use App\Repositories\Eloquent\CartRepository;
 use App\Services\AddressService;
 use App\Services\RedisCartService;
 use Illuminate\Support\Facades\DB;
 use Illuminate\Support\Facades\Hash;
 use Exception;
+use Illuminate\Support\Facades\Redis;
+use Illuminate\Support\Str;
 
 class UserService
 {
     protected UserRepositoryInterface $userRepo;
     protected AddressService $addressService;
     protected RedisCartService $redisCartService;
+    protected CartRepository $cartRepo;
 
-    public function __construct(UserRepositoryInterface $userRepo, AddressService $addressService, RedisCartService $redisCartService)
+    public function __construct(UserRepositoryInterface $userRepo, AddressService $addressService, RedisCartService $redisCartService,CartRepository $cartRepo)
     {
         $this->userRepo = $userRepo;
         $this->addressService = $addressService;
         $this->redisCartService = $redisCartService;
+        $this->cartRepo = $cartRepo;
     }
 
     /**
@@ -55,7 +60,7 @@ class UserService
 
             // 3. ترحيل سلة الزائر إن وجدت visitor_id
             if ($visitorId) {
-                $this->cartMigrationService->migrateVisitorCartToUserCart($visitorId, $user->id);
+                $this->redisCartService->migrateVisitorCartToUserCart($visitorId, $user->id);
             }
 
 

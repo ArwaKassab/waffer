@@ -82,17 +82,10 @@ Route::prefix('customer')->middleware(['ensure.visitor', 'detect.area'])->group(
     Route::get('available-offers-discounts', [OfferDiscountController::class, 'available']);
     Route::get('/cart', [CartController::class, 'index']);
     Route::post('/cart/add', [CartController::class, 'add']);
-    Route::post('/cart/update', [CartController::class, 'update']);
-    Route::delete('/cart/remove', [CartController::class, 'remove']);
+    Route::patch('/cart/update/{product_id}', [CartController::class, 'update']);
+    Route::delete('/cart/remove/{product_id}', [CartController::class, 'remove']);
 
 
-    // إدارة سلة الزائر (في Session أو Redis)
-    Route::prefix('guest')->group(function () {
-        Route::get('/cart', [CartController::class, 'guestCart']);
-        Route::post('/cart/add', [CartController::class, 'guestAdd']);
-        Route::post('/cart/update', [CartController::class, 'guestUpdate']);
-        Route::delete('/cart/remove', [CartController::class, 'guestRemove']);
-    });
 
     // تأكيد الرمز
     Route::post('verify', [VerificationController::class, 'verifyCode']);

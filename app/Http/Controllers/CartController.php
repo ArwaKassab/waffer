@@ -2,6 +2,7 @@
 
 namespace App\Http\Controllers;
 
+use App\Models\Product;
 use Illuminate\Http\Request;
 use App\Services\CartService;
 
@@ -45,16 +46,19 @@ class CartController extends Controller
         }
     }
 
-    public function update(Request $request)
+    public function update($productId,Request $request)
     {
+        if (!Product::find($productId)) {
+            return response()->json(['error' => 'المنتج غير موجود'], 404);
+        }
+
         $validated = $request->validate([
-            'product_id' => 'required|exists:products,id',
             'quantity' => 'required|integer|min:1',
         ]);
 
         try {
             $this->cartService->updateItem(
-                $validated['product_id'],
+                $productId,
                 $validated['quantity'],
                 auth('sanctum')->id(),
                 $request->cookie('visitor_id')
@@ -65,21 +69,24 @@ class CartController extends Controller
         }
     }
 
-    public function remove(Request $request)
+    public function remove($productId, Request $request)
     {
-        $validated = $request->validate([
-            'product_id' => 'required|exists:products,id',
-        ]);
-
         try {
+
+            if (!Product::find($productId)) {
+                return response()->json(['error' => 'المنتج غير موجود'], 404);
+            }
+
             $this->cartService->removeItem(
-                $validated['product_id'],
+                $productId,
                 auth('sanctum')->id(),
                 $request->cookie('visitor_id')
             );
+
             return response()->json(['message' => 'تم الحذف بنجاح']);
         } catch (\Exception $e) {
             return response()->json(['error' => $e->getMessage()], 500);
         }
     }
+
 }

@@ -11,8 +11,14 @@ class Address extends Model
     use SoftDeletes;
 
     protected $fillable = [
-        'user_id','area_id','address_details', 'latitude', 'longitude','is_default'
+        'user_id',
+        'area_id',
+        'address_details',
+        'latitude',
+        'longitude',
+        'is_default',
     ];
+
     public function user()
     {
         return $this->belongsTo(User::class);

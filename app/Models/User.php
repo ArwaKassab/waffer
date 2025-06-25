@@ -12,9 +12,20 @@ class User extends Authenticatable
     use HasApiTokens, Notifiable, SoftDeletes;
 
     protected $fillable = [
-        'id','name', 'email', 'password', 'type' ,'phone' ,'area_id'
+        'name',
+        'phone',
+        'whatsapp_phone',
+        'password',
+        'area_id',
+        'email',
+        'image',
+        'open_hour',
+        'close_hour',
+        'status',
+        'wallet_balance',
+        'type',
+        'note',
     ];
-
     public function area()
     {
         return $this->belongsTo(Area::class);

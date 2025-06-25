@@ -8,6 +8,10 @@ use Illuminate\Database\Eloquent\SoftDeletes;
 class Cart extends Model
 {
     use SoftDeletes;
+    protected $fillable = [
+        'user_id'
+    ];
+
 
     public function user()
     {
@@ -19,4 +23,10 @@ class Cart extends Model
         return $this->belongsToMany(Product::class, 'cart_items')
             ->withPivot('quantity')->withTimestamps();
     }
+
+    public function items()
+    {
+        return $this->hasMany(CartItem::class, 'cart_id');
+    }
+
 }
