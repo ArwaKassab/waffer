@@ -13,6 +13,8 @@ use App\Events\OrderConfirmed;
 use Illuminate\Pagination\LengthAwarePaginator;
 use Illuminate\Support\Facades\DB;
 use Illuminate\Validation\ValidationException;
+use App\Http\Resources\OrderResource;
+use App\Http\Resources\ConfirmedOrderResource;
 
 class OrderService
 {
@@ -111,10 +113,9 @@ class OrderService
             ];
         });
 
-
         event(new OrderConfirmed($order));
 
-        return $response;
+        return (new ConfirmedOrderResource($response))->resolve();
     }
 
     protected function createOrder(int $userId, int $areaId, int $addressId, string $paymentMethod, ?string $notes, array $calculation, string $status): Order
@@ -280,7 +281,7 @@ class OrderService
     }
 
 
-    public function getUserOrders(int $userId, int $perPage = 10): LengthAwarePaginator
+    public function getUserOrders(int $userId, int $perPage = 10)
     {
         $orders = Order::where('user_id', $userId)
             ->with([
@@ -292,60 +293,8 @@ class OrderService
             ->orderBy('created_at', 'desc')
             ->paginate($perPage);
 
-
-        $orders->getCollection()->transform(function ($order) {
-            $items = $order->items->map(function ($item) {
-                $product = optional($item->product);
-                $store = optional($item->store);
-
-                return [
-                    'product_id' => $product->id,
-                    'product_name' => $product->name,
-                    'store_id' => $store->id,
-                    'store_name' => $store->name,
-                    'quantity' => $item->quantity,
-                    'unit_price' => $product->price,
-                    'total_price' => $item->price,
-                ];
-            });
-
-            $discounts = $order->orderDiscounts->map(function ($orderDiscount) {
-                $discount = optional($orderDiscount->discount);
-
-                return [
-                    'discount_id' => $discount->id,
-                    'discount_title' => $discount->title,
-                    'discount_fee' => (float) $orderDiscount->discount_fee,
-                ];
-            });
-
-            $product_total = (float) $order->total_product_price;
-            $discount_fee = $discounts->sum('discount_fee');
-            $total_after_discount = $product_total - $discount_fee;
-            $final_total = $total_after_discount + (float) $order->delivery_fee;
-
-            return [
-                'order_id' => $order->id,
-                'status' => $order->status,
-                'address_id' => $order->address_id,
-                'product_total' => $product_total,
-                'discount_fee' => $discount_fee,
-                'total_after_discount' => $total_after_discount,
-                'delivery_fee' => $order->delivery_fee,
-                'final_total' => $final_total,
-                'payment_method' => $order->payment_method,
-                'notes' => $order->notes,
-                'date' => $order->date,
-                'time' => $order->time,
-                'area' => [
-                    'id' => optional($order->area)->id,
-                    'name' => optional($order->area)->name,
-                ],
-                'items' => $items,
-                'discounts' => $discounts,
-            ];
-        });
-
-        return $orders;
+        return OrderResource::collection($orders);
     }
+
+
 }

@@ -13,7 +13,7 @@ use Illuminate\Support\Facades\Route;
 
 use App\Http\Controllers\AdminAuthController;
 use App\Http\Controllers\StoreAuthController;
-use App\Http\Controllers\CustomerAuthController;
+use App\Http\Controllers\UserController;
 //use App\Http\Controllers\AdminController;
 //use App\Http\Controllers\StoreController;
 //use App\Http\Controllers\CustomerController;
@@ -56,13 +56,13 @@ Route::prefix('store')->group(function () {
 });
 
 Route::prefix('customer')->group(function () {
-    Route::post('/register', [CustomerAuthController::class, 'register']);
-    Route::post('/login', [CustomerAuthController::class, 'login']);
+    Route::post('/register', [UserController::class, 'register']);
+    Route::post('/login', [UserController::class, 'login']);
 //    Route::middleware(['auth:sanctum', 'check.role:customer'])->get('/profile', [CustomerController::class, 'profile']);
-    Route::middleware('auth:sanctum')->post('/logout', [CustomerAuthController::class, 'logout']);
-    Route::post('send-reset-password-code', [CustomerAuthController::class, 'sendResetPasswordCode']);
-    Route::post('verify-reset-password-code', [CustomerAuthController::class, 'verifyResetPasswordCode']);
-    Route::post('reset-password', [CustomerAuthController::class, 'resetPassword'])->middleware('verify.temp.token');;
+    Route::middleware('auth:sanctum')->post('/logout', [UserController::class, 'logout']);
+    Route::post('send-reset-password-code', [UserController::class, 'sendResetPasswordCode']);
+    Route::post('verify-reset-password-code', [UserController::class, 'verifyResetPasswordCode']);
+    Route::post('reset-password', [UserController::class, 'resetPassword'])->middleware('verify.temp.token');;
 
 });
 

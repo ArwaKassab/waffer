@@ -27,55 +27,8 @@ class UserService
         $this->cartRepo = $cartRepo;
     }
 
-    /**
-     * تسجيل مستخدم جديد من نوع عميل مع إنشاء العنوان المرتبط به
-     *
-     * @param array $data
-     * @param string|null $visitorId معرف سلة الزائر (اختياري)
-     * @return \App\Models\User
-     * @throws Exception
-     */
-    public function registerCustomer(array $data, ?string $visitorId = null)
-    {
-        DB::beginTransaction();
 
-        try {
-            $data['password'] = Hash::make($data['password']);
-            $data['type'] = 'customer';
-
-            $user = $this->userRepo->create($data);
-
-            $this->addressService->createAddressForUser($user->id, [
-                'area_id' => $data['area_id'],
-                'address_details' => $data['address_details'],
-                'latitude' => $data['latitude'],
-                'longitude' => $data['longitude'],
-            ]);
-
-            // 2. إنشاء سلة للمستخدم (إذا لم تكن موجودة)
-            $userCart = $this->cartRepo->getCartByUserId($user->id);
-            if (!$userCart) {
-                $userCart = $this->cartRepo->createCartForUser($user->id);
-            }
-
-            // 3. ترحيل سلة الزائر إن وجدت visitor_id
-            if ($visitorId) {
-                $this->redisCartService->migrateVisitorCartToUserCart($visitorId, $user->id);
-            }
-
-
-            DB::commit();
-
-            return $user;
-
-        } catch (Exception $e) {
-            DB::rollBack();
-            throw $e;
-        }
-    }
-
-
-public function sendResetPasswordCode(string $phone): array
+    public function sendResetPasswordCode(string $phone): array
     {
         $processedPhone = $this->userRepo->processPhoneNumber($phone);
 
@@ -130,23 +83,5 @@ public function sendResetPasswordCode(string $phone): array
         return ['success' => true, 'message' => 'تم تحديث كلمة المرور بنجاح'];
     }
 
-//    public function migrateGuestCartToUser($sessionId, $userId)
-//    {
-//        $cartItems = Redis::get("guest_cart:{$sessionId}");
-//
-//        if ($cartItems) {
-//            $items = json_decode($cartItems, true);
-//
-//            foreach ($items as $item) {
-//                cartitem::create([
-//                    'user_id'    => $userId,
-//                    'product_id' => $item['product_id'],
-//                    'quantity'   => $item['quantity'],
-//                    'price'      => $item['price'],
-//                ]);
-//            }
-//
-//            Redis::del("guest_cart:{$sessionId}");
-//        }
-//    }
+
 }
