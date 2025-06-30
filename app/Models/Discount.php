@@ -24,6 +24,9 @@ class Discount extends Model
 
     public function orders()
     {
-        return $this->belongsToMany(Order::class, 'order_discounts', 'discount_id', 'order_id');
+        return $this->belongsToMany(Order::class, 'order_discounts', 'discount_id', 'order_id')
+            ->withPivot('discount_fee')
+            ->withTimestamps();
     }
+
 }

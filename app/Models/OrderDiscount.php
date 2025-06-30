@@ -17,15 +17,14 @@ class OrderDiscount extends Model
         'discount_fee',
     ];
 
-    // العلاقة مع الطلب (Order)
     public function order()
     {
         return $this->belongsTo(Order::class);
     }
 
-    // العلاقة مع الخصم (Discount)
     public function discount()
     {
         return $this->belongsTo(Discount::class);
     }
+
 }

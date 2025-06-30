@@ -29,6 +29,7 @@ class ProductService
             'status' => $product->status,
             'original_price' => $product->price,
             'store_id' => $product->store_id,
+            'store_name' => $product->store ? $product->store->name : null,
         ];
 
         $discount = $product->activeDiscountToday();

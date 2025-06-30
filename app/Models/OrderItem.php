@@ -26,8 +26,9 @@ class OrderItem extends Model
     // العلاقة مع المنتج
     public function product()
     {
-        return $this->belongsTo(Product::class);
+        return $this->belongsTo(Product::class)->withTrashed();
     }
+
 
     // العلاقة مع المتجر (المستخدم من نوع store)
     public function store()

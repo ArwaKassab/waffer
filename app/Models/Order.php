@@ -31,15 +31,15 @@ class Order extends Model
         return $this->belongsTo(Area::class);
     }
 
-    public function products()
+    public function items()
     {
-        return $this->belongsToMany(Product::class, 'order_items')
-            ->withPivot('quantity', 'price', 'store_id')->withTimestamps();
+        return $this->hasMany(OrderItem::class);
     }
 
-    public function discounts()
+
+    public function orderDiscounts()
     {
-        return $this->belongsToMany(Discount::class, 'order_discounts', 'order_id', 'discount_id');
+        return $this->hasMany(OrderDiscount::class);
     }
 
     public function offers()

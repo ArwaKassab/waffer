@@ -4,6 +4,7 @@ use App\Http\Controllers\AreaController;
 use App\Http\Controllers\CartController;
 use App\Http\Controllers\CategoryController;
 use App\Http\Controllers\OfferDiscountController;
+use App\Http\Controllers\OrderController;
 use App\Http\Controllers\ProductController;
 use App\Http\Controllers\StoreController;
 use App\Http\Controllers\SupAdminAuthController;
@@ -95,36 +96,34 @@ Route::prefix('customer')->middleware(['ensure.visitor', 'detect.area'])->group(
 //    Route::middleware('auth:sanctum')->post('logout', [AuthController::class, 'logout']);
 
     # ✅ مسارات خاصة بالمستخدم المسجل (محمية)
-    Route::middleware('auth:sanctum')->prefix('user')->group(function () {
 
-        Route::post('orders', [OrderController::class, 'store']);
-        Route::get('orders', [OrderController::class, 'index']);
-        Route::get('orders/{id}', [OrderController::class, 'show']);
+});
 
-        // إدارة العناوين
-        Route::get('addresses', [AddressController::class, 'index']);
-        Route::post('addresses', [AddressController::class, 'store']);
-        Route::put('addresses/{id}', [AddressController::class, 'update']);
-        Route::delete('addresses/{id}', [AddressController::class, 'destroy']);
+Route::prefix('customer-auth')->middleware(['auth:sanctum','attach.user.area'])->group(function () {
 
+//    without confirmed order
+//    Route::post('/orders', [OrderController::class, 'store']);
 
-        // السلة
-        Route::get('/cart', [CartController::class, 'index']);
-        Route::post('/cart/add', [CartController::class, 'add']);
-        Route::post('/cart/update', [CartController::class, 'update']);
-        Route::delete('/cart/remove', [CartController::class, 'remove']);
+    Route::post('/orders/confirmOrder', [OrderController::class, 'confirm']);
+    Route::post('/orders/changePaymentMethod/{order_id}', [OrderController::class, 'changePaymentMethod']);
+    Route::get('/orders/my', [OrderController::class, 'myOrders']);
 
-        // الحساب الشخصي
-        Route::get('profile', [ProfileController::class, 'show']);
-        Route::put('profile', [ProfileController::class, 'update']);
+    // إدارة العناوين
+    Route::get('addresses', [AddressController::class, 'index']);
+    Route::post('addresses', [AddressController::class, 'store']);
+    Route::put('addresses/{id}', [AddressController::class, 'update']);
+    Route::delete('addresses/{id}', [AddressController::class, 'destroy']);
 
-        // المحفظة
-        Route::get('wallet', [WalletController::class, 'show']);
+    // الحساب الشخصي
+    Route::get('profile', [ProfileController::class, 'show']);
+    Route::put('profile', [ProfileController::class, 'update']);
 
-        // الإشعارات
-        Route::get('notifications', [NotificationController::class, 'index']);
+    // المحفظة
+    Route::get('wallet', [WalletController::class, 'show']);
 
-        // الشكاوى
-        Route::post('complaints', [ComplaintController::class, 'store']);
-    });
+    // الإشعارات
+    Route::get('notifications', [NotificationController::class, 'index']);
+
+    // الشكاوى
+    Route::post('complaints', [ComplaintController::class, 'store']);
 });
