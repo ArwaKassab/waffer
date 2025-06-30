@@ -81,9 +81,14 @@ class OrderController extends Controller
 //        return response()->json(['message' => 'تم تأكيد الطلب', 'order' => $order]);
 //    }
 
-    public function myOrders()
+
+    public function myOrders(Request $request)
     {
-        $orders = $this->orderService->getUserOrders(auth('sanctum')->id());
+        $userId = auth('sanctum')->id();
+        $perPage = $request->get('per_page', 10);
+
+        $orders = $this->orderService->getUserOrders($userId, $perPage);
+
         return response()->json($orders);
     }
 }

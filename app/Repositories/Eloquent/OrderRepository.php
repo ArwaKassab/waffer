@@ -53,6 +53,14 @@ class OrderRepository
         return Order::findOrFail($id);
     }
 
-
+    public function update($id, array $data)
+    {
+        $order = $this->findById($id);
+        if (!$order) {
+            return null; // أو ترفع استثناء
+        }
+        $order->update($data);
+        return $order;
+    }
 
 }
