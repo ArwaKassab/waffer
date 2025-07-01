@@ -8,7 +8,7 @@ class RegisterCustomerRequest extends FormRequest
 {
     protected function prepareForValidation()
     {
-        if ($this->has('phone')) {
+        if ($this->has('phone') && preg_match('/^0\d{9}$/', $this->phone)) {
             $processedPhone = '00963' . substr($this->phone, 1);
             $this->merge([
                 'phone' => $processedPhone,
@@ -20,7 +20,7 @@ class RegisterCustomerRequest extends FormRequest
     {
         return [
             'name'              => 'required|string|max:255',
-            'phone'             => 'required|unique:users,phone',
+            'phone'             => ['required', 'regex:/^00963\d{9}$/', 'unique:users,phone'],
             'password'          => 'required|string|min:6|confirmed',
             'area_id'           => 'required|exists:areas,id',
             'address_details'   => 'required|string',
@@ -33,7 +33,7 @@ class RegisterCustomerRequest extends FormRequest
     {
         return [
             'phone.required'    => 'رقم الهاتف مطلوب.',
-            'phone.regex'       => 'يجب أن يبدأ رقم الهاتف بـ00963 ويتكون من 13 خانة.',
+            'phone.regex'       => 'يجب أن يبدأ رقم الهاتف بـ 0 ويتكون من 10 خانات.',
             'phone.unique'      => 'رقم الهاتف مسجل مسبقاً، الرجاء استخدام رقم آخر.',
             'password.required' => 'كلمة المرور مطلوبة.',
             'password.min'      => 'كلمة المرور يجب أن تكون على الأقل 6 أحرف.',

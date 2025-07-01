@@ -16,7 +16,7 @@ class AttachUserArea
             $areaId = $user->area_id;
 
             if ($areaId) {
-                $request->merge(['area_id' => $areaId]);
+                $request->merge(['area_id' => $areaId,'user' => $user]);
             }
         }
 

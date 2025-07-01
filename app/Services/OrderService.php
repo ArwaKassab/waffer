@@ -296,5 +296,18 @@ class OrderService
         return OrderResource::collection($orders);
     }
 
+    public function getUserOrderById(int $userId, int $orderId)
+    {
+        return Order::where('id', $orderId)
+            ->where('user_id', $userId)
+            ->with([
+                'items.product',
+                'items.store',
+                'area',
+                'orderDiscounts.discount'
+            ])
+            ->first();
+    }
+
 
 }

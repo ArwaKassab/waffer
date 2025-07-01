@@ -62,5 +62,18 @@ class OrderController extends Controller
         return $this->orderService->getUserOrders($userId, $perPage);
     }
 
+    public function show(Request $request, int $orderId): JsonResponse
+    {
+        $userId = $request->user()->id;
+
+        $order = $this->orderService->getUserOrderById($userId, $orderId);
+
+        if (!$order) {
+            return response()->json(['message' => 'الطلب غير موجود'], 404);
+        }
+
+        return response()->json($order);
+    }
+
 
 }

@@ -2,15 +2,21 @@
 
 namespace App\Services;
 
+use App\Models\User;
 use App\Repositories\Contracts\UserRepositoryInterface;
 use App\Repositories\Eloquent\CartRepository;
 use App\Services\AddressService;
 use App\Services\RedisCartService;
+use Illuminate\Http\Request;
 use Illuminate\Support\Facades\DB;
 use Illuminate\Support\Facades\Hash;
-use Exception;
 use Illuminate\Support\Facades\Redis;
+
 use Illuminate\Support\Str;
+use Illuminate\Support\Facades\Storage;
+use Illuminate\Http\UploadedFile;
+use Illuminate\Support\Facades\Validator;
+use Illuminate\Validation\ValidationException;
 
 class UserService
 {
@@ -19,7 +25,7 @@ class UserService
     protected RedisCartService $redisCartService;
     protected CartRepository $cartRepo;
 
-    public function __construct(UserRepositoryInterface $userRepo, AddressService $addressService, RedisCartService $redisCartService,CartRepository $cartRepo)
+    public function __construct(UserRepositoryInterface $userRepo, AddressService $addressService, RedisCartService $redisCartService, CartRepository $cartRepo)
     {
         $this->userRepo = $userRepo;
         $this->addressService = $addressService;
@@ -27,22 +33,19 @@ class UserService
         $this->cartRepo = $cartRepo;
     }
 
-
     public function sendResetPasswordCode(string $phone): array
     {
         $processedPhone = $this->userRepo->processPhoneNumber($phone);
 
         $user = $this->userRepo->findByPhoneAndType($phone, 'customer');
         if (!$user) {
-            return ['success' => false, 'message' => 'رقم الهاتف غير مسجل','status' => 404];
+            return ['success' => false, 'message' => 'رقم الهاتف غير مسجل', 'status' => 404];
         }
 
         $otp = rand(100000, 999999);
         Redis::setex('reset_password_code:' . $processedPhone, 600, $otp);
 
-        // هنا ممكن تضيف ارسال الرسالة SMS لو عندك خدمة
-
-        return ['success' => true, 'message' => 'تم إرسال رمز التحقق إلى رقم الهاتف صالح لمدة 10 دقائق','message2front' => 'الرمز يرسل بالريسبونس مؤقتا ليتم الاتفاق على الية ال OTP','otp' => $otp];
+        return ['success' => true, 'message' => 'تم إرسال رمز التحقق إلى رقم الهاتف', 'message2front' => 'الرمز يرسل بالريسبونس مؤقتا', 'otp' => $otp];
     }
 
     public function verifyResetPasswordCode(string $phone, string $otp): array
@@ -57,7 +60,12 @@ class UserService
         $tempToken = Str::random(64);
         Redis::setex('reset_password_token:' . $processedPhone, 600, $tempToken);
 
-        return ['success' => true, 'message' => 'رمز التحقق صحيح','message2front' => 'التوكن مؤقت صالح لمدة 10 دقائق الرجاء ارساله مع (API) في السكرين التالية ', 'temp_token' => $tempToken];
+        return [
+            'success' => true,
+            'message' => 'رمز التحقق صحيح',
+            'message2front' => 'التوكن مؤقت صالح لمدة 10 دقائق',
+            'temp_token' => $tempToken
+        ];
     }
 
     public function resetPassword(string $phone, string $newPassword, string $token): array
@@ -83,5 +91,58 @@ class UserService
         return ['success' => true, 'message' => 'تم تحديث كلمة المرور بنجاح'];
     }
 
+    public function updateProfile(User $user, Request $request): array
+    {
+        $data = $request->only([
+            'name', 'phone', 'whatsapp_phone', 'email',
+            'area_id', 'image', 'open_hour', 'close_hour',
+            'note', 'current_password', 'new_password', 'new_password_confirmation',
+        ]);
+
+        // التحقق من كلمة المرور الجديدة
+        if (!empty($data['new_password'])) {
+            if (!isset($data['current_password']) || !Hash::check($data['current_password'], $user->password)) {
+                throw ValidationException::withMessages(['current_password' => 'كلمة المرور الحالية غير صحيحة']);
+            }
+
+            $data['new_password'] = Hash::make($data['new_password']);
+        } else {
+            unset($data['new_password']);
+        }
+
+        // معالجة الصورة إذا تم رفعها
+        if (!empty($data['image']) && $data['image'] instanceof UploadedFile) {
+            $path = $data['image']->store('user_images', 'public');
+            $data['image'] = $path;
+        }
+
+        unset($data['current_password'], $data['new_password_confirmation']);
+
+        $user->fill($data);
+        $user->save();
+
+        return [
+            'message' => 'تم تحديث الحساب بنجاح',
+            'user' => array_merge(
+                $user->toArray(),
+                ['image' => $user->image ? asset('storage/' . $user->image) : null]
+            ),
+        ];
+
+    }
+
+    public function changeArea(User $user, int $new_area_id): array
+    {
+        $user->area_id = $new_area_id;
+        $user->save();
+
+        return [
+            'message' => 'تم تحديث المنطقة بنجاح',
+            'user' => array_merge(
+                $user->toArray(),
+                ['image' => $user->image ? asset('storage/' . $user->image) : null]
+            ),
+        ];
+    }
 
 }

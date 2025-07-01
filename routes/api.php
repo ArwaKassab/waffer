@@ -1,13 +1,18 @@
 <?php
 
+use App\Http\Controllers\AddressController;
 use App\Http\Controllers\AreaController;
 use App\Http\Controllers\CartController;
 use App\Http\Controllers\CategoryController;
+use App\Http\Controllers\ComplaintController;
+use App\Http\Controllers\CustomerAuthController;
+use App\Http\Controllers\LinkController;
 use App\Http\Controllers\OfferDiscountController;
 use App\Http\Controllers\OrderController;
 use App\Http\Controllers\ProductController;
 use App\Http\Controllers\StoreController;
 use App\Http\Controllers\SupAdminAuthController;
+use App\Http\Controllers\WalletController;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Route;
 
@@ -56,10 +61,10 @@ Route::prefix('store')->group(function () {
 });
 
 Route::prefix('customer')->group(function () {
-    Route::post('/register', [UserController::class, 'register']);
-    Route::post('/login', [UserController::class, 'login']);
+    Route::post('/register', [CustomerAuthController::class, 'register']);
+    Route::post('/login', [CustomerAuthController::class, 'login']);
 //    Route::middleware(['auth:sanctum', 'check.role:customer'])->get('/profile', [CustomerController::class, 'profile']);
-    Route::middleware('auth:sanctum')->post('/logout', [UserController::class, 'logout']);
+    Route::middleware('auth:sanctum')->post('/logout', [CustomerAuthController::class, 'logout']);
     Route::post('send-reset-password-code', [UserController::class, 'sendResetPasswordCode']);
     Route::post('verify-reset-password-code', [UserController::class, 'verifyResetPasswordCode']);
     Route::post('reset-password', [UserController::class, 'resetPassword'])->middleware('verify.temp.token');;
@@ -76,7 +81,7 @@ Route::prefix('customer')->middleware(['ensure.visitor', 'detect.area'])->group(
 
 
     Route::get('categories', [CategoryController::class, 'index']);
-    Route::get('/stores', [StoreController::class, 'index']);
+    Route::get('/category-stores/{categoryId}', [StoreController::class, 'index']);
     Route::get('/stores/{id}', [StoreController::class, 'show']);
     Route::get('products', [ProductController::class, 'index']);
     Route::get('/products/{id}', [ProductController::class, 'show']);
@@ -92,38 +97,36 @@ Route::prefix('customer')->middleware(['ensure.visitor', 'detect.area'])->group(
     Route::post('verify', [VerificationController::class, 'verifyCode']);
     Route::post('resend-code', [VerificationController::class, 'resendCode']);
 
-    // تسجيل الخروج
-//    Route::middleware('auth:sanctum')->post('logout', [AuthController::class, 'logout']);
-
-    # ✅ مسارات خاصة بالمستخدم المسجل (محمية)
-
 });
 
 Route::prefix('customer-auth')->middleware(['auth:sanctum','attach.user.area'])->group(function () {
 
-//    without confirmed order
-//    Route::post('/orders', [OrderController::class, 'store']);
 
     Route::post('/orders/confirmOrder', [OrderController::class, 'confirm']);
     Route::post('/orders/changePaymentMethod/{order_id}', [OrderController::class, 'changePaymentMethod']);
     Route::get('/orders/my', [OrderController::class, 'myOrders']);
-
-    // إدارة العناوين
-    Route::get('addresses', [AddressController::class, 'index']);
-    Route::post('addresses', [AddressController::class, 'store']);
-    Route::put('addresses/{id}', [AddressController::class, 'update']);
-    Route::delete('addresses/{id}', [AddressController::class, 'destroy']);
+    Route::get('/orders/{orderId}', [OrderController::class, 'show']);
 
     // الحساب الشخصي
-    Route::get('profile', [ProfileController::class, 'show']);
-    Route::put('profile', [ProfileController::class, 'update']);
+    Route::put('/profile/update-profile', [UserController::class, 'updateProfile']);
+    Route::post('/profile/change-area', [UserController::class, 'changeArea']);
+    // إدارة العناوين
+    Route::get('addresses', [AddressController::class, 'index']);
+    Route::post('addresses/new', [AddressController::class, 'add']);
+    Route::get('addresses/{id}', [AddressController::class, 'show']);
+    Route::put('addresses/update/{id}', [AddressController::class, 'update']);
+    Route::delete('addresses/{id}', [AddressController::class, 'destroy']);
 
     // المحفظة
-    Route::get('wallet', [WalletController::class, 'show']);
+    Route::get('/wallet/balance', [WalletController::class, 'balance']);
+
+    //فريق الدعم
+    Route::get('/support-links', [LinkController::class, 'index']);
+    // الشكاوى
+    Route::post('complaints', [ComplaintController::class, 'store']);
 
     // الإشعارات
     Route::get('notifications', [NotificationController::class, 'index']);
 
-    // الشكاوى
-    Route::post('complaints', [ComplaintController::class, 'store']);
+
 });

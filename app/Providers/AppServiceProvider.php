@@ -2,21 +2,32 @@
 
 namespace App\Providers;
 
-use App\Repositories\CartRepositoryInterface;
+
 use Illuminate\Support\ServiceProvider;
-use App\Repositories\Contracts\{ProductRepositoryInterface,
+use App\Repositories\Contracts\{CartRepositoryInterface,
+    ComplaintRepositoryInterface,
+    LinkRepositoryInterface,
+    OfferDiscountRepositoryInterface,
+    OrderRepositoryInterface,
+    ProductRepositoryInterface,
     UserRepositoryInterface,
     AddressRepositoryInterface,
     StoreRepositoryInterface,
     AreaRepositoryInterface,
-    CategoryRepositoryInterface};
+    CategoryRepositoryInterface,
+    WalletRepositoryInterface};
 use App\Repositories\Eloquent\{CartRepository,
+    ComplaintRepository,
+    LinkRepository,
+    OfferDiscountRepository,
+    OrderRepository,
     ProductRepository,
     UserRepository,
     AddressRepository,
     StoreRepository,
     AreaRepository,
-    CategoryRepository};
+    CategoryRepository,
+    WalletRepository};
 
 class AppServiceProvider extends ServiceProvider
 {
@@ -29,6 +40,11 @@ class AppServiceProvider extends ServiceProvider
         $this->app->bind(CategoryRepositoryInterface::class, CategoryRepository::class);
         $this->app->bind(ProductRepositoryInterface::class, ProductRepository::class);
         $this->app->bind(CartRepositoryInterface::class, CartRepository::class);
+        $this->app->bind(OfferDiscountRepositoryInterface::class, OfferDiscountRepository::class);
+        $this->app->bind(OrderRepositoryInterface::class, OrderRepository::class);
+        $this->app->bind(WalletRepositoryInterface::class, WalletRepository::class);
+        $this->app->bind(LinkRepositoryInterface::class, LinkRepository::class);
+        $this->app->bind(ComplaintRepositoryInterface::class, ComplaintRepository::class);
     }
 
     public function boot(): void

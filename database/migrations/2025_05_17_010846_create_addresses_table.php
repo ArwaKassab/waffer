@@ -12,6 +12,7 @@ class CreateAddressesTable extends Migration
             $table->id();
             $table->foreignId('user_id')->constrained('users')->onDelete('cascade');
             $table->foreignId('area_id')->constrained('areas')->onDelete('cascade');
+            $table->string('title');
             $table->text('address_details');
             $table->decimal('latitude', 10, 7)->nullable();
             $table->decimal('longitude', 10, 7)->nullable();

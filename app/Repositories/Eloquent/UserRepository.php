@@ -12,12 +12,11 @@ class UserRepository implements UserRepositoryInterface
         return User::create($data);
     }
 
-    public function findByPhoneAndType(string $phone, string $type)
+    public function findByPhoneAndType(string $phone)
     {
         $processedPhone = $this->processPhoneNumber($phone);
 
         return User::where('phone', $processedPhone)
-            ->where('type', $type)
             ->first();
     }
     public function processPhoneNumber(string $phone): string

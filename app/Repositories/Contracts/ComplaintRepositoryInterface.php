@@ -2,8 +2,7 @@
 
 namespace App\Repositories\Contracts;
 
-interface UserRepositoryInterface
+interface ComplaintRepositoryInterface
 {
     public function create(array $data);
-    public function findByPhoneAndType(string $phone);
 }

@@ -50,7 +50,7 @@ class CustomerAuthController extends Controller
 
     public function login(LoginCustomerRequest $request)
     {
-        $user = $this->userRepo->findByPhoneAndType($request->phone, 'customer');
+        $user = $this->userRepo->findByPhoneAndType($request->phone);
 
         if (!$user || !Hash::check($request->password, $user->password)) {
             return response()->json(['message' => 'بيانات الدخول غير صحيحة'], 401);

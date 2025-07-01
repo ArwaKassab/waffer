@@ -16,7 +16,8 @@ class StoreRepository implements StoreRepositoryInterface
             ->whereHas('categories', function ($query) use ($categoryId) {
                 $query->where('categories.id', $categoryId);
             })
-            ->get(['id', 'name', 'image', 'status', 'note', 'open_hour', 'close_hour']);
+            ->get(['id', 'area_id', 'name', 'image', 'status', 'note', 'open_hour', 'close_hour']);
+
     }
 
     public function getStoreDetailsWithProductsAndDiscounts($storeId)
