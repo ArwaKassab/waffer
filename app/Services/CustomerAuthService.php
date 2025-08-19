@@ -50,6 +50,7 @@ class CustomerAuthService
                 'address_details' => $data['address_details'],
                 'latitude' => $data['latitude'],
                 'longitude' => $data['longitude'],
+                'title' => $data['title'],
             ]);
 
             // 2. إنشاء سلة للمستخدم (إذا لم تكن موجودة)

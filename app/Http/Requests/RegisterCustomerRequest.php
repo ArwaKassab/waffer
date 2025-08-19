@@ -26,6 +26,7 @@ class RegisterCustomerRequest extends FormRequest
             'address_details'   => 'required|string',
             'latitude'          => 'required|numeric|between:-90,90',
             'longitude'         => 'required|numeric|between:-180,180',
+            'title'             => 'required|string'
         ];
     }
 
@@ -33,6 +34,7 @@ class RegisterCustomerRequest extends FormRequest
     {
         return [
             'phone.required'    => 'رقم الهاتف مطلوب.',
+            'title.required'    => 'hguk,hk',
             'phone.regex'       => 'يجب أن يبدأ رقم الهاتف بـ 0 ويتكون من 10 خانات.',
             'phone.unique'      => 'رقم الهاتف مسجل مسبقاً، الرجاء استخدام رقم آخر.',
             'password.required' => 'كلمة المرور مطلوبة.',

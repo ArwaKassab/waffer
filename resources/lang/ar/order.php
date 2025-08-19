@@ -1,15 +1,14 @@
 <?php
 
 return [
-
-    'invalid_payment_method' => 'طريقة الدفع غير صحيحة',
-    'invalid_products' => 'بعض المنتجات غير موجودة.',
-    'invalid_quantity_or_product' => 'المنتج أو الكمية غير صحيحة.',
-    'wallet_deducted' => 'تم خصم المبلغ من المحفظة والطلب قيد التنفيذ.',
-    'wallet_insufficient' => 'الرصيد في المحفظة غير كافي. تم إنشاء الطلب بحالة pending.',
-    'order_not_found' => 'الطلب غير موجود.',
-    'cannot_change_payment' => 'لا يمكن تغيير طريقة الدفع لأن حالة الطلب ليست pending.',
-    'wallet_not_enough' => 'الرصيد في المحفظة غير كافٍ لتحديث طريقة الدفع.',
-    'payment_method_updated' => 'تم تحديث طريقة الدفع إلى :method وتم تغيير حالة الطلب إلى preparing.',
-
+    'wallet_deducted' => 'تم خصم المبلغ من المحفظة.',
+    'wallet_insufficient' => 'الرصيد في المحفظة غير كافٍ.',
+    'wallet_enough_but_not_deducted' => 'الرصيد كافٍ في المحفظة، لكن لم يتم الخصم حالياً.',
+    'invalid_payment_method' => 'طريقة الدفع غير صحيحة.',
+    'order_not_found' => 'لم يتم العثور على الطلب.',
+    'cannot_change_payment' => 'لا يمكن تغيير طريقة الدفع لهذا الطلب.',
+    'wallet_not_enough' => 'الرصيد في المحفظة لا يكفي.',
+    'payment_method_updated' => 'تم تحديث طريقة الدفع إلى :method.',
+    'invalid_products' => 'بعض المنتجات غير صحيحة أو غير موجودة.',
+    'invalid_quantity_or_product' => 'الكمية أو المنتج غير صالح.',
 ];

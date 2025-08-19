@@ -60,4 +60,10 @@ class User extends Authenticatable
     {
         return $this->hasMany(Complaint::class);
     }
+
+    public function productChangeRequests()
+    {
+        return $this->hasMany(ProductRequest::class, 'store_id');
+    }
+
 }

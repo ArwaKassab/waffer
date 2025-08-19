@@ -99,7 +99,7 @@ class UserService
             'note', 'current_password', 'new_password', 'new_password_confirmation',
         ]);
 
-        // التحقق من كلمة المرور الجديدة
+
         if (!empty($data['new_password'])) {
             if (!isset($data['current_password']) || !Hash::check($data['current_password'], $user->password)) {
                 throw ValidationException::withMessages(['current_password' => 'كلمة المرور الحالية غير صحيحة']);
@@ -110,11 +110,12 @@ class UserService
             unset($data['new_password']);
         }
 
-        // معالجة الصورة إذا تم رفعها
+
         if (!empty($data['image']) && $data['image'] instanceof UploadedFile) {
-            $path = $data['image']->store('user_images', 'public');
+            $path = Storage::disk('public')->put('user_images', $data['image']);
             $data['image'] = $path;
         }
+
 
         unset($data['current_password'], $data['new_password_confirmation']);
 

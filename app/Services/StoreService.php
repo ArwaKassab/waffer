@@ -2,6 +2,7 @@
 
 namespace App\Services;
 
+use App\Models\Order;
 use App\Repositories\Contracts\StoreRepositoryInterface;
 
 class StoreService
@@ -21,5 +22,6 @@ class StoreService
     {
         return $this->storeRepository->getStoreDetailsWithProductsAndDiscounts($storeId);
     }
+
 
 }

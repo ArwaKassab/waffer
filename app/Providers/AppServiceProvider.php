@@ -4,7 +4,8 @@ namespace App\Providers;
 
 
 use Illuminate\Support\ServiceProvider;
-use App\Repositories\Contracts\{CartRepositoryInterface,
+use App\Repositories\Contracts\{AdRepositoryInterface,
+    CartRepositoryInterface,
     ComplaintRepositoryInterface,
     LinkRepositoryInterface,
     OfferDiscountRepositoryInterface,
@@ -16,7 +17,8 @@ use App\Repositories\Contracts\{CartRepositoryInterface,
     AreaRepositoryInterface,
     CategoryRepositoryInterface,
     WalletRepositoryInterface};
-use App\Repositories\Eloquent\{CartRepository,
+use App\Repositories\Eloquent\{AdRepository,
+    CartRepository,
     ComplaintRepository,
     LinkRepository,
     OfferDiscountRepository,
@@ -45,6 +47,7 @@ class AppServiceProvider extends ServiceProvider
         $this->app->bind(WalletRepositoryInterface::class, WalletRepository::class);
         $this->app->bind(LinkRepositoryInterface::class, LinkRepository::class);
         $this->app->bind(ComplaintRepositoryInterface::class, ComplaintRepository::class);
+        $this->app->bind(AdRepositoryInterface::class, AdRepository::class);
     }
 
     public function boot(): void

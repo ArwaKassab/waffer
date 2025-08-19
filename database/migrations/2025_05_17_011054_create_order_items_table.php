@@ -14,7 +14,12 @@ class CreateOrderItemsTable extends Migration
             $table->foreignId('product_id')->constrained('products');
             $table->foreignId('store_id')->constrained('users');
             $table->integer('quantity');
-            $table->decimal('price', 10, 2);
+            $table->enum('status', ['انتظار', 'مقبول', 'يجهز', 'حضر', 'في الطريق' ,'مستلم', 'مرفوض'])->default('انتظار');
+            $table->decimal('total_price', 10, 2);
+            $table->decimal('total_price_after_discount', 10, 2);
+            $table->decimal('unit_price', 10, 2);
+            $table->decimal('unit_price_after_discount', 10, 2);
+            $table->decimal('discount_value', 10, 2);
             $table->timestamps();
             $table->softDeletes();
         });

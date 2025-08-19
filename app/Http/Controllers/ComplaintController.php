@@ -17,7 +17,7 @@ class ComplaintController extends Controller
     public function store(Request $request)
     {
         $validated = $request->validate([
-            'type' => 'required|in:general,sellers,buyers,agents',
+            'type' => 'required|in:محتوى الطلب,التوصيل,الدفع,غير ذلك',
             'message' => 'required|string|min:10',
         ]);
 

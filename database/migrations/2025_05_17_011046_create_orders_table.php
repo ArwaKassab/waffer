@@ -14,12 +14,14 @@ class CreateOrdersTable extends Migration
             $table->foreignId('area_id')->constrained('areas');
             $table->foreignId('address_id')->constrained('addresses');
             $table->decimal('total_product_price', 10, 2);
+            $table->decimal('discount_fee', 10, 2);
+            $table->decimal('totalAfterDiscount', 10, 2);
             $table->decimal('delivery_fee', 10, 2);
             $table->decimal('total_price', 10, 2);
             $table->date('date');
             $table->time('time');
-            $table->enum('status', ['pending', 'preparing', 'on_the_way', 'completed', 'canceled'])->default('pending');
-            $table->enum('payment_method', ['cash', 'wallet'])->default('cash');
+            $table->enum('status', ['انتظار', 'مقبول', 'يجهز', 'حضر', 'في الطريق' ,'مستلم', 'مرفوض'])->default('انتظار');
+            $table->enum('payment_method', ['نقدي', 'محفظة'])->default('نقدي');
             $table->text('notes')->nullable();
             $table->timestamps();
             $table->softDeletes();

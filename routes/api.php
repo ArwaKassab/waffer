@@ -10,11 +10,14 @@ use App\Http\Controllers\LinkController;
 use App\Http\Controllers\OfferDiscountController;
 use App\Http\Controllers\OrderController;
 use App\Http\Controllers\ProductController;
+use App\Http\Controllers\ProductRequestsController;
 use App\Http\Controllers\StoreController;
 use App\Http\Controllers\SupAdminAuthController;
 use App\Http\Controllers\WalletController;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Route;
+use App\Http\Controllers\AdController;
+
 
 use App\Http\Controllers\AdminAuthController;
 use App\Http\Controllers\StoreAuthController;
@@ -27,106 +30,238 @@ use App\Http\Controllers\UserController;
 |--------------------------------------------------------------------------
 | API Routes
 |--------------------------------------------------------------------------
-|
-| Here is where you can register API routes for your application. These
-| routes are loaded by the RouteServiceProvider within a group which
-| is assigned the "api" middleware group. Enjoy building your API!
+| هذه هي نقطة تسجيل جميع الراوتات الخاصة بواجهة برمجة التطبيقات
+| ويتم تحميلها عبر RouteServiceProvider
 |
 */
 
-Route::middleware('auth:sanctum')->get('/user', function (Request $request) {
-    return $request->user();
+    //   معلومات المستخدم عند التوثيق
+    Route::middleware('auth:sanctum')->get('/user', function (Request $request) {
+        return $request->user();
+    });
 
-});
+/*
+|--------------------------------------------------------------------------
+| 🔐 Auth Routes (Admin - SupAdmin - Store - Customer)
+|--------------------------------------------------------------------------
+*/
 
+    // ✅ Admin Auth
+    Route::prefix('admin')->group(function () {
+        Route::post('/register', [AdminAuthController::class, 'register']);
+        Route::post('/login', [AdminAuthController::class, 'login']);
+    //    Route::middleware(['auth:sanctum', 'check.role:admin'])->get('/dashboard', [AdminController::class, 'dashboard']);
+        Route::middleware('auth:sanctum')->post('/logout', [AdminAuthController::class, 'logout']);
 
-Route::prefix('admin')->group(function () {
-    Route::post('/register', [AdminAuthController::class, 'register']);
-    Route::post('/login', [AdminAuthController::class, 'login']);
-//    Route::middleware(['auth:sanctum', 'check.role:admin'])->get('/dashboard', [AdminController::class, 'dashboard']);
-    Route::middleware('auth:sanctum')->post('/logout', [AdminAuthController::class, 'logout']);
-});
-Route::prefix('sup_admin')->group(function () {
-    Route::post('/register', [SupAdminAuthController::class, 'register']);
-    Route::post('/login', [SupAdminAuthController::class, 'login']);
-//    Route::middleware(['auth:sanctum', 'check.role:customer'])->get('/profile', [CustomerController::class, 'profile']);
-    Route::middleware('auth:sanctum')->post('/logout', [SupAdminAuthController::class, 'logout']);
-});
+        // استعادة كلمة المرور
+        Route::post('send-reset-password-code', [UserController::class, 'sendResetPasswordCode']);
+        Route::post('verify-reset-password-code', [UserController::class, 'verifyResetPasswordCode']);
+        Route::post('reset-password', [UserController::class, 'resetPassword'])->middleware('verify.temp.token');;
 
-Route::prefix('store')->group(function () {
-    Route::post('/register', [StoreAuthController::class, 'register']);
-    Route::post('/login', [StoreAuthController::class, 'login']);
-//    Route::middleware(['auth:sanctum', 'check.role:store'])->get('/dashboard', [StoreController::class, 'dashboard']);
-    Route::middleware('auth:sanctum')->post('/logout', [StoreAuthController::class, 'logout']);
-});
+    });
 
-Route::prefix('customer')->group(function () {
-    Route::post('/register', [CustomerAuthController::class, 'register']);
-    Route::post('/login', [CustomerAuthController::class, 'login']);
-//    Route::middleware(['auth:sanctum', 'check.role:customer'])->get('/profile', [CustomerController::class, 'profile']);
-    Route::middleware('auth:sanctum')->post('/logout', [CustomerAuthController::class, 'logout']);
-    Route::post('send-reset-password-code', [UserController::class, 'sendResetPasswordCode']);
-    Route::post('verify-reset-password-code', [UserController::class, 'verifyResetPasswordCode']);
-    Route::post('reset-password', [UserController::class, 'resetPassword'])->middleware('verify.temp.token');;
+    // ✅ SupAdmin Auth
+    Route::prefix('sup_admin')->group(function () {
+        Route::post('/register', [SupAdminAuthController::class, 'register']);
+        Route::post('/login', [SupAdminAuthController::class, 'login']);
+    //    Route::middleware(['auth:sanctum', 'check.role:customer'])->get('/profile', [CustomerController::class, 'profile']);
+        Route::middleware('auth:sanctum')->post('/logout', [SupAdminAuthController::class, 'logout']);
 
-});
-
-Route::prefix('customer')->group(function () {
-
-    Route::get('/areas', [AreaController::class, 'index']);
-    Route::post('/set-area', [AreaController::class, 'setArea']);
-
-});
-Route::prefix('customer')->middleware(['ensure.visitor', 'detect.area'])->group(function () {
+        // استعادة كلمة المرور
+        Route::post('send-reset-password-code', [UserController::class, 'sendResetPasswordCode']);
+        Route::post('verify-reset-password-code', [UserController::class, 'verifyResetPasswordCode']);
+        Route::post('reset-password', [UserController::class, 'resetPassword'])->middleware('verify.temp.token');;
 
 
-    Route::get('categories', [CategoryController::class, 'index']);
-    Route::get('/category-stores/{categoryId}', [StoreController::class, 'index']);
-    Route::get('/stores/{id}', [StoreController::class, 'show']);
-    Route::get('products', [ProductController::class, 'index']);
-    Route::get('/products/{id}', [ProductController::class, 'show']);
-    Route::get('available-offers-discounts', [OfferDiscountController::class, 'available']);
-    Route::get('/cart', [CartController::class, 'index']);
-    Route::post('/cart/add', [CartController::class, 'add']);
-    Route::patch('/cart/update/{product_id}', [CartController::class, 'update']);
-    Route::delete('/cart/remove/{product_id}', [CartController::class, 'remove']);
+    });
+
+    // ✅ Store Auth
+    Route::prefix('store')->group(function () {
+        Route::post('/register', [StoreAuthController::class, 'register']);
+        Route::post('/login', [StoreAuthController::class, 'login']);
+    //    Route::middleware(['auth:sanctum', 'check.role:store'])->get('/dashboard', [StoreController::class, 'dashboard']);
+        Route::middleware('auth:sanctum')->post('/logout', [StoreAuthController::class, 'logout']);
+
+        // استعادة كلمة المرور
+        Route::post('send-reset-password-code', [UserController::class, 'sendResetPasswordCode']);
+        Route::post('verify-reset-password-code', [UserController::class, 'verifyResetPasswordCode']);
+        Route::post('reset-password', [UserController::class, 'resetPassword'])->middleware('verify.temp.token');;
+
+    });
+
+    // ✅ Customer Auth + Reset Password
+    Route::prefix('customer')->group(function () {
+        Route::post('/register', [CustomerAuthController::class, 'register']);
+        Route::post('/login', [CustomerAuthController::class, 'login']);
+    //    Route::middleware(['auth:sanctum', 'check.role:customer'])->get('/profile', [CustomerController::class, 'profile']);
+        Route::middleware('auth:sanctum')->post('/logout', [CustomerAuthController::class, 'logout']);
+
+        // استعادة كلمة المرور
+        Route::post('send-reset-password-code', [UserController::class, 'sendResetPasswordCode']);
+        Route::post('verify-reset-password-code', [UserController::class, 'verifyResetPasswordCode']);
+        Route::post('reset-password', [UserController::class, 'resetPassword'])->middleware('verify.temp.token');;
+
+    });
+
+
+/*
+|--------------------------------------------------------------------------
+| 🌍 Public (Visitor) Routes - مناطق وتعيينها
+|--------------------------------------------------------------------------
+*/
+
+    Route::prefix('customer')->group(function () {
+
+        Route::get('/areas', [AreaController::class, 'index']);
+        Route::post('/set-area', [AreaController::class, 'setArea']);
+
+    });
+
+
+/*
+|--------------------------------------------------------------------------
+| 🛍️ Customer & Visitore(after area selection) Routes
+|--------------------------------------------------------------------------
+*/
+
+    Route::prefix('customer')->middleware(['ensure.visitor', 'detect.area'])->group(function () {
+
+        //التصنيفات
+        Route::get('categories', [CategoryController::class, 'index']);
+
+        //المتاجر
+        Route::get('/category-stores/{categoryId}', [StoreController::class, 'index']);
+        Route::get('/stores/{id}', [StoreController::class, 'show']);
+
+        //المنتجات
+        Route::get('products', [ProductController::class, 'index']);
+        Route::get('/products/{id}', [ProductController::class, 'show']);
+
+        //التخفيضات
+        Route::get('available-offers-discounts', [OfferDiscountController::class, 'available']);
+
+        //السلة
+        Route::get('/cart', [CartController::class, 'index']);
+        Route::post('/cart/add', [CartController::class, 'add']);
+        Route::patch('/cart/update/{product_id}', [CartController::class, 'update']);
+        Route::delete('/cart/remove/{product_id}', [CartController::class, 'remove']);
+
+        //الاعلانات
+        Route::post('/ads', [AdController::class, 'store']);
+        Route::get('/ads/latest', [AdController::class, 'latestAds']);
+
+
+        // تأكيد الرمز
+        Route::post('verify', [VerificationController::class, 'verifyCode']);
+        Route::post('resend-code', [VerificationController::class, 'resendCode']);
+
+    });
+
+/*
+|--------------------------------------------------------------------------
+| 🏪 Customer Dashboard Routes
+|--------------------------------------------------------------------------
+*/
+
+    Route::prefix('customer-auth')->middleware(['auth:sanctum','attach.user.area'])->group(function () {
+
+        // الحساب الشخصي
+        Route::put('/profile/update-profile', [UserController::class, 'updateProfile']);
+        Route::post('/profile/change-area', [UserController::class, 'changeArea']);
+        Route::get('/profile', [UserController::class, 'profile']);
+
+        //الطلبات
+        Route::post('/orders/confirmOrder', [OrderController::class, 'confirm']);
+        Route::post('/orders/changePaymentMethod/{order_id}', [OrderController::class, 'changePaymentMethod']);
+        Route::get('/orders/my', [OrderController::class, 'myOrders']);
+        Route::get('/orders/{orderId}', [OrderController::class, 'show']);
+
+        // إدارة العناوين
+        Route::get('addresses', [AddressController::class, 'index']);
+        Route::post('addresses/new', [AddressController::class, 'add']);
+        Route::get('addresses/{id}', [AddressController::class, 'show']);
+        Route::put('addresses/update/{id}', [AddressController::class, 'update']);
+        Route::delete('addresses/{id}', [AddressController::class, 'destroy']);
+
+        // المحفظة
+        Route::get('/wallet/balance', [WalletController::class, 'balance']);
+
+        //فريق الدعم
+        Route::get('/support-links', [LinkController::class, 'index']);
+        // الشكاوى
+        Route::post('complaints', [ComplaintController::class, 'store']);
+
+
+        // الإشعارات
+        Route::get('notifications', [NotificationController::class, 'index']);
+
+
+    });
+
+
+/*
+|--------------------------------------------------------------------------
+| 🏪 Store Dashboard Routes
+|--------------------------------------------------------------------------
+*/
+
+
+    Route::prefix('store-auth')->middleware(['auth:sanctum','attach.user.area'])->group(function () {
+
+        // الحساب الشخصي
+        Route::put('/profile/update-profile', [UserController::class, 'updateProfile']);
+        Route::post('/profile/change-area', [UserController::class, 'changeArea']);
+        Route::get('/profile', [UserController::class, 'profile']);
+
+
+        //الطلبات
+        Route::get('/orders/pending-orders', [OrderController::class, 'pendingOrders']);
+        Route::get('/orders/preparing-orders', [OrderController::class, 'preparingOrders']);
+        Route::get('/orders/done-orders', [OrderController::class, 'doneOrders']);
+        Route::get('/orders/rejected-orders', [OrderController::class, 'rejectedOrders']);
+        Route::get('/orders/showStoreOrderDetails/{order}', [OrderController::class, 'showStoreOrderDetails']);
+        Route::post('orders/{order}/accept', [OrderController::class, 'acceptOrder']);
+        Route::post('orders/{order}/reject', [OrderController::class, 'rejectOrder']);
+
+        //المنتجات
+        Route::get('/products', [ProductController::class, 'myStoreProducts']);
+        Route::get('/products/product-details/{productId}', [ProductController::class, 'productDetails']);
+
+
+        // البائع: إنشاء طلب تعديل
+        Route::post('/products/update-request/{product}', [ProductRequestsController::class, 'updateRequest']);
+        Route::post('/products/create-request', [ProductRequestsController::class, 'createRequest']);
+        Route::post('/products/delete-request/{product}', [ProductRequestsController::class, 'deleteRequest']);
+        Route::post('/products/approve/{req}', [ProductRequestsController::class, 'approve']);
 
 
 
-    // تأكيد الرمز
-    Route::post('verify', [VerificationController::class, 'verifyCode']);
-    Route::post('resend-code', [VerificationController::class, 'resendCode']);
+// الأدمن: موافقة/رفض
+        Route::post('/admin/product-change-requests/{id}/approve', [ProductRequestsController::class, 'approve'])
+            ->middleware(['auth:sanctum']);
 
-});
-
-Route::prefix('customer-auth')->middleware(['auth:sanctum','attach.user.area'])->group(function () {
-
-
-    Route::post('/orders/confirmOrder', [OrderController::class, 'confirm']);
-    Route::post('/orders/changePaymentMethod/{order_id}', [OrderController::class, 'changePaymentMethod']);
-    Route::get('/orders/my', [OrderController::class, 'myOrders']);
-    Route::get('/orders/{orderId}', [OrderController::class, 'show']);
-
-    // الحساب الشخصي
-    Route::put('/profile/update-profile', [UserController::class, 'updateProfile']);
-    Route::post('/profile/change-area', [UserController::class, 'changeArea']);
-    // إدارة العناوين
-    Route::get('addresses', [AddressController::class, 'index']);
-    Route::post('addresses/new', [AddressController::class, 'add']);
-    Route::get('addresses/{id}', [AddressController::class, 'show']);
-    Route::put('addresses/update/{id}', [AddressController::class, 'update']);
-    Route::delete('addresses/{id}', [AddressController::class, 'destroy']);
-
-    // المحفظة
-    Route::get('/wallet/balance', [WalletController::class, 'balance']);
-
-    //فريق الدعم
-    Route::get('/support-links', [LinkController::class, 'index']);
-    // الشكاوى
-    Route::post('complaints', [ComplaintController::class, 'store']);
-
-    // الإشعارات
-    Route::get('notifications', [NotificationController::class, 'index']);
+        Route::post('/admin/product-change-requests/{id}/reject', [ProductRequestsController::class, 'reject'])
+            ->middleware(['auth:sanctum']);
 
 
-});
+        // إدارة العناوين
+        Route::get('addresses', [AddressController::class, 'index']);
+        Route::post('addresses/new', [AddressController::class, 'add']);
+        Route::get('addresses/{id}', [AddressController::class, 'show']);
+        Route::put('addresses/update/{id}', [AddressController::class, 'update']);
+        Route::delete('addresses/{id}', [AddressController::class, 'destroy']);
+
+        // المحفظة
+        Route::get('/wallet/balance', [WalletController::class, 'balance']);
+
+        //فريق الدعم
+        Route::get('/support-links', [LinkController::class, 'index']);
+        // الشكاوى
+        Route::post('complaints', [ComplaintController::class, 'store']);
+
+
+        // الإشعارات
+        Route::get('notifications', [NotificationController::class, 'index']);
+
+
+    });

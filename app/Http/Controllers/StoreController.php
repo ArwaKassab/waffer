@@ -43,4 +43,6 @@ class StoreController extends Controller
         return response()->json($storeDetails);
     }
 
+
+
 }

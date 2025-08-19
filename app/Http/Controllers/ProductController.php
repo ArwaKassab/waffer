@@ -14,7 +14,7 @@ class ProductController extends Controller
         $this->productService = $productService;
     }
 
-    public function show($id)
+    public function productDetails($id)
     {
         $product = $this->productService->getProductDetails($id);
 
@@ -24,4 +24,11 @@ class ProductController extends Controller
 
         return response()->json($product);
     }
+
+     public function myStoreProducts(Request $request)
+     {
+         $storeId = auth()->id();
+         $perPage = (int) $request->query('per_page', 10);
+         return $this->productService->listStoreProductsSorted($storeId, $perPage);
+     }
 }

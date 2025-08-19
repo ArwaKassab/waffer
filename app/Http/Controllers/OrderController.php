@@ -2,6 +2,8 @@
 
 namespace App\Http\Controllers;
 
+use App\Http\Resources\StoreOrderResource;
+use App\Http\Resources\StoreOrderSummaryResource;
 use App\Services\OrderService;
 use Illuminate\Http\Request;
 use Illuminate\Http\JsonResponse;
@@ -15,13 +17,15 @@ class OrderController extends Controller
         $this->orderService = $orderService;
     }
 
-    // تأكيد الطلب
+    /////////////////////for customer///////////////////////
+
     public function confirm(Request $request): JsonResponse
     {
+
         $validated = $request->validate([
             'area_id' => 'required|exists:areas,id',
             'address_id' => 'required|exists:addresses,id',
-            'payment_method' => 'required|in:cash,wallet',
+            'payment_method' => 'required|in:نقدي,محفظة',
             'products' => 'required|array|min:1',
             'products.*.product_id' => 'required|exists:products,id',
             'products.*.quantity' => 'required|integer|min:1',
@@ -76,4 +80,89 @@ class OrderController extends Controller
     }
 
 
+    ////////////////////////////for store/////////////////////
+    public function pendingOrders(): JsonResponse
+    {
+        $storeId = auth()->id();
+        $orders = $this->orderService->getPendingOrdersForStore($storeId);
+
+        return response()->json([
+            'orders' => StoreOrderSummaryResource::collection($orders)
+        ]);
+    }
+
+    public function preparingOrders(): JsonResponse
+    {
+        $storeId = auth()->id();
+        $orders = $this->orderService->getPreparingOrdersForStore($storeId);
+
+        return response()->json([
+            'orders' => StoreOrderSummaryResource::collection($orders)
+        ]);
+    }
+
+    public function doneOrders(): JsonResponse
+    {
+        $storeId = auth()->id();
+        $orders = $this->orderService->getDoneOrdersForStore($storeId);
+
+        return response()->json([
+            'orders' => StoreOrderSummaryResource::collection($orders)
+        ]);
+    }
+
+    /**
+     * طلبات هذا المتجر التي تم رفضها.
+     */
+    public function rejectedOrders(): JsonResponse
+    {
+        $storeId = auth()->id();
+        $orders = $this->orderService->getRejectedOrdersForStore($storeId);
+
+        return response()->json([
+            'orders' => StoreOrderSummaryResource::collection($orders)
+        ]);
+    }
+
+// عرض تفاصيل طلب معيّن خاص بالمتجر
+    public function showStoreOrderDetails(int $orderId)
+    {
+        $storeId = auth()->id();
+        $order = $this->orderService->getStoreOrderDetails($orderId, $storeId);
+
+        if (!$order) {
+            return response()->json(['message' => 'الطلب غير موجود أو لا يخص هذا المتجر'], 404);
+        }
+
+        return response()->json(StoreOrderResource::make($order));
+    }
+
+    public function acceptOrder(int $orderId)
+    {
+        $storeId = auth()->id();
+
+        $result = $this->orderService->acceptStoreItems($orderId, $storeId);
+
+        return response()->json([
+            'message' => 'تم قبول الطلب من قبل المتجر',
+
+        ]);
+    }
+
+
+
+    public function rejectOrder(Request $request, int $orderId)
+    {
+        $storeId = auth()->id();
+
+        $validated = $request->validate([
+            'reason' => 'nullable|string|max:1000',
+        ]);
+
+        $this->orderService->rejectOrderByStore($orderId, $storeId, $validated['reason'] ?? null);
+
+        return response()->json(['message' => 'تم رفض الطلب من قبل المتجر']);
+    }
+
 }
+

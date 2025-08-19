@@ -27,6 +27,36 @@ class UserController extends Controller
         $this->userService = $userService;
     }
 
+    public function profile()
+    {
+        $user = auth('sanctum')->user();
+
+        if (!$user instanceof User) {
+            return response()->json(['message' => 'المستخدم غير مصرح له'], 403);
+        }
+
+        $userData = $user->toArray();
+
+        if ($user->type === 'store') {
+            $filteredUser = [
+                'name' => $userData['name'],
+                'open_hour' => $userData['open_hour'],
+                'close_hour' => $userData['close_hour'],
+                'status' => $userData['status'],
+                'image' => $userData['image'] ? asset('storage/' . $userData['image']) : null,
+            ];
+        } elseif ($user->type === 'customer') {
+            $filteredUser = [
+                'id' => $userData['id'],
+                'name' => $userData['name'],
+            ];
+        } else {
+            $filteredUser = ['message' => 'نوع المستخدم غير معروف'];
+        }
+
+        return response()->json(['user' => $filteredUser]);
+    }
+
 
 
     public function sendResetPasswordCode(Request $request)
@@ -122,8 +152,8 @@ class UserController extends Controller
             'email' => 'sometimes|nullable|email|unique:users,email,' . $user->id,
             'area_id' => 'sometimes|nullable|exists:areas,id',
             'image' => 'sometimes|nullable|image|mimes:jpeg,png,jpg,gif,svg|max:2048',
-            'open_hour' => 'sometimes|nullable|date_format:H:i',
-            'close_hour' => 'sometimes|nullable|date_format:H:i',
+            'open_hour' => 'sometimes|nullable|date_format:H:i:s',
+            'close_hour' => 'sometimes|nullable|date_format:H:i:s',
             'note' => 'sometimes|nullable|string',
             'current_password' => 'required_with:new_password|string',
             'new_password' => 'nullable|string|min:6|confirmed:new_password_confirmation',
@@ -144,10 +174,28 @@ class UserController extends Controller
 
         $response = $this->userService->updateProfile($user, $request);
 
+        $userData = $response['user'];
+
+        if ($user->type === 'store') {
+            $filteredUser = [
+                'name' => $userData['name'],
+                'open_hour' => $userData['open_hour'],
+                'close_hour' => $userData['close_hour'],
+                'status' => $userData['status'],
+                'image' => $userData['image'],
+            ];
+        } elseif($user->type === 'customer') {
+            $filteredUser = [
+                'name' => $userData['name'],
+            ];
+        }
+
+
         return response()->json([
             'message' => $response['message'],
-            'user' => $response['user'],
+            'user' => $filteredUser,
         ]);
+
     }
     public function changeArea(Request $request)
     {

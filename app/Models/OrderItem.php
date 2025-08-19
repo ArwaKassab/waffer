@@ -14,23 +14,24 @@ class OrderItem extends Model
         'product_id',
         'store_id',
         'quantity',
-        'price',
+        'unit_price',
+        'unit_price_after_discount',
+        'total_price',
+        'total_price_after_discount',
+        'discount_value',
     ];
 
-    // العلاقة مع الطلب
     public function order()
     {
         return $this->belongsTo(Order::class);
     }
 
-    // العلاقة مع المنتج
     public function product()
     {
         return $this->belongsTo(Product::class)->withTrashed();
     }
 
 
-    // العلاقة مع المتجر (المستخدم من نوع store)
     public function store()
     {
         return $this->belongsTo(User::class, 'store_id');

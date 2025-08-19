@@ -11,7 +11,7 @@ class CreateComplaintsTable extends Migration
         Schema::create('complaints', function (Blueprint $table) {
             $table->id();
             $table->foreignId('user_id')->constrained('users');
-            $table->enum('type', ['general', 'sellers', 'buyers', 'agents']);
+            $table->enum('type', ['محتوى الطلب', 'الدفع', 'التوصيل', 'غير ذلك']);
             $table->text('message');
             $table->timestamps();
             $table->softDeletes();

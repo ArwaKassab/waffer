@@ -14,6 +14,7 @@ class Product extends Model
         'price',
         'image',
         'status',
+        'quantity',
         'unit',
         'store_id',
     ];
@@ -56,4 +57,10 @@ class Product extends Model
             ->orderByDesc('id')
             ->first();
     }
+
+    public function changeRequests()
+    {
+        return $this->hasMany(ProductRequest::class, 'product_id');
+    }
+
 }

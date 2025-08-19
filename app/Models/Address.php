@@ -17,6 +17,7 @@ class Address extends Model
         'latitude',
         'longitude',
         'is_default',
+        'title',
     ];
 
     public function user()

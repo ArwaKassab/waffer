@@ -19,7 +19,7 @@ class AddressService
         $address = [
             'user_id' => $userId,
             'area_id' => $addressData['area_id'],
-//            'titel' => $addressData['titel'],
+            'title' => $addressData['title'],
             'address_details' => $addressData['address_details'],
             'latitude' => $addressData['latitude'],
             'longitude' => $addressData['longitude'],

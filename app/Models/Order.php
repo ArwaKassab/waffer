@@ -14,6 +14,8 @@ class Order extends Model
         'address_id',
         'total_product_price',
         'delivery_fee',
+        'discount_fee',
+        'totalAfterDiscount',
         'total_price',
         'date',
         'time',
@@ -46,4 +48,10 @@ class Order extends Model
     {
         return $this->belongsToMany(Offer::class, 'order_offers', 'order_id', 'offer_id');
     }
+
+    public function storeOrderResponses()
+    {
+        return $this->hasMany(StoreOrderResponse::class, 'order_id');
+    }
+
 }
