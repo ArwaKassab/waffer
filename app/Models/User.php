@@ -25,6 +25,10 @@ class User extends Authenticatable
         'wallet_balance',
         'type',
         'note',
+
+    ];
+    protected $casts = [
+        'phone_verified_at' => 'datetime',
     ];
     public function area()
     {

@@ -91,7 +91,9 @@ use App\Http\Controllers\UserController;
 
     // ✅ Customer Auth + Reset Password
     Route::prefix('customer')->group(function () {
-        Route::post('/register', [CustomerAuthController::class, 'register']);
+        Route::post('/register', [CustomerAuthController::class, 'startRegister']);
+        Route::post('/register/verify', [CustomerAuthController::class, 'verifyRegister']);
+
         Route::post('/login', [CustomerAuthController::class, 'login']);
     //    Route::middleware(['auth:sanctum', 'check.role:customer'])->get('/profile', [CustomerController::class, 'profile']);
         Route::middleware('auth:sanctum')->post('/logout', [CustomerAuthController::class, 'logout']);
@@ -151,9 +153,12 @@ use App\Http\Controllers\UserController;
         Route::get('/ads/latest', [AdController::class, 'latestAds']);
 
 
-        // تأكيد الرمز
-        Route::post('verify', [VerificationController::class, 'verifyCode']);
-        Route::post('resend-code', [VerificationController::class, 'resendCode']);
+        //search
+        Route::get('store/search', [StoreController::class, 'search']);
+        Route::get('store/categories-stores/search/{categoryId}', [StoreController::class, 'searchByCategory']);
+        Route::get('store/products/search/{store}', [ProductController::class, 'searchProductsInStore']);
+
+
 
     });
 

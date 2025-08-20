@@ -6,6 +6,8 @@ use App\Repositories\Contracts\UserRepositoryInterface;
 use App\Repositories\Eloquent\CartRepository;
 use App\Services\AddressService;
 use App\Services\RedisCartService;
+use Illuminate\Support\Facades\Cache;
+use Illuminate\Support\Facades\Crypt;
 use Illuminate\Support\Facades\DB;
 use Illuminate\Support\Facades\Hash;
 use Exception;
@@ -18,63 +20,174 @@ class CustomerAuthService
     protected AddressService $addressService;
     protected RedisCartService $redisCartService;
     protected CartRepository $cartRepo;
+    protected SmsChefOtpService $otpService;
 
-    public function __construct(UserRepositoryInterface $userRepo, AddressService $addressService, RedisCartService $redisCartService,CartRepository $cartRepo)
+    public function __construct(SmsChefOtpService $otpService, UserRepositoryInterface $userRepo, AddressService $addressService, RedisCartService $redisCartService, CartRepository $cartRepo)
     {
         $this->userRepo = $userRepo;
         $this->addressService = $addressService;
         $this->redisCartService = $redisCartService;
         $this->cartRepo = $cartRepo;
+        $this->otpService = $otpService;
+
     }
 
     /**
-     * تسجيل مستخدم جديد من نوع عميل مع إنشاء العنوان المرتبط به
-     *
-     * @param array $data
-     * @param string|null $visitorId معرف سلة الزائر (اختياري)
-     * @return \App\Models\User
-     * @throws Exception
+     * 1) بدء التسجيل: نخزّن البيانات مؤقتًا، نرسل OTP، ونرجع temp_id.
      */
-    public function registerCustomer(array $data, ?string $visitorId = null)
+    public function startRegistration(array $data, ?string $visitorId = null): array
     {
+        $tempId = (string)Str::uuid();
+
+        $data['phone'] = $this->normalizeCanonical00963Local($data['phone'] ?? '');
+
+        $payload = $data;
+        $payload['password'] =Hash::make($data['password']);
+        $payload['type'] = 'customer';
+        $payload['visitor_id'] = $visitorId;
+
+        $otpPlain = app(SmsChefOtpService::class)->generateOtp(6);
+        $payload['otp_hash'] = Hash::make($otpPlain);
+
+        $encrypted = Crypt::encryptString(json_encode($payload, JSON_UNESCAPED_UNICODE));
+        $ttlSeconds = (int)config('services.smschef.expire', 300) + 120;
+        Cache::put($this->cacheKey($tempId), $encrypted, $ttlSeconds);
+
+        // ✅ عند الإرسال للمزوّد نحول الصيغة الداخلية (00963...) إلى صيغة الإرسال (+963...)
+        $phoneForSms = $this->toSmsE164PlusFromCanonical($data['phone']);
+
+        $sendMeta = app(SmsChefOtpService::class)->sendOtpViaDevice(
+            $phoneForSms,
+            $otpPlain,
+            'رمز تفعيل حسابك'
+        );
+
+        return [$tempId, $sendMeta];
+    }
+
+    public function finalizeRegistration(string $tempId, string $phone, string $otpInput): \App\Models\User
+    {
+        $encrypted = Cache::pull($this->cacheKey($tempId));
+        if (!$encrypted) {
+            throw new \RuntimeException('انتهت صلاحية جلسة التسجيل. أعد المحاولة.');
+        }
+
+        $json = Crypt::decryptString($encrypted);
+        $data = json_decode($json, true) ?: [];
+
+        // ✅ طبّعي الرقمين للصيغة الداخلية 00963... قبل المقارنة
+        $storedPhone = $this->normalizeCanonical00963Local($data['phone'] ?? '');
+        $inputPhone = $this->normalizeCanonical00963Local($phone);
+
+        if ($storedPhone === '' || $storedPhone !== $inputPhone) {
+            Cache::put($this->cacheKey($tempId), $encrypted, 120);
+            throw new \RuntimeException('بيانات التسجيل غير متطابقة.');
+        }
+
+        // تحقق OTP المحلي
+        if (empty($data['otp_hash']) || !Hash::check($otpInput, $data['otp_hash'])) {
+            Cache::put($this->cacheKey($tempId), $encrypted, 120);
+            throw new \RuntimeException('رمز التفعيل غير صحيح.');
+        }
+
         DB::beginTransaction();
-
         try {
-            $data['password'] = Hash::make($data['password']);
-            $data['type'] = 'customer';
+            $user = $this->userRepo->create([
+                'name' => $data['name'],
+                'phone' => $storedPhone,
+                'password' => $data['password'],
+                'type' => $data['type'] ?? 'customer',
+                'area_id' => $data['area_id'],
 
-            $user = $this->userRepo->create($data);
+            ]);
 
             $this->addressService->createAddressForUser($user->id, [
                 'area_id' => $data['area_id'],
                 'address_details' => $data['address_details'],
-                'latitude' => $data['latitude'],
-                'longitude' => $data['longitude'],
+                'latitude' => $data['latitude'] ?? null,
+                'longitude' => $data['longitude'] ?? null,
                 'title' => $data['title'],
             ]);
 
-            // 2. إنشاء سلة للمستخدم (إذا لم تكن موجودة)
             $userCart = $this->cartRepo->getCartByUserId($user->id);
             if (!$userCart) {
                 $userCart = $this->cartRepo->createCartForUser($user->id);
             }
 
-            // 3. ترحيل سلة الزائر إن وجدت visitor_id
-            if ($visitorId) {
-                $this->redisCartService->migrateVisitorCartToUserCart($visitorId, $user->id);
+            if (!empty($data['visitor_id'])) {
+                $this->redisCartService->migrateVisitorCartToUserCart($data['visitor_id'], $user->id);
             }
 
+            $user->forceFill(['phone_verified_at' => now()])->save();
 
             DB::commit();
-
             return $user;
 
-        } catch (Exception $e) {
+        } catch (\Exception $e) {
             DB::rollBack();
+            Cache::put($this->cacheKey($tempId), $encrypted, 180);
             throw $e;
         }
     }
 
+    /** ======================
+     *  Helpers – تطبيع الأرقام
+     *  ====================== */
 
+    /**
+     * الصيغة الداخلية القياسية: 00963xxxxxxxxx
+     * (نسخة محلية داخل الـService)
+     */
+    private function normalizeCanonical00963Local(string $phone): string
+    {
+        $digits = preg_replace('/\D+/', '', $phone);
 
+        if ($digits === '') return '00963'; // حارس بسيط
+
+        if (str_starts_with($digits, '00963')) {
+            return $digits;
+        }
+        if (str_starts_with($digits, '963')) {
+            return '00963' . substr($digits, 3);
+        }
+        if (str_starts_with($digits, '0')) {
+            return '00963' . substr($digits, 1);
+        }
+        if (strlen($digits) === 9) {
+            return '00963' . $digits;
+        }
+        return $digits;
+    }
+
+    /**
+     * تحويل من الصيغة الداخلية 00963xxxxxxxxx إلى صيغة الإرسال +963xxxxxxxxx
+     * (تستخدم عند الإرسال لمزوّد SMS فقط)
+     */
+    private function toSmsE164PlusFromCanonical(string $phone): string
+    {
+        $digits = preg_replace('/\D+/', '', $phone);
+
+        if (str_starts_with($digits, '00963')) {
+            return '+963' . substr($digits, 5);
+        }
+        if (str_starts_with($digits, '963')) {
+            return '+' . $digits;
+        }
+        if (str_starts_with($digits, '0')) {
+            return '+963' . substr($digits, 1);
+        }
+        if (strlen($digits) === 9) {
+            return '+963' . $digits;
+        }
+        // fallback: لو كان مسبقاً بصيغة +…
+        if (str_starts_with($phone, '+')) {
+            return $phone;
+        }
+        return '+' . $digits;
+    }
+
+    private function cacheKey(string $tempId): string
+    {
+        return 'register:pending:' . $tempId;
+    }
 }

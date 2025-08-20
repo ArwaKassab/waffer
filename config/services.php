@@ -31,4 +31,14 @@ return [
         'region' => env('AWS_DEFAULT_REGION', 'us-east-1'),
     ],
 
+    'smschef' => [
+        'base_url'     => env('SMSCHEF_BASE_URL', 'https://www.cloud.smschef.com'),
+        'secret'       => env('SMSCHEF_SECRET'),
+        'device_uuid'  => env('SMSCHEF_DEVICE_UUID'),
+        'sim'          => (int) env('SMSCHEF_SIM', 1),
+        'priority'     => (int) env('SMSCHEF_PRIORITY', 1),
+        'expire'       => (int) env('SMSCHEF_EXPIRE', 300),
+    ],
+
+
 ];
