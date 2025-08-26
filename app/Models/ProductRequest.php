@@ -7,20 +7,14 @@ use Illuminate\Database\Eloquent\Model;
 class ProductRequest extends Model
 {
     protected $table = 'product_change_requests';
+    protected $guarded = [];
 
     protected $fillable = [
-        'product_id',
-        'store_id',
-        'action',
-        'status',
-        'name',
-        'price',
-        'status_value',
-        'quantity',
-        'unit',
-        'product_updated_at_snapshot',
-        'review_note',
+        'action','product_id','store_id','status',
+        'name','price','status_value','quantity','unit','image',
+        'product_updated_at_snapshot','review_note',
     ];
+
 
     /**
      * المنتج المرتبط بالطلب (للـ update فقط).

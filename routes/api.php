@@ -93,6 +93,7 @@ use App\Http\Controllers\UserController;
     Route::prefix('customer')->group(function () {
         Route::post('/register', [CustomerAuthController::class, 'startRegister']);
         Route::post('/register/verify', [CustomerAuthController::class, 'verifyRegister']);
+        Route::post('register/resend-otp', [CustomerAuthController::class, 'resendRegisterOtp']);
 
         Route::post('/login', [CustomerAuthController::class, 'login']);
     //    Route::middleware(['auth:sanctum', 'check.role:customer'])->get('/profile', [CustomerController::class, 'profile']);
@@ -232,22 +233,17 @@ use App\Http\Controllers\UserController;
         Route::get('/products', [ProductController::class, 'myStoreProducts']);
         Route::get('/products/product-details/{productId}', [ProductController::class, 'productDetails']);
 
+        //الخصومات
+        Route::post('products/discounts/{productId}', [ProductController::class, 'addDiscount']);
+
 
         // البائع: إنشاء طلب تعديل
         Route::post('/products/update-request/{product}', [ProductRequestsController::class, 'updateRequest']);
         Route::post('/products/create-request', [ProductRequestsController::class, 'createRequest']);
         Route::post('/products/delete-request/{product}', [ProductRequestsController::class, 'deleteRequest']);
         Route::post('/products/approve/{req}', [ProductRequestsController::class, 'approve']);
-
-
-
-// الأدمن: موافقة/رفض
-        Route::post('/admin/product-change-requests/{id}/approve', [ProductRequestsController::class, 'approve'])
-            ->middleware(['auth:sanctum']);
-
-        Route::post('/admin/product-change-requests/{id}/reject', [ProductRequestsController::class, 'reject'])
-            ->middleware(['auth:sanctum']);
-
+        Route::patch('/requests/update-pending-request/{requestId}', [ProductRequestsController::class, 'updatePending']);
+        Route::get('/requests/pending', [ProductRequestsController::class, 'getPendingRequests']);
 
         // إدارة العناوين
         Route::get('addresses', [AddressController::class, 'index']);
@@ -267,6 +263,15 @@ use App\Http\Controllers\UserController;
 
         // الإشعارات
         Route::get('notifications', [NotificationController::class, 'index']);
+
+
+
+// الأدمن: موافقة/رفض
+        Route::post('/admin/product-change-requests/{id}/approve', [ProductRequestsController::class, 'approve'])
+            ->middleware(['auth:sanctum']);
+
+        Route::post('/admin/product-change-requests/{id}/reject', [ProductRequestsController::class, 'reject'])
+            ->middleware(['auth:sanctum']);
 
 
     });

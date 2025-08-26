@@ -60,7 +60,7 @@ class ProductRequestRepository
         ]);
     }
 
-    public function createCreateRequest(int $storeId, array $data, ): ProductRequest
+    public function createCreateRequest(int $storeId, array $data ): ProductRequest
     {
         return ProductRequest::create([
             'action'      => 'create',
@@ -82,7 +82,7 @@ class ProductRequestRepository
             'product_id' => $product->id,
             'store_id' => $storeId,
             'status' => 'pending',
-            'product_updated_at_snapshot' => $product->updated_at, // لقفل تفاؤلي
+            'product_updated_at_snapshot' => $product->updated_at,
         ]);
     }
 
@@ -100,5 +100,50 @@ class ProductRequestRepository
             'status' => 'rejected',
             'review_note' => $note,
         ]);
+    }
+
+    // app/Repositories/Eloquent/ProductRequestRepository.php
+
+    public function findPendingByIdForStore(int $id, int $storeId): ?ProductRequest
+    {
+        return ProductRequest::where('id', $id)
+            ->where('store_id', $storeId)
+            ->where('status', 'pending')
+            ->first();
+    }
+
+    public function existsOtherPendingCreateWithName(int $storeId, string $name, int $excludeId): bool
+    {
+        return ProductRequest::where('action', 'create')
+            ->where('status', 'pending')
+            ->where('store_id', $storeId)
+            ->where('name', $name)
+            ->where('id', '!=', $excludeId)
+            ->exists();
+    }
+
+    public function updateRequestFields(ProductRequest $req, array $data): ProductRequest
+    {
+        $allowed = ['name','price','status_value','quantity','unit','image'];
+        $updates = [];
+
+        foreach ($allowed as $field) {
+            if (array_key_exists($field, $data)) {
+                $updates[$field] = $data[$field];
+            }
+        }
+
+        if (!empty($updates)) {
+            $req->forceFill($updates)->save();
+        }
+
+        return $req->fresh();
+    }
+
+    public function getPendingRequestsForStore(int $storeId): Collection
+    {
+        return ProductRequest::where('store_id', $storeId)
+            ->where('status', 'pending')
+            ->get();
     }
 }

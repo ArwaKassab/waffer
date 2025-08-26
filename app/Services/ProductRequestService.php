@@ -6,6 +6,7 @@ namespace App\Services;
 use App\Models\Product;
 use App\Models\ProductRequest;
 use App\Repositories\Eloquent\ProductRequestRepository;
+use Illuminate\Database\Eloquent\Collection;
 use Illuminate\Support\Facades\DB;
 use Illuminate\Validation\ValidationException;
 
@@ -46,6 +47,47 @@ class ProductRequestService
             ]);
         }
         return $this->repo->createDeleteRequest($product, $storeId);
+    }
+
+
+    public function editPendingRequest(int $requestId, int $storeId, array $data): ProductRequest
+    {
+        $req = $this->repo->findPendingByIdForStore($requestId, $storeId);
+        if (!$req) {
+            throw ValidationException::withMessages(['request' => 'لا يوجد طلب معلّق بهذا المعرّف.']);
+        }
+
+        if (array_key_exists('status', $data)) {
+            $data['status_value'] = $data['status'];
+            unset($data['status']);
+        }
+
+
+        if ($req->action === 'create') {
+            if (isset($data['name']) && $this->repo->existsOtherPendingCreateWithName($storeId, $data['name'], $req->id)) {
+                throw ValidationException::withMessages(['name' => 'يوجد طلب إضافة معلق بنفس الاسم في هذا المتجر.']);
+            }
+            return $this->repo->updateRequestFields($req, $data);
+        }
+
+        if ($req->action === 'update') {
+            $product = $req->product()->firstOrFail();
+            if ((int)$product->store_id !== (int)$storeId) {
+                throw ValidationException::withMessages(['store' => 'هذا الطلب لا يتبع متجرك.']);
+            }
+            // تحدّيث الـ snapshot
+            $req->product_updated_at_snapshot = $product->updated_at;
+            $req->save();
+
+            return $this->repo->updateRequestFields($req, $data);
+        }
+
+        throw ValidationException::withMessages(['action' => 'نوع الطلب غير مدعوم.']);
+    }
+
+    public function getPendingRequests(int $storeId): Collection
+    {
+        return $this->repo->getPendingRequestsForStore($storeId);
     }
 
     /**
@@ -122,10 +164,10 @@ class ProductRequestService
         });
     }
 
-    public function reject(ProductRequest $req, int $adminId, ?string $note=null): void
+    public function reject(ProductRequest $req, ?string $note=null): void
     {
         if ($req->status === 'pending') {
-            $this->repo->markRejected($req, $adminId, $note);
+            $this->repo->markRejected($req, $note);
         }
     }
 }

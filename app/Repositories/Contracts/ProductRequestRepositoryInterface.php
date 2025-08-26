@@ -16,12 +16,12 @@ interface ProductRequestRepositoryInterface
     /**
      * إرجاع الطلب المعلّق لمنتج معيّن (إن وجد).
      */
-    public function getPendingByProduct(int $productId): ?ProductChangeRequest;
+    public function getPendingByProduct(int $productId): ?ProductRequest;
 
     /**
      * إنشاء طلب تعديل (Update) لمنتج موجود.
      */
-    public function createUpdateRequest(Product $product, array $data, int $userId): ProductChangeRequest;
+    public function createUpdateRequest(Product $product, array $data, int $userId): ProductRequest;
 
     /**
      * هل يوجد طلب إنشاء معلّق لنفس الاسم داخل متجر معيّن؟
@@ -32,7 +32,7 @@ interface ProductRequestRepositoryInterface
     /**
      * إنشاء طلب إنشاء (Create) لمنتج جديد داخل متجر.
      */
-    public function createCreateRequest(int $storeId, array $data, int $userId): ProductChangeRequest;
+    public function createCreateRequest(int $storeId, array $data, int $userId): ProductRequest;
 
     /**
      * تعليم الطلب كمقبول (ويُفضّل استدعاؤها بعد تطبيق التغييرات في Service).
@@ -43,4 +43,7 @@ interface ProductRequestRepositoryInterface
      * تعليم الطلب كمرفوض.
      */
     public function markRejected(ProductRequest $req, int $adminId, ?string $note = null): void;
+
+    public function updateCreateRequest(ProductRequest $req, array $data): ProductRequest;
+
 }

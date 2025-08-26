@@ -64,7 +64,6 @@ class SmsChefOtpService
      * إرسال SMS عادي عبر الجهاز المتصل باستخدام /api/send
      * هذا المدخل يدعم تميرير معرّف الجهاز (device_id أو host) حسب .env
      */
-    // App/Services/SmsChefOtpService.php
     public function sendOtpViaDevice(string $phone, string $otp, ?string $prefixMessage = null): array
     {
         $cfg = config('services.smschef');

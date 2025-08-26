@@ -4,6 +4,7 @@ namespace App\Http\Controllers;
 
 use App\Http\Requests\LoginCustomerRequest;
 use App\Http\Requests\RegisterCustomerRequest;
+use App\Http\Requests\ResendRegisterOtpRequest;
 use App\Http\Requests\StartRegisterRequest;
 use App\Http\Requests\VerifyRegisterRequest;
 use App\Http\Resources\CustomerResource;
@@ -101,6 +102,53 @@ class CustomerAuthController extends Controller
         ], 201);
     }
 
+    public function resendRegisterOtp(ResendRegisterOtpRequest $request): JsonResponse
+    {
+        $tempId = $request->input('temp_id');
+        // طبّع الصيغة إلى 00963xxxxxxxxx
+        $phone  = $this->normalizeCanonical00963($request->input('phone'));
+
+        // Rate limit لإعادة الإرسال
+        $key = 'register-resend:' . sha1($phone . '|' . $request->ip());
+        if (RateLimiter::tooManyAttempts($key, 3)) {
+            return response()->json([
+                'message' => 'محاولات كثيرة لإعادة الإرسال. حاول لاحقًا.',
+                'retry_after_seconds' => RateLimiter::availableIn($key),
+            ], 429);
+        }
+        RateLimiter::hit($key, 60); // محاولة كل 60 ثانية
+
+        try {
+            $sendMeta = $this->customerService->resendRegistrationOtp($tempId, $phone);
+
+            if (!empty($sendMeta['ok'])) {
+                return response()->json([
+                    'message'           => 'تمت جدولة إعادة إرسال رمز التفعيل.',
+                    'verification_step' => 'otp_pending',
+                    'temp_id'           => $tempId,
+                    'phone'             => $phone,
+                ], 200);
+            }
+
+            // فشل قبول الطلب من مزوّد SMS
+            return response()->json([
+                'message' => 'تعذّر إعادة إرسال الرمز حاليًا. حاول بعد قليل.',
+                'temp_id' => $tempId,
+                'phone'   => $phone,
+            ], 502);
+
+        } catch (\RuntimeException $e) {
+            // جلسة التسجيل منتهية أو رقم غير مطابق
+            return response()->json([
+                'message' => $e->getMessage(),
+            ], 410);
+        } catch (\Throwable $e) {
+            return response()->json([
+                'message' => 'حدث خطأ غير متوقع.',
+            ], 500);
+        }
+    }
+
     /** ======================
      *  Helpers – تطبيع الأرقام
      *  ====================== */
@@ -150,12 +198,4 @@ class CustomerAuthController extends Controller
 
         return response()->json(['message' => 'تم تسجيل الخروج بنجاح']);
     }
-
-
-
-
-
-
-
-
 }

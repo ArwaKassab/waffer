@@ -2,9 +2,10 @@
 
 namespace App\Http\Controllers;
 
-use App\Http\Requests\ProductRequestStore;        // لـ تحديث منتج (FormRequest)
+use App\Http\Requests\ProductRequestStore;
+use App\Http\Requests\ProductRequestUpdatePending;
 use App\Models\Product;
-use App\Models\ProductRequest ; // تجنّب تضارب الاسم مع الـ FormRequest
+use App\Models\ProductRequest ;
 use App\Models\User;
 use App\Services\ProductRequestService;
 use Illuminate\Http\JsonResponse;
@@ -18,7 +19,7 @@ class ProductRequestsController extends Controller
 
     public function updateRequest(ProductRequestStore $request, int $productId): JsonResponse
     {
-        /** @var \App\Models\Product $product */
+        /** @var Product $product */
 
         $product = Product::findOrFail($productId);
         $product->load('store');
@@ -42,8 +43,8 @@ class ProductRequestsController extends Controller
         $store   = User::findOrFail($storeId);
 
         $reqModel = $this->service->submitCreateRequest(
-            $request->validated(),   // array
-            $store->id               // int (store_id)
+            $request->validated(),
+            $store->id
 
         );
 
@@ -52,6 +53,7 @@ class ProductRequestsController extends Controller
             'request_id' => $reqModel->id,
         ], 201);
     }
+
 
     public function deleteRequest(int $productId): JsonResponse
     {
@@ -68,13 +70,52 @@ class ProductRequestsController extends Controller
         ], 201);
     }
 
+    public function updatePending(ProductRequestUpdatePending $request, int $requestId): JsonResponse
+    {
+        $storeId = (int) auth()->id();
+
+        $req = $this->service->editPendingRequest(
+            $requestId,
+            $storeId,
+            $request->validated()
+        );
+
+        return response()->json([
+            'message'    => 'تم تعديل الطلب وهو ما يزال بانتظار موافقة الأدمن.',
+            'request_id' => $req->id,
+            'action'     => $req->action,           // create | update
+            'status'     => $req->status,           // pending
+            'data'       => [
+                'name'        => $req->name,
+                'price'       => $req->price,
+                'status'      => $req->status_value,
+                'quantity'    => $req->quantity,
+                'unit'        => $req->unit,
+                'image'       => $req->image,
+            ],
+        ], 200);
+    }
+
+
+    public function getPendingRequests(): JsonResponse
+    {
+        $storeId = (int) auth()->id();
+
+        $requests = $this->service->getPendingRequests($storeId);
+
+        return response()->json([
+            'message'   => 'الطلبات المعلّقة',
+            'requests'  => $requests,
+        ], 200);
+    }
+
     // ---- admin ----
 
     public function approve(int $id, Request $request): JsonResponse
     {
-        /** @var \App\Models\ProductRequest $req */
+        /** @var ProductRequest $req */
         $req = ProductRequest::findOrFail($id);
-        $req->load('product'); // حمّل العلاقة بعدين
+        $req->load('product');
         $storeId = (int) auth()->id();
 
         $storeId = $req->action === 'create' ? $req->store_id : null;
@@ -95,9 +136,9 @@ class ProductRequestsController extends Controller
         $req->load('product');
 
         $this->service->reject(
-            $req,                           // \App\Models\ProductRequest
-            (int) auth()->id(),             // int (admin_id)
-            $request->input('note')         // ?string
+            $req,
+            (int) auth()->id(),
+            $request->input('note')
         );
 
         return response()->json(['message' => 'تم رفض الطلب.']);

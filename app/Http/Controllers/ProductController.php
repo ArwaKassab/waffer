@@ -2,18 +2,24 @@
 
 namespace App\Http\Controllers;
 
+use App\Http\Requests\StoreProductDiscountRequest;
 use App\Models\Product;
 use App\Models\User;
+use App\Services\DiscountService;
+use Illuminate\Http\JsonResponse;
 use Illuminate\Http\Request;
 use App\Services\ProductService;
 
 class ProductController extends Controller
 {
     protected ProductService $productService;
+    private DiscountService $discountService;
 
-    public function __construct(ProductService $productService)
+    public function __construct(ProductService $productService , DiscountService $discountService)
     {
         $this->productService = $productService;
+        $this->discountService = $discountService;
+
     }
 
     public function productDetails($id)
@@ -81,5 +87,29 @@ class ProductController extends Controller
             'products'   => $products,
         ]);
     }
+
+    public function addDiscount(StoreProductDiscountRequest $request, int $productId): JsonResponse
+    {
+        $storeId = (int) auth()->id();
+
+        [$product, $discount] = $this->discountService->addByStore(
+            $storeId,
+            $productId,
+            $request->validated()
+        );
+
+        return response()->json([
+            'message'      => 'تم إضافة الخصم بنجاح.',
+            'product_id'   => $product->id,
+            'original_price' => $product->price,
+            'discount'     => [
+                'id'         => $discount->id,
+                'new_price'  => $discount->new_price,
+                'start_date' => $discount->start_date->toDateTimeString(),
+                'end_date'   => $discount->end_date->toDateTimeString(),
+            ],
+        ], 201);
+    }
+
 }
 

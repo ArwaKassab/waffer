@@ -130,6 +130,45 @@ class CustomerAuthService
         }
     }
 
+    public function resendRegistrationOtp(string $tempId, string $phone): array
+    {
+        $cacheKey  = $this->cacheKey($tempId);
+        $encrypted = Cache::get($cacheKey);
+
+        if (!$encrypted) {
+            throw new \RuntimeException('انتهت صلاحية جلسة التسجيل. أعد البدء.');
+        }
+
+        $json  = Crypt::decryptString($encrypted);
+        $data  = json_decode($json, true) ?: [];
+
+        // طَبّع الرقمين للصيغة الداخلية وقارِن
+        $storedPhone = $this->normalizeCanonical00963Local($data['phone'] ?? '');
+        $inputPhone  = $this->normalizeCanonical00963Local($phone);
+
+        if ($storedPhone === '' || $storedPhone !== $inputPhone) {
+            throw new \RuntimeException('رقم الهاتف لا يطابق الجلسة الحالية.');
+        }
+
+        // توليد OTP جديد وتحديث الهاش
+        $otpPlain          = app(SmsChefOtpService::class)->generateOtp(6);
+        $data['otp_hash']  = Hash::make($otpPlain);
+
+        // أعِد تشفير + تخزين (تجديد TTL)
+        $encryptedNew = Crypt::encryptString(json_encode($data, JSON_UNESCAPED_UNICODE));
+        $ttlSeconds   = (int)config('services.smschef.expire', 300) + 120;
+        Cache::put($cacheKey, $encryptedNew, $ttlSeconds);
+
+        // أرسِل عبر الجهاز: 00963… → +963…
+        $phoneForSms = $this->toSmsE164PlusFromCanonical($storedPhone);
+
+        return app(SmsChefOtpService::class)->sendOtpViaDevice(
+            $phoneForSms,
+            $otpPlain,
+            'رمز تفعيل حسابك'
+        );
+    }
+
     /** ======================
      *  Helpers – تطبيع الأرقام
      *  ====================== */
@@ -180,4 +219,9 @@ class CustomerAuthService
     {
         return 'register:pending:' . $tempId;
     }
+
+
 }
+
+
+

@@ -10,13 +10,10 @@ class CreateDiscountsTable extends Migration
     {
         Schema::create('discounts', function (Blueprint $table) {
             $table->id();
-            $table->string('title');
-            $table->text('description');
             $table->foreignId('product_id')->constrained('products')->onDelete('cascade');
             $table->decimal('new_price', 10, 2);
             $table->date('start_date');
             $table->date('end_date');
-            $table->enum('status', ['active', 'inactive'])->default('active');
             $table->timestamps();
             $table->softDeletes();
         });
