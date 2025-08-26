@@ -221,7 +221,7 @@ class OrderRepository
         return OrderItem::where('order_id', $orderId)
             ->where('store_id', $storeId)
             ->where('status', 'مقبول')
-            ->sum('total_price_after_discount'); // لو تبين المجموع قبل الخصم استبدليه بـ total_price
+            ->sum('total_price_after_discount');
     }
 
 

@@ -64,6 +64,7 @@ class SmsChefOtpService
      * إرسال SMS عادي عبر الجهاز المتصل باستخدام /api/send
      * هذا المدخل يدعم تميرير معرّف الجهاز (device_id أو host) حسب .env
      */
+    // App/Services/SmsChefOtpService.php
     public function sendOtpViaDevice(string $phone, string $otp, ?string $prefixMessage = null): array
     {
         $cfg = config('services.smschef');
@@ -72,24 +73,42 @@ class SmsChefOtpService
 
         $payload = [
             'secret'   => $cfg['secret'],
-            'mode'     => 'devices',                 // مهم
-            'device'   => $cfg['device_uuid'],       // UUID للجهاز من لوحة SMSChef
-            'sim'      => (int) ($cfg['sim'] ?? 1),  // 1 أو 2 حسب الشريحة
-            'priority' => (int) ($cfg['priority'] ?? 1),
+            'mode'     => 'devices',
+            'device'   => $cfg['device_uuid'],
+            'sim'      => (int)($cfg['sim'] ?? 1),
+            'priority' => (int)($cfg['priority'] ?? 1),
             'phone'    => $phone,
             'message'  => $message,
         ];
 
         $url = rtrim($cfg['base_url'], '/') . '/api/send/sms';
 
-        $res  = \Illuminate\Support\Facades\Http::asForm()->post($url, $payload);
-        $body = $res->json() ?? $res->body();
+        try {
+            $res  = \Illuminate\Support\Facades\Http::asForm()->timeout(15)->post($url, $payload);
+            $body = $res->json() ?? [];
 
-        return [
-            'http_status' => $res->status(),
-            'body'        => $body,
-        ];
+            $apiStatus = (int)($body['status'] ?? 0);
+            $messageId = $body['data']['messageId'] ?? null;
+
+            // نجاح = تم قبول الرسالة في طابور الإرسال (Queued)
+            $ok = $res->successful() && $apiStatus === 200 && !empty($messageId);
+
+            return [
+                'ok'          => $ok,
+                'state'       => $ok ? 'queued' : 'failed',
+                'message_id'  => $messageId,
+                'http_status' => $res->status(),
+                'provider_msg'=> $body['message'] ?? null,
+            ];
+        } catch (\Throwable $e) {
+            return [
+                'ok'    => false,
+                'state' => 'exception',
+                'error' => $e->getMessage(),
+            ];
+        }
     }
+
 
 
     public function getSentSms(int $limit = 10, int $page = 1, ?string $phone = null): array

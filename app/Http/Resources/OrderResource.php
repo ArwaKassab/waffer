@@ -45,7 +45,7 @@ class OrderResource extends JsonResource
                     'total_price' => (float) $item->total_price,
                     'total_price_after_discount' => (float) $item->total_price_after_discount,
                     'discount_value' => (float) $item->discount_value,
-//                    'status' => $item->status,
+                    'status' => $item->status,
                 ];
             }),
             'discounts' => $this->orderDiscounts->map(function ($discount) {

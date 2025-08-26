@@ -142,49 +142,39 @@ class CustomerAuthService
     {
         $digits = preg_replace('/\D+/', '', $phone);
 
-        if ($digits === '') return '00963'; // حارس بسيط
+        if (preg_match('/^00963\d{9}$/', $digits)) {
+            return $digits; // جاهزة للتخزين
+        }
 
-        if (str_starts_with($digits, '00963')) {
-            return $digits;
-        }
-        if (str_starts_with($digits, '963')) {
-            return '00963' . substr($digits, 3);
-        }
-        if (str_starts_with($digits, '0')) {
+        if (preg_match('/^09\d{8}$/', $digits)) {
             return '00963' . substr($digits, 1);
         }
-        if (strlen($digits) === 9) {
-            return '00963' . $digits;
-        }
-        return $digits;
+
+        throw new \InvalidArgumentException('صيغة رقم غير مسموح بها.');
     }
 
-    /**
-     * تحويل من الصيغة الداخلية 00963xxxxxxxxx إلى صيغة الإرسال +963xxxxxxxxx
-     * (تستخدم عند الإرسال لمزوّد SMS فقط)
-     */
     private function toSmsE164PlusFromCanonical(string $phone): string
     {
         $digits = preg_replace('/\D+/', '', $phone);
 
-        if (str_starts_with($digits, '00963')) {
+        // من 00963xxxxxxxxx إلى +963xxxxxxxxx
+        if (preg_match('/^00963\d{9}$/', $digits)) {
             return '+963' . substr($digits, 5);
         }
-        if (str_starts_with($digits, '963')) {
-            return '+' . $digits;
-        }
-        if (str_starts_with($digits, '0')) {
+
+        // لو وصل 09xxxxxxxx نحوله مباشرة للإرسال
+        if (preg_match('/^09\d{8}$/', $digits)) {
             return '+963' . substr($digits, 1);
         }
-        if (strlen($digits) === 9) {
-            return '+963' . $digits;
-        }
-        // fallback: لو كان مسبقاً بصيغة +…
-        if (str_starts_with($phone, '+')) {
+
+        // لو كان أصلاً بصيغة +963xxxxxxxxx
+        if (preg_match('/^\+963\d{9}$/', $phone)) {
             return $phone;
         }
-        return '+' . $digits;
+
+        throw new \InvalidArgumentException('صيغة رقم غير صالحة للإرسال.');
     }
+
 
     private function cacheKey(string $tempId): string
     {

@@ -12,7 +12,7 @@ class VerifyRegisterRequest extends FormRequest
     {
         return [
             'temp_id' => ['required','string'], // مُعرّف الحزمة المؤقتة
-            'phone'   => ['required','string','min:6','max:20'],
+            'phone'   => ['required','regex:/^09\d{8}$/'],
             'otp'     => ['required','string','min:4','max:10'],
         ];
     }

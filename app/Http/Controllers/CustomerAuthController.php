@@ -29,7 +29,8 @@ class CustomerAuthController extends Controller
     protected SmsChefOtpService $otpService;
 
 
-    public function __construct(SmsChefOtpService $otpService ,CustomerAuthService $CustomerService, UserRepositoryInterface $userRepo)
+    public function __construct(SmsChefOtpService $otpService ,CustomerAuthService $CustomerService,
+                                UserRepositoryInterface $userRepo)
     {
         $this->userRepo = $userRepo;
         $this->customerService = $CustomerService;
@@ -44,7 +45,6 @@ class CustomerAuthController extends Controller
         $data = $request->validated();
         $visitorId = $request->cookie('visitor_id');
 
-        // ✅ خليه يدخل 09xxxxxxxx – ونحوّله داخلياً إلى 00963xxxxxxxxx
         $data['phone'] = $this->normalizeCanonical00963($data['phone']);
 
         $key = 'register-start:' . sha1(($data['phone'] ?? '') . '|' . $request->ip());
@@ -62,14 +62,26 @@ class CustomerAuthController extends Controller
 
         [$tempId, $sendMeta] = $this->customerService->startRegistration($data, $visitorId);
 
+        // ✅ رجّع حالة واضحة للفرونتند
+        if (!empty($sendMeta['ok'])) {
+            return response()->json([
+                'message'            => 'تمت جدولة إرسال رمز التفعيل.',
+                'verification_step'  => 'otp_pending',
+                'temp_id'            => $tempId,
+                'phone'              => $data['phone'],
+//                'sent'               => true,
+//                'message_id'         => $sendMeta['message_id'] ?? null,
+            ], 200);
+        }
+
         return response()->json([
-            'message' => 'تم إرسال رمز التفعيل إلى هاتفك.',
-            'verification_step' => 'otp_required',
-            'temp_id' => $tempId,
-            'phone' => $data['phone'],
-            'debug_smschef' => $sendMeta,
-        ], 200);
+            'message'   => 'تعذّر إرسال رمز التفعيل حاليًا. حاول بعد قليل.',
+            'sent'      => false,
+            'temp_id'   => $tempId,
+            'phone'     => $data['phone'],
+        ], 502);
     }
+
 
     /**
      * الخطوة 2: التحقق من OTP ثم إنشاء الحساب فعليًا
@@ -78,7 +90,6 @@ class CustomerAuthController extends Controller
     {
         $tempId = $request->input('temp_id');
 
-        // ✅ أيضاً يدخله 09xxxxxxxx ونحوّله للصيغة الداخلية 00963...
         $phone  = $this->normalizeCanonical00963($request->input('phone'));
         $otp    = $request->input('otp');
 
@@ -96,40 +107,32 @@ class CustomerAuthController extends Controller
 
     /**
      * الصيغة الداخلية القياسية للتخزين/المقارنة: 00963xxxxxxxxx
-     * تقبل: 09xxxxxxxx أو +963xxxxxxxxx أو 963xxxxxxxxx أو 00963xxxxxxxxx
+     * تقبل: 09xxxxxxxx
      */
     private function normalizeCanonical00963(string $phone): string
     {
         $digits = preg_replace('/\D+/', '', $phone); // أرقام فقط
 
-        // يبدأ بـ 00963
-        if (str_starts_with($digits, '00963')) {
+        // نقبل فقط 09xxxxxxxx في التسجيل (القواعد أعلاه تضمن هذا)
+        if (preg_match('/^09\d{8}$/', $digits)) {
+            return '00963' . substr($digits, 1); // حذف الـ 0 واستبدالها بـ 00963
+        }
+
+        // إن وصل بصيغة مخزّنة مسبقًا
+        if (preg_match('/^00963\d{9}$/', $digits)) {
             return $digits;
         }
 
-        // يبدأ بـ +963 أو 963
-        if (str_starts_with($digits, '963')) {
-            return '00963' . substr($digits, 3); // 963XXXXXXXXX → 00963XXXXXXXXX
-        }
-
-        // يبدأ بـ 0 محلي (09xxxxxxxx)
-        if (str_starts_with($digits, '0')) {
-            return '00963' . substr($digits, 1);
-        }
-
-        // fallback: لو فقط 9 خانات بدون مقدّم
-        if (strlen($digits) === 9) {
-            return '00963' . $digits;
-        }
-
-        // آخر حل: لو ما قدر يطابق، رجّع كما هو
-        return $digits;
+        // أي صيغة أخرى نرفضها (لأننا اشترطنا 09 في التسجيل)
+        throw new \InvalidArgumentException('صيغة رقم غير مسموح بها.');
     }
+
 
 
 
     public function login(LoginCustomerRequest $request)
     {
+
         $user = $this->userRepo->findByPhoneAndType($request->phone);
 
         if (!$user || !Hash::check($request->password, $user->password)) {
