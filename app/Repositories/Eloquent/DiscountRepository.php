@@ -19,13 +19,14 @@ class DiscountRepository
             ->exists();
     }
 
-    public function create(int $productId, float $newPrice, Carbon $start, Carbon $end): Discount
+    public function create(int $productId, float $newPrice, Carbon $start, Carbon $end, string $status): Discount
     {
         return Discount::create([
             'product_id' => $productId,
             'new_price'  => $newPrice,
             'start_date' => $start,
             'end_date'   => $end,
+            'status'     => $status, // active | scheduled
         ]);
     }
 }

@@ -62,7 +62,6 @@ class ProductRequestService
             unset($data['status']);
         }
 
-
         if ($req->action === 'create') {
             if (isset($data['name']) && $this->repo->existsOtherPendingCreateWithName($storeId, $data['name'], $req->id)) {
                 throw ValidationException::withMessages(['name' => 'يوجد طلب إضافة معلق بنفس الاسم في هذا المتجر.']);
@@ -71,11 +70,13 @@ class ProductRequestService
         }
 
         if ($req->action === 'update') {
-            $product = $req->product()->firstOrFail();
+            $product = $req->product()->first();
+            if (!$product) {
+                throw ValidationException::withMessages(['product' => 'المنتج المرتبط بالطلب غير موجود.']);
+            }
             if ((int)$product->store_id !== (int)$storeId) {
                 throw ValidationException::withMessages(['store' => 'هذا الطلب لا يتبع متجرك.']);
             }
-            // تحدّيث الـ snapshot
             $req->product_updated_at_snapshot = $product->updated_at;
             $req->save();
 
@@ -84,6 +85,7 @@ class ProductRequestService
 
         throw ValidationException::withMessages(['action' => 'نوع الطلب غير مدعوم.']);
     }
+
 
     public function getPendingRequests(int $storeId): Collection
     {

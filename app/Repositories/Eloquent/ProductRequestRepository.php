@@ -124,21 +124,27 @@ class ProductRequestRepository
 
     public function updateRequestFields(ProductRequest $req, array $data): ProductRequest
     {
-        $allowed = ['name','price','status_value','quantity','unit','image'];
-        $updates = [];
 
+        $allowed = ['name','price','status_value','quantity','unit','image'];
+
+        $updates = [];
         foreach ($allowed as $field) {
             if (array_key_exists($field, $data)) {
                 $updates[$field] = $data[$field];
             }
         }
 
-        if (!empty($updates)) {
-            $req->forceFill($updates)->save();
+        foreach ($updates as $k => $v) {
+            if (is_null($v)) unset($updates[$k]);
         }
 
-        return $req->fresh();
+        if (!empty($updates)) {
+            ProductRequest::whereKey($req->id)->update($updates);
+        }
+
+        return ProductRequest::findOrFail($req->id);
     }
+
 
     public function getPendingRequestsForStore(int $storeId): Collection
     {

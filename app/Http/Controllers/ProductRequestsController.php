@@ -40,13 +40,14 @@ class ProductRequestsController extends Controller
     public function createRequest(ProductRequestStore $request): JsonResponse
     {
         $storeId = (int) auth()->id();
-        $store   = User::findOrFail($storeId);
+        $data = $request->validated();
 
-        $reqModel = $this->service->submitCreateRequest(
-            $request->validated(),
-            $store->id
+        if ($request->hasFile('image')) {
+            $data['image'] = $request->file('image')->store('product-requests', 'public');
 
-        );
+        }
+
+        $reqModel = $this->service->submitCreateRequest($data, $storeId);
 
         return response()->json([
             'message'    => 'تم إنشاء طلب إضافة المنتج وبانتظار موافقة الأدمن.',
@@ -74,27 +75,36 @@ class ProductRequestsController extends Controller
     {
         $storeId = (int) auth()->id();
 
-        $req = $this->service->editPendingRequest(
-            $requestId,
-            $storeId,
-            $request->validated()
-        );
+        $data = $request->validated();
+
+        if ($request->has('status')) {
+            $data['status_value'] = $request->input('status');
+            unset($data['status']);
+        }
+
+        if ($request->hasFile('image')) {
+            $data['image'] = $request->file('image')->store('product-requests', 'public');
+        }
+
+        \Log::info('update-pending incoming', $data);
+        $req = $this->service->editPendingRequest($requestId, $storeId, $data);
 
         return response()->json([
             'message'    => 'تم تعديل الطلب وهو ما يزال بانتظار موافقة الأدمن.',
             'request_id' => $req->id,
-            'action'     => $req->action,           // create | update
-            'status'     => $req->status,           // pending
+            'action'     => $req->action,
+            'status'     => $req->status,
             'data'       => [
-                'name'        => $req->name,
-                'price'       => $req->price,
-                'status'      => $req->status_value,
-                'quantity'    => $req->quantity,
-                'unit'        => $req->unit,
-                'image'       => $req->image,
+                'name'     => $req->name,
+                'price'    => $req->price,
+                'status'   => $req->status_value,
+                'quantity' => $req->quantity,
+                'unit'     => $req->unit,
+                'image'    => $req->image,
             ],
-        ], 200);
+        ]);
     }
+
 
 
     public function getPendingRequests(): JsonResponse

@@ -28,6 +28,7 @@ return new class extends Migration {
             $table->enum('status_value', ['available','not_available'])->nullable();
             $table->unsignedInteger('quantity')->nullable();
             $table->string('unit', 50)->nullable();
+            $table->text('image')->nullable();
 
             // لقفل تفاؤلي في حالة update
             $table->timestamp('product_updated_at_snapshot')->nullable();

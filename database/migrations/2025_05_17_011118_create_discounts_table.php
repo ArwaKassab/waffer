@@ -14,6 +14,7 @@ class CreateDiscountsTable extends Migration
             $table->decimal('new_price', 10, 2);
             $table->date('start_date');
             $table->date('end_date');
+            $table->enum('status', ['active', 'inactive'])->default('active');
             $table->timestamps();
             $table->softDeletes();
         });

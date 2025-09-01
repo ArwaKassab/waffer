@@ -242,7 +242,7 @@ use App\Http\Controllers\UserController;
         Route::post('/products/create-request', [ProductRequestsController::class, 'createRequest']);
         Route::post('/products/delete-request/{product}', [ProductRequestsController::class, 'deleteRequest']);
         Route::post('/products/approve/{req}', [ProductRequestsController::class, 'approve']);
-        Route::patch('/requests/update-pending-request/{requestId}', [ProductRequestsController::class, 'updatePending']);
+        Route::post('/requests/update-pending-request/{requestId}', [ProductRequestsController::class, 'updatePending']);
         Route::get('/requests/pending', [ProductRequestsController::class, 'getPendingRequests']);
 
         // إدارة العناوين

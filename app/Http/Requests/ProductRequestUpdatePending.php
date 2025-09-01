@@ -14,10 +14,11 @@ class ProductRequestUpdatePending extends FormRequest
         return [
             'name'     => ['sometimes','string','max:255'],
             'price'    => ['sometimes','numeric','min:0'],
-            'status'   => ['sometimes','in:available,unavailable'],
+            'status'   => ['sometimes','in:available,not_available'],
             'quantity' => ['sometimes','integer','min:0'],
             'unit'     => ['sometimes','string','max:50'],
-            'image'    => ['sometimes','nullable','string'], // أو file حسب نظامك
+            'image'    => ['sometimes','file','image','max:2048'],
         ];
     }
+
 }

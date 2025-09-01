@@ -15,7 +15,6 @@ class StoreProductDiscountRequest extends FormRequest
             'new_price'  => ['required','numeric','min:0.01'],
             'start_date' => ['required','date'],
             'end_date'   => ['required','date','after_or_equal:start_date'],
-            'title'=> ['required'],
         ];
     }
 
