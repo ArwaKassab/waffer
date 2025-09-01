@@ -9,57 +9,19 @@ use Illuminate\Support\Facades\Hash;
 
 class SupAdminAuthController extends Controller
 {
-    public function register(Request $request)
-    {
-        $request->validate([
-            'name'     => 'required|string|max:255',
-            'email'    => 'required|email|unique:users',
-            'password' => 'required|string|min:6',
-            'type'     => 'required|string|in:sup_admin',
-        ]);
 
-        if ($request->type !== 'sup_admin') {
-            return response()->json([
-                'message' => 'Invalid type for this register endpoint',
-            ], 400);
-        }
-        DB::beginTransaction();
-
-        try {
-            $user = User::create([
-                'name'     => $request->name,
-                'email'    => $request->email,
-                'password' => Hash::make($request->password),
-                'type'     => 'sup_admin',
-            ]);
-
-            DB::commit();
-
-            return response()->json([
-                'message' => 'Sup admin registered successfully',
-                'user'    => $user,
-            ], 201);
-        } catch (\Exception $e) {
-            DB::rollBack();
-
-            return response()->json([
-                'message' => 'Something went wrong while registering customer',
-                'error'   => $e->getMessage()
-            ], 500);
-        }
-    }
 
     public function login(Request $request)
     {
         $request->validate([
-            'email'    => 'required|email',
+            'name'    => 'required|string',
             'password' => 'required|string',
         ]);
 
-        $user = User::where('email', $request->email)->where('type', 'sup_admin')->first();
+        $user = User::where('name', $request->name)->where('type', 'sub_admin')->first();
 
         if (!$user || !Hash::check($request->password, $user->password)) {
-            return response()->json(['message' => 'Invalid credentials'], 401);
+            return response()->json(['message' => 'بيانات الدخول غير صحيحة'], 401);
         }
 
         $token = $user->createToken('sup-admin-token', ['sup_admin'])->plainTextToken;

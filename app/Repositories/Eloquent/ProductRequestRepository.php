@@ -102,7 +102,6 @@ class ProductRequestRepository
         ]);
     }
 
-    // app/Repositories/Eloquent/ProductRequestRepository.php
 
     public function findPendingByIdForStore(int $id, int $storeId): ?ProductRequest
     {
@@ -111,6 +110,7 @@ class ProductRequestRepository
             ->where('status', 'pending')
             ->first();
     }
+
 
     public function existsOtherPendingCreateWithName(int $storeId, string $name, int $excludeId): bool
     {
@@ -151,5 +151,11 @@ class ProductRequestRepository
         return ProductRequest::where('store_id', $storeId)
             ->where('status', 'pending')
             ->get();
+    }
+
+    /** حذف الطلب نهائيًا (لا يوجد SoftDeletes في الجدول) */
+    public function deleteRequest(ProductRequest $req): bool
+    {
+        return (bool) $req->delete();
     }
 }

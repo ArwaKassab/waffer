@@ -26,6 +26,7 @@ class CreateUsersTable extends Migration
             $table->decimal('wallet_balance', 10, 2)->default(0);
             $table->enum('type', ['admin', 'sub_admin', 'customer', 'store']);
             $table->text('note')->nullable();
+            $table->boolean('is_banned')->default(false);
             $table->timestamps();
             $table->softDeletes();
         });

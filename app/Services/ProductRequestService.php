@@ -172,4 +172,18 @@ class ProductRequestService
             $this->repo->markRejected($req, $note);
         }
     }
+
+    public function cancelCreateRequest(int $requestId, int $storeId): void
+    {
+        $req = $this->repo->findPendingByIdForStore($requestId, $storeId);
+
+        if (!$req) {
+            throw ValidationException::withMessages([
+                'request' => 'لا يوجد طلب إضافة معلّق بهذا المعرف يخص متجرك.'
+            ]);
+        }
+
+        // لو حابة تمنعي حذف طلبات update/delete هنا، هذا محكوم بالـ finder أعلاه
+        $this->repo->deleteRequest($req);
+    }
 }

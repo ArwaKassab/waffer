@@ -7,6 +7,7 @@ use Illuminate\Support\ServiceProvider;
 use App\Repositories\Contracts\{AdRepositoryInterface,
     CartRepositoryInterface,
     ComplaintRepositoryInterface,
+    CustomerRepositoryInterface,
     LinkRepositoryInterface,
     OfferDiscountRepositoryInterface,
     OrderRepositoryInterface,
@@ -20,6 +21,7 @@ use App\Repositories\Contracts\{AdRepositoryInterface,
 use App\Repositories\Eloquent\{AdRepository,
     CartRepository,
     ComplaintRepository,
+    CustomerRepository,
     LinkRepository,
     OfferDiscountRepository,
     OrderRepository,
@@ -48,6 +50,8 @@ class AppServiceProvider extends ServiceProvider
         $this->app->bind(LinkRepositoryInterface::class, LinkRepository::class);
         $this->app->bind(ComplaintRepositoryInterface::class, ComplaintRepository::class);
         $this->app->bind(AdRepositoryInterface::class, AdRepository::class);
+        $this->app->bind(CustomerRepositoryInterface::class, CustomerRepository::class);
+
     }
 
     public function boot(): void

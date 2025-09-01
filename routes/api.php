@@ -22,6 +22,7 @@ use App\Http\Controllers\AdController;
 use App\Http\Controllers\AdminAuthController;
 use App\Http\Controllers\StoreAuthController;
 use App\Http\Controllers\UserController;
+use App\Http\Controllers\SubAdmin\CustomerController as SubAdminCustomerController;
 //use App\Http\Controllers\AdminController;
 //use App\Http\Controllers\StoreController;
 //use App\Http\Controllers\CustomerController;
@@ -42,7 +43,7 @@ use App\Http\Controllers\UserController;
 
 /*
 |--------------------------------------------------------------------------
-| 🔐 Auth Routes (Admin - SupAdmin - Store - Customer)
+| 🔐 Auth Routes (Admin - SubAdmin - Store - Customer)
 |--------------------------------------------------------------------------
 */
 
@@ -60,9 +61,8 @@ use App\Http\Controllers\UserController;
 
     });
 
-    // ✅ SupAdmin Auth
-    Route::prefix('sup_admin')->group(function () {
-        Route::post('/register', [SupAdminAuthController::class, 'register']);
+    // ✅ SubAdmin Auth
+    Route::prefix('sub_admin')->group(function () {
         Route::post('/login', [SupAdminAuthController::class, 'login']);
     //    Route::middleware(['auth:sanctum', 'check.role:customer'])->get('/profile', [CustomerController::class, 'profile']);
         Route::middleware('auth:sanctum')->post('/logout', [SupAdminAuthController::class, 'logout']);
@@ -244,6 +244,7 @@ use App\Http\Controllers\UserController;
         Route::post('/products/approve/{req}', [ProductRequestsController::class, 'approve']);
         Route::post('/requests/update-pending-request/{requestId}', [ProductRequestsController::class, 'updatePending']);
         Route::get('/requests/pending', [ProductRequestsController::class, 'getPendingRequests']);
+        Route::delete('requests/delete-pending-request/{id}',[ProductRequestsController::class, 'deleteCreateRequest']);
 
         // إدارة العناوين
         Route::get('addresses', [AddressController::class, 'index']);
@@ -273,5 +274,19 @@ use App\Http\Controllers\UserController;
         Route::post('/admin/product-change-requests/{id}/reject', [ProductRequestsController::class, 'reject'])
             ->middleware(['auth:sanctum']);
 
+
+    });
+
+/*
+|--------------------------------------------------------------------------
+| 🏪 SubAdmin Dashboard Routes
+|--------------------------------------------------------------------------
+*/
+
+    Route::prefix('subAdmin-auth')->middleware(['auth:sanctum','attach.user.area'])->group(function () {
+        //الزبائن
+        Route::get('customers/AllCustomers', [SubAdminCustomerController::class, 'index']);
+        Route::get('customers/search-name',   [SubAdminCustomerController::class, 'searchByName']);
+        Route::get('customers/search-phone',  [SubAdminCustomerController::class, 'searchByPhone']);
 
     });

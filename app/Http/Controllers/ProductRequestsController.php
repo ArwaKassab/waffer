@@ -153,4 +153,16 @@ class ProductRequestsController extends Controller
 
         return response()->json(['message' => 'تم رفض الطلب.']);
     }
+
+    public function deleteCreateRequest(int $id): JsonResponse
+    {
+        $storeId = (int) auth()->id();
+
+        $this->service->cancelCreateRequest($id, $storeId);
+
+        return response()->json([
+            'message' => 'تم حذف طلب الإضافة المعلّق بنجاح.',
+            'request_id' => $id,
+        ], 200);
+    }
 }
