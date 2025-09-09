@@ -19,9 +19,9 @@ class StoreCategorySeeder extends Seeder
         foreach ($stores as $store_id) {
             foreach ($categories as $category_id) {
                 DB::table('store_category')->insert([
-                    ['store_id' => 2, 'category_id' => 1],  // ربط متجر 1 مع تصنيف 1
-                    ['store_id' => 1, 'category_id' => 2],  // ربط متجر 1 مع تصنيف 2
-                    ['store_id' => 3, 'category_id' => 3],  // ربط متجر 2 مع تصنيف 3
+                    ['store_id' => 7, 'category_id' => 1],  // ربط متجر 1 مع تصنيف 1
+                    ['store_id' => 6, 'category_id' => 2],  // ربط متجر 1 مع تصنيف 2
+                    ['store_id' => 8, 'category_id' => 3],  // ربط متجر 2 مع تصنيف 3
                 ]);
             }
         }
