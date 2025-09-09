@@ -9,6 +9,8 @@ class StoreCategorySeeder extends Seeder
 {
     public function run()
     {
+        DB::table('store_category')->truncate();
+
         // بيانات افتراضية للتصنيفات (تأكد من أن لديك تصنيفات موجودة في قاعدة البيانات)
         $categories = DB::table('categories')->pluck('id');
 
