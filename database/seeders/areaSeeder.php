@@ -12,7 +12,11 @@ class areaSeeder extends Seeder
     {
         Area::create([
             'name' => 'مزة',
+            ],
+            [
             'name' => 'ببيلا',
+            ],
+            [
             'name' => 'ركن الدين',
 
         ]);
