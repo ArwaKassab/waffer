@@ -29,7 +29,7 @@ class StoreSeeder extends Seeder
             ],
             [
                 'name' => 'مواد غذائية ركن الدين',
-                'phone' => '00963935971524',
+                'phone' => '00963935971566',
                 'password' => Hash::make('12345678'),
                 'area_id' => 3,
                 'type' => 'store',
