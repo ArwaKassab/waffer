@@ -52,7 +52,7 @@ class SmsChefOtpService
         return $res->json() ?? ['raw' => $res->body()];
     }
 
-    public function generateOtp(int $digits = 6): string
+    public function generateOtp(int $digits = 4): string
     {
         // توليد رقم OTP آمن
         $min = 10 ** ($digits - 1);
