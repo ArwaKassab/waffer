@@ -7,6 +7,7 @@ use App\Models\OrderDiscount;
 use App\Models\OrderItem;
 use App\Models\StoreOrderResponse;
 use Illuminate\Contracts\Pagination\LengthAwarePaginator;
+use Illuminate\Support\Facades\Storage;
 
 class OrderRepository
 {
@@ -62,7 +63,7 @@ class OrderRepository
      */
     public function getUserOrdersSortedByDate(int $userId, int $perPage = 10)
     {
-        return Order::with([
+        $orders = Order::with([
             'items.product',
             'items.store',
             'area',
@@ -72,7 +73,21 @@ class OrderRepository
             ->orderByDesc('date') // الأحدث بالتاريخ أولاً
             ->orderByDesc('time') // ثم الأحدث بالوقت
             ->paginate($perPage);
+
+        // تعديل الصور باستخدام getCollection()
+        $orders->getCollection()->transform(function ($order) {
+            $order->items->transform(function ($item) {
+                // إضافة رابط الصورة الكامل للمنتج
+                $item->product->image = Storage::url($item->product->image);
+                return $item;
+            });
+            return $order;
+        });
+
+        return $orders;
     }
+
+
 
 
     /**

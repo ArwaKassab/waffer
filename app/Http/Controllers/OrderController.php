@@ -7,6 +7,7 @@ use App\Http\Resources\StoreOrderSummaryResource;
 use App\Services\OrderService;
 use Illuminate\Http\Request;
 use Illuminate\Http\JsonResponse;
+use Illuminate\Support\Facades\Storage;
 
 class OrderController extends Controller
 {
@@ -134,8 +135,16 @@ class OrderController extends Controller
             return response()->json(['message' => 'الطلب غير موجود أو لا يخص هذا المتجر'], 404);
         }
 
+
+        $order->items->transform(function ($item) {
+
+            $item->product->image = $item->product->image ? Storage::url($item->product->image) : null;
+            return $item;
+        });
+
         return response()->json(StoreOrderResource::make($order));
     }
+
 
     public function acceptOrder(int $orderId)
     {

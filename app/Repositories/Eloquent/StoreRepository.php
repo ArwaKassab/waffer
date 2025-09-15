@@ -12,27 +12,35 @@ class StoreRepository implements StoreRepositoryInterface
 {
     public function getStoresByAreaAndCategory($areaId, $categoryId)
     {
-        return User::where('type', 'store')
+        $stores = User::where('type', 'store')
             ->where('area_id', $areaId)
             ->whereHas('categories', function ($query) use ($categoryId) {
                 $query->where('categories.id', $categoryId);
             })
             ->get(['id', 'area_id', 'name', 'image', 'status', 'note', 'open_hour', 'close_hour']);
+        
+        $stores->transform(function ($store) {
+            $store->image = $store->image ? Storage::url($store->image) : null;
+            return $store;
+        });
 
+        return $stores;
     }
+
 
     public function getStoreDetailsWithProductsAndDiscounts($storeId)
     {
         $store = User::where('type', 'store')
             ->where('id', $storeId)
-            ->with('products')  // فقط جلب المنتجات بدون تحميل الخصومات هنا
+            ->with('products')
             ->first(['id', 'name', 'image', 'status', 'note', 'open_hour', 'close_hour']);
 
         if (!$store) {
             return null;
         }
 
-        // ترتيب المنتجات بحيث التي تحتوي على خصم نشط تأتي أولاً
+        $store->image = $store->image ? Storage::url($store->image) : null;
+
         $productsWithDiscountsFirst = $store->products->sortByDesc(function ($product) {
             return $product->activeDiscountToday() ? 1 : 0;
         })->values();
@@ -45,7 +53,7 @@ class StoreRepository implements StoreRepositoryInterface
                 return [
                     'id' => $product->id,
                     'name' => $product->name,
-                    'image' => Storage::url($product->image),  // إضافة المسار الكامل للصورة
+                    'image' => Storage::url($product->image),
                     'status' => $product->status,
                     'unit' => $product->unit,
                     'original_price' => $product->price,

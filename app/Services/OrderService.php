@@ -15,6 +15,7 @@ use App\Services\WalletService;
 use App\Events\OrderConfirmed;
 use Illuminate\Http\Resources\Json\AnonymousResourceCollection;
 use Illuminate\Support\Facades\DB;
+use Illuminate\Support\Facades\Storage;
 use Illuminate\Validation\ValidationException;
 use App\Http\Resources\OrderResource;
 use App\Http\Resources\ConfirmedOrderResource;
@@ -64,6 +65,11 @@ class OrderService
             // حفظ المنتجات المرتبطة بالطلب وكذلك الخصومات التي تم تطبيقها
             $this->storeOrderItemsAndDiscounts($order, $calculation);
 
+            $order->items->transform(function ($item) {
+                // إضافة الرابط الكامل للصورة
+                $item->product->image = Storage::url($item->product->image);
+                return $item;
+            });
             //  تجهيز بيانات الطلب لإرجاعها في الاستجابة
             return [
                 $order,
@@ -77,7 +83,6 @@ class OrderService
                     'delivery_fee' => $calculation['delivery_fee'],
                     'final_total' => $calculation['final_total'],
                     'items' => $calculation['detailed_products'],
-
                     //  توليد رسالة توضح حالة الرصيد (هل كان كافيًا أم لا) حسب وسيلة الدفع
                     'message' => $this->getOrderMessage($paymentMethod, $calculation['final_total'], $calculation['final_total']),
                 ]
@@ -365,8 +370,17 @@ class OrderService
             ])
             ->first();
 
+
+        if ($order) {
+            $order->items->transform(function ($item) {
+                $item->product->image = $item->product->image ? Storage::url($item->product->image) : null;
+                return $item;
+            });
+        }
+
         return $order ? new OrderResource($order) : null;
     }
+
 
 
     ///////////////////////////////////////for store/////////////////////////////
