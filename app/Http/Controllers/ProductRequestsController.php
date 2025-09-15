@@ -10,6 +10,7 @@ use App\Models\User;
 use App\Services\ProductRequestService;
 use Illuminate\Http\JsonResponse;
 use Illuminate\Http\Request;
+use Illuminate\Support\Facades\Storage;
 
 class ProductRequestsController extends Controller
 {
@@ -43,15 +44,16 @@ class ProductRequestsController extends Controller
         $data = $request->validated();
 
         if ($request->hasFile('image')) {
-            $data['image'] = $request->file('image')->store('product-requests', 'public');
+            $data['image'] = $request->file('image')->store('productس', 'public');
 
         }
 
         $reqModel = $this->service->submitCreateRequest($data, $storeId);
-
+        $imageUrl = Storage::url($data['image']);
         return response()->json([
             'message'    => 'تم إنشاء طلب إضافة المنتج وبانتظار موافقة الأدمن.',
             'request_id' => $reqModel->id,
+            'image_url'  => $imageUrl,  // تم إضافة الرابط الصحيح هنا
         ], 201);
     }
 
@@ -83,8 +85,9 @@ class ProductRequestsController extends Controller
         }
 
         if ($request->hasFile('image')) {
-            $data['image'] = $request->file('image')->store('product-requests', 'public');
+            $data['image'] = $request->file('image')->store('products', 'public');
         }
+        $imageUrl = Storage::url($data['image']);
 
         \Log::info('update-pending incoming', $data);
         $req = $this->service->editPendingRequest($requestId, $storeId, $data);
@@ -100,7 +103,7 @@ class ProductRequestsController extends Controller
                 'status'   => $req->status_value,
                 'quantity' => $req->quantity,
                 'unit'     => $req->unit,
-                'image'    => $req->image,
+                'image'    => $imageUrl,
             ],
         ]);
     }

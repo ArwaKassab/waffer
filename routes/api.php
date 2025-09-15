@@ -212,7 +212,7 @@ use App\Http\Controllers\SubAdmin\CustomerController as SubAdminCustomerControll
 */
 
 
-    Route::prefix('store-auth')->middleware(['auth:sanctum','attach.user.area'])->group(function () {
+    Route::prefix('store-auth')->middleware(['auth:sanctum','attach.user.area','store.only'])->group(function () {
 
         // الحساب الشخصي
         Route::put('/profile/update-profile', [UserController::class, 'updateProfile']);

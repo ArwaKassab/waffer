@@ -11,6 +11,7 @@ class StoreSeeder extends Seeder
 {
     public function run()
     {
+        // حذف المتاجر القديمة فقط
         DB::table('users')->where('type', 'store')->delete();
 
         $stores = [
@@ -21,6 +22,8 @@ class StoreSeeder extends Seeder
                 'area_id' => 1,
                 'type' => 'store',
                 'status' => true,
+                'open_hour' => '08:00:00',
+                'close_hour' => '22:00:00',
             ],
             [
                 'name' => 'معجنات ببيلا',
@@ -29,6 +32,8 @@ class StoreSeeder extends Seeder
                 'area_id' => 2,
                 'type' => 'store',
                 'status' => true,
+                'open_hour' => '09:00:00',
+                'close_hour' => '23:00:00',
             ],
             [
                 'name' => 'مواد غذائية ركن الدين',
@@ -37,6 +42,8 @@ class StoreSeeder extends Seeder
                 'area_id' => 3,
                 'type' => 'store',
                 'status' => true,
+                'open_hour' => '07:30:00',
+                'close_hour' => '21:00:00',
             ],
         ];
 
