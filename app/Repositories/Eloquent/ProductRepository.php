@@ -15,7 +15,7 @@ class ProductRepository
         /** @var Product|null $product */
         $product = Product::with('store')->find($id);
         if ($product) {
-            $product->image = Storage::url($product->image); 
+            $product->image = Storage::url($product->image);
         }
         return $product;
     }
@@ -41,7 +41,8 @@ class ProductRepository
     }
     public function getStoreProducts(int $storeId, int $perPage = 10): LengthAwarePaginator
     {
-        return Product::query()
+        // استرجاع المنتجات مع الخصومات إذا كانت موجودة
+        $products = Product::query()
             ->from('products')
             ->leftJoin('discounts as d', function ($join) {
                 $join->on('d.product_id', '=', 'products.id')
@@ -66,6 +67,16 @@ class ProductRepository
             ->orderByRaw("CASE WHEN products.status = 'available' THEN 0 WHEN products.status = 'not_available' THEN 1 ELSE 2 END")
             ->orderByDesc('products.created_at')
             ->paginate($perPage);
+
+        // استخدام map لتحويل مسار الصورة إلى الرابط الكامل
+        $products->getCollection()->transform(function ($product) {
+            // إضافة المسار الكامل للصورة
+            $product->image = Storage::url($product->image);
+            return $product;
+        });
+
+        return $products;
     }
+
 }
 
