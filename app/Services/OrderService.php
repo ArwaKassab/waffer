@@ -376,13 +376,16 @@ class OrderService
                 'orderDiscounts.discount'
             ])
             ->first();
-
         if ($order) {
-            foreach ($order->items as $item) {
-                $item->product->image = Storage::url($item->product->image);
-            }
+            // إضافة المسار الصحيح للصور فقط عند الحاجة
+            $order->items->transform(function ($item) {
+                // تأكد من أن المسار ليس مضاعفًا
+                if ($item->product->image) {
+                    $item->product->image = Storage::url($item->product->image);
+                }
+                return $item;
+            });
         }
-
         return $order ? new OrderResource($order) : null;
     }
 
