@@ -68,15 +68,15 @@ class ProductRepository
             ->orderByDesc('products.created_at')
             ->paginate($perPage);
 
-        // استخدام map لتحويل مسار الصورة إلى الرابط الكامل
+
         $products->getCollection()->transform(function ($product) {
-            // إضافة المسار الكامل للصورة
-            $product->image = Storage::url($product->image);
+            $product->image = Storage::url($product->image);  
             return $product;
         });
 
         return $products;
     }
+
 
 }
 
