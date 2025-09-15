@@ -70,7 +70,7 @@ class ProductRepository
 
 
         $products->getCollection()->transform(function ($product) {
-            $product->image = Storage::url($product->image);  
+            $product->image = "Storage::url($product->image)";
             return $product;
         });
 
