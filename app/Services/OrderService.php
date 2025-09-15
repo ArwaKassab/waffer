@@ -208,6 +208,7 @@ class OrderService
             $price = $product->price;
             $itemTotalPrice = $price * $quantity;
             $productTotal += $itemTotalPrice;
+            $product->image = Storage::url($product->image);
 
             $activeDiscount = $product->activeDiscountToday();
             $discountValue = 0;
@@ -231,6 +232,7 @@ class OrderService
                 'total_price_after_discount'=>$activeDiscount ? $activeDiscount->new_price * $quantity : $product->price * $quantity,
                 'total_price' => $itemTotalPrice,
                 'discount_value' => $itemDiscount,
+                'image' => $product->image,
 
             ];
 
@@ -244,6 +246,7 @@ class OrderService
                 'total_price' => $itemTotalPrice,
                 'total_price_with_discount' => $activeDiscount ? $activeDiscount->new_price * $quantity : $itemTotalPrice,
                 'discount_value' => $itemDiscount,
+                'image' => $product->image,
             ];
         }
 
