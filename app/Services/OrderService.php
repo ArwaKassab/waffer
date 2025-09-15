@@ -182,6 +182,10 @@ class OrderService
             ]);
         }
 
+        $productsData->each(function ($product) {
+            $product->image = Storage::url($product->image); // تحويل المسار إلى رابط URL
+        });
+
         return $productsData;
     }
 
@@ -373,16 +377,15 @@ class OrderService
             ])
             ->first();
 
-
         if ($order) {
-            $order->items->transform(function ($item) {
-                $item->product->image = $item->product->image ? Storage::url($item->product->image) : null;
-                return $item;
-            });
+            foreach ($order->items as $item) {
+                $item->product->image = Storage::url($item->product->image);
+            }
         }
 
         return $order ? new OrderResource($order) : null;
     }
+
 
 
 

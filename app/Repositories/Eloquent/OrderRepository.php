@@ -77,7 +77,7 @@ class OrderRepository
         // تعديل الصور باستخدام getCollection()
         $orders->getCollection()->transform(function ($order) {
             $order->items->transform(function ($item) {
-                // إضافة رابط الصورة الكامل للمنتج
+                
                 $item->product->image = Storage::url($item->product->image);
                 return $item;
             });

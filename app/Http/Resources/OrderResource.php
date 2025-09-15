@@ -3,6 +3,7 @@
 namespace App\Http\Resources;
 
 use Illuminate\Http\Resources\Json\JsonResource;
+use Illuminate\Support\Facades\Storage;
 
 class OrderResource extends JsonResource
 {
@@ -46,6 +47,7 @@ class OrderResource extends JsonResource
                     'total_price_after_discount' => (float) $item->total_price_after_discount,
                     'discount_value' => (float) $item->discount_value,
                     'status' => $item->status,
+                    'image_url' => Storage::url($item->product->image),
                 ];
             }),
             'discounts' => $this->orderDiscounts->map(function ($discount) {
