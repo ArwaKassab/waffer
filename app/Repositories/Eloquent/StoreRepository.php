@@ -5,6 +5,7 @@ namespace App\Repositories\Eloquent;
 use App\Models\User;
 use  App\Repositories\Contracts\StoreRepositoryInterface;
 use Carbon\Carbon;
+use Illuminate\Support\Facades\Storage;
 
 
 class StoreRepository implements StoreRepositoryInterface
@@ -44,7 +45,7 @@ class StoreRepository implements StoreRepositoryInterface
                 return [
                     'id' => $product->id,
                     'name' => $product->name,
-                    'image' => $product->image,
+                    'image' => Storage::url($product->image),  // إضافة المسار الكامل للصورة
                     'status' => $product->status,
                     'unit' => $product->unit,
                     'original_price' => $product->price,
@@ -54,6 +55,7 @@ class StoreRepository implements StoreRepositoryInterface
             })
         ];
     }
+
 
 
 
