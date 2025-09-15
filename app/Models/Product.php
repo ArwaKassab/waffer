@@ -1,6 +1,7 @@
 <?php
 
 namespace App\Models;
+use Illuminate\Support\Facades\Storage;
 
 use Carbon\Carbon;
 use Illuminate\Database\Eloquent\Model;
@@ -18,6 +19,23 @@ class Product extends Model
         'unit',
         'store_id',
     ];
+    public function getImageUrlAttribute(): ?string
+    {
+        if (!$this->image) {
+            return null;
+        }
+        $path = ltrim(preg_replace('#^/?storage/#', '', $this->image), '/');
+        return Storage::url($path);
+    }
+    public function setImageAttribute($value)
+    {
+        if (!$value) {
+            $this->attributes['image'] = null;
+            return;
+        }
+        $path = ltrim(preg_replace('#^/?storage/#', '', $value), '/');
+        $this->attributes['image'] = $path;
+    }
 
     public function store()
     {
@@ -62,5 +80,6 @@ class Product extends Model
     {
         return $this->hasMany(ProductRequest::class, 'product_id');
     }
+
 
 }

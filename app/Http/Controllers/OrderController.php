@@ -135,13 +135,6 @@ class OrderController extends Controller
             return response()->json(['message' => 'الطلب غير موجود أو لا يخص هذا المتجر'], 404);
         }
 
-
-        $order->items->transform(function ($item) {
-
-            $item->product->image = $item->product->image ? Storage::url($item->product->image) : null;
-            return $item;
-        });
-
         return response()->json(StoreOrderResource::make($order));
     }
 

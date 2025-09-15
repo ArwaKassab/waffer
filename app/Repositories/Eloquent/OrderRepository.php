@@ -74,16 +74,6 @@ class OrderRepository
             ->orderByDesc('time') // ثم الأحدث بالوقت
             ->paginate($perPage);
 
-        // تعديل الصور باستخدام getCollection()
-        $orders->getCollection()->transform(function ($order) {
-            $order->items->transform(function ($item) {
-                
-                $item->product->image = Storage::url($item->product->image);
-                return $item;
-            });
-            return $order;
-        });
-
         return $orders;
     }
 

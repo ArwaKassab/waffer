@@ -65,11 +65,6 @@ class OrderService
             // حفظ المنتجات المرتبطة بالطلب وكذلك الخصومات التي تم تطبيقها
             $this->storeOrderItemsAndDiscounts($order, $calculation);
 
-            $order->items->transform(function ($item) {
-                // إضافة الرابط الكامل للصورة
-                $item->product->image = Storage::url($item->product->image);
-                return $item;
-            });
             //  تجهيز بيانات الطلب لإرجاعها في الاستجابة
             return [
                 $order,
@@ -182,10 +177,6 @@ class OrderService
             ]);
         }
 
-        $productsData->each(function ($product) {
-            $product->image = Storage::url($product->image); // تحويل المسار إلى رابط URL
-        });
-
         return $productsData;
     }
 
@@ -212,8 +203,6 @@ class OrderService
             $price = $product->price;
             $itemTotalPrice = $price * $quantity;
             $productTotal += $itemTotalPrice;
-            $product->image = Storage::url($product->image);
-
             $activeDiscount = $product->activeDiscountToday();
             $discountValue = 0;
 
@@ -236,7 +225,7 @@ class OrderService
                 'total_price_after_discount'=>$activeDiscount ? $activeDiscount->new_price * $quantity : $product->price * $quantity,
                 'total_price' => $itemTotalPrice,
                 'discount_value' => $itemDiscount,
-                'image' => $product->image,
+                'image' => $product->image_url,
 
             ];
 
@@ -250,7 +239,7 @@ class OrderService
                 'total_price' => $itemTotalPrice,
                 'total_price_with_discount' => $activeDiscount ? $activeDiscount->new_price * $quantity : $itemTotalPrice,
                 'discount_value' => $itemDiscount,
-                'image' => $product->image,
+                'image' => $product->image_url,
             ];
         }
 
@@ -376,16 +365,6 @@ class OrderService
                 'orderDiscounts.discount'
             ])
             ->first();
-        if ($order) {
-            // إضافة المسار الصحيح للصور فقط عند الحاجة
-            $order->items->transform(function ($item) {
-                // تأكد من أن المسار ليس مضاعفًا
-                if ($item->product->image) {
-                    $item->product->image = Storage::url($item->product->image);
-                }
-                return $item;
-            });
-        }
         return $order ? new OrderResource($order) : null;
     }
 

@@ -47,8 +47,7 @@ class OrderResource extends JsonResource
                     'total_price_after_discount' => (float)$item->total_price_after_discount,
                     'discount_value' => (float)$item->discount_value,
                     'status' => $item->status,
-                    // استخدام المسار الصحيح للصورة
-                    'image_url' => $product->image ? Storage::url($product->image) : null,
+                    'image_url' => $product ? $product->image_url : null,
                 ];
             }),
             'discounts' => $this->orderDiscounts->map(function ($discount) {
