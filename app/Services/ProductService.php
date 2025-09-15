@@ -4,6 +4,7 @@ namespace App\Services;
 
 use App\Repositories\Contracts\ProductRepositoryInterface;
 use App\Repositories\Eloquent\ProductRepository;
+use Illuminate\Support\Facades\Storage;
 
 class ProductService
 {
@@ -24,7 +25,7 @@ class ProductService
         $data = [
             'id'             => $product->id,
             'name'           => $product->name,
-            'image'          => $product->image,
+            'image'          => Storage::url($product->image),
             'quantity'       =>$product->quantity,
             'unit'           => $product->unit,
             'status'         => $product->status,
