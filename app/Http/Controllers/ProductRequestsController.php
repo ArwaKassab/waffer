@@ -44,7 +44,7 @@ class ProductRequestsController extends Controller
         $data = $request->validated();
 
         if ($request->hasFile('image')) {
-            $data['image'] = $request->file('image')->store('productس', 'public');
+            $data['image'] = $request->file('image')->store('products', 'public');
 
         }
 
