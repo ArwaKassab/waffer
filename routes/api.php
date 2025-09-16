@@ -137,7 +137,6 @@ use App\Http\Controllers\SubAdmin\CustomerController as SubAdminCustomerControll
         Route::get('/stores/{id}', [StoreController::class, 'show']);
 
         //المنتجات
-        Route::get('/all-products', [ProductController::class, 'index']);
         Route::get('/products/{id}', [ProductController::class, 'productDetails']);
 
         //التخفيضات
