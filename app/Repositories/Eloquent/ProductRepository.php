@@ -12,7 +12,7 @@ class ProductRepository
 {
     public function getProductById(int $id): ?Product
     {
-        /** @var Product|null $product */
+        /** @var Product $product */
         $product = Product::with('store')->find($id);
         return $product;
     }

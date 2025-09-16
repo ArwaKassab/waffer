@@ -24,15 +24,11 @@ class ProductController extends Controller
     }
     public function productDetails($id)
     {
-        Log::info("Fetching product details for ID: {$id}");  // السجل هنا
         $product = $this->productService->getProductDetails($id);
 
         if (!$product) {
-            Log::info("Product with ID {$id} not found");  // السجل هنا
             return response()->json(['message' => 'Product not found'], 404);
         }
-
-        Log::info("Product details fetched successfully for ID: {$id}");  // السجل هنا
         return response()->json($product);
 
     }
