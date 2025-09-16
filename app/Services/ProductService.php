@@ -25,8 +25,8 @@ class ProductService
         $data = [
             'id'             => $product->id,
             'name'           => $product->name,
-            'image'          => $product->image, 
-            'quantity'       => $product->quantity,
+            'image'          => $product->image_url,
+            'quantity'       =>$product->quantity,
             'unit'           => $product->unit,
             'status'         => $product->status,
             'original_price' => $product->price,
@@ -34,9 +34,15 @@ class ProductService
             'store_name'     => $product->store?->name,
         ];
 
+        $discount = $product->activeDiscountToday();
+
+        if ($discount) {
+            $data['new_price']      = $discount->new_price;
+            $data['discount_id'] = $discount->id;
+        }
+
         return $data;
     }
-
 
     /**
      * عرض منتجات المتجر مرتبة:
