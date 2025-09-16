@@ -25,7 +25,7 @@ class ProductService
         $data = [
             'id'             => $product->id,
             'name'           => $product->name,
-            'image'          => Storage::url($product->image),
+            'image' => $product->image_url,
             'quantity'       =>$product->quantity,
             'unit'           => $product->unit,
             'status'         => $product->status,

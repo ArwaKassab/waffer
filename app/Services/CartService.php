@@ -45,6 +45,7 @@ class CartService
                     'price'      => $item->product->price,
                     'quantity'   => $item->quantity,
                     'total'      => $lineTotal,
+
                 ];
                 $total += $lineTotal;
             }

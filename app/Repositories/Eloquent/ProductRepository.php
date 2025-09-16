@@ -14,9 +14,6 @@ class ProductRepository
     {
         /** @var Product|null $product */
         $product = Product::with('store')->find($id);
-        if ($product) {
-            $product->image = Storage::url($product->image);
-        }
         return $product;
     }
 
