@@ -21,17 +21,21 @@ class ProductController extends Controller
         $this->discountService = $discountService;
 
     }
-
     public function productDetails($id)
     {
-        $product = $this->productService->getProductDetails($id);
+        try {
+            $product = $this->productService->getProductDetails($id);
 
-        if (!$product) {
-            return response()->json(['message' => 'Product not found'], 404);
+            if (!$product) {
+                return response()->json(['message' => 'Product not found'], 404);
+            }
+
+            return response()->json($product);
+        } catch (\Exception $e) {
+            return response()->json(['message' => 'Error: ' . $e->getMessage()], 500);
         }
-
-        return response()->json($product);
     }
+
 
      public function myStoreProducts(Request $request)
      {
