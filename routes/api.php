@@ -195,7 +195,6 @@ use App\Http\Controllers\SubAdmin\CustomerController as SubAdminCustomerControll
         Route::get('/support-links', [LinkController::class, 'index']);
         // الشكاوى
         Route::get('complaints/types', [ComplaintController::class, 'types']);
-
         Route::post('complaints', [ComplaintController::class, 'store']);
 
 
