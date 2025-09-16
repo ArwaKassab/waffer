@@ -34,7 +34,7 @@ class ProductController extends Controller
 
         Log::info("Product details fetched successfully for ID: {$id}");  // السجل هنا
         return response()->json($product);
-    
+
     }
 
 
