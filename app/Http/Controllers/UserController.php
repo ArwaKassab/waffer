@@ -49,6 +49,9 @@ class UserController extends Controller
             $filteredUser = [
                 'id' => $userData['id'],
                 'name' => $userData['name'],
+                'phone' => $userData['phone'],
+                'area_id' => $userData['area_id'],
+
             ];
         } else {
             $filteredUser = ['message' => 'نوع المستخدم غير معروف'];
@@ -58,76 +61,6 @@ class UserController extends Controller
     }
 
 
-
-    public function sendResetPasswordCode(Request $request)
-    {
-        $request->validate([
-            'phone' => 'required|string',
-        ]);
-
-        $response = $this->userService->sendResetPasswordCode($request->phone);
-
-        if (!$response['success']) {
-            return response()->json(['message' => $response['message']], $response['status']);
-        }
-
-        return response()->json([
-            'message' => $response['message'],
-            'message2front'=> $response['message2front'],
-            'otp' => $response['otp'], // مؤقتاً ل اختبار الـ OTP
-        ]);
-    }
-
-    public function verifyResetPasswordCode(Request $request)
-    {
-        $request->validate([
-            'phone' => 'required|string',
-            'otp' => 'required|string',
-        ]);
-
-        $response = $this->userService->verifyResetPasswordCode($request->phone, $request->otp);
-
-        if (!$response['success']) {
-            return response()->json(['message' => $response['message']], 400);
-        }
-
-        return response()->json([
-            'message' => $response['message'],
-            'message2front'=> $response['message2front'],
-            'temp_token' => $response['temp_token'],
-        ]);
-    }
-
-    public function resetPassword(Request $request)
-    {
-        $validator = Validator::make($request->all(), [
-            'phone' => 'required|string',
-            'new_password' => 'required|string|min:6|confirmed',
-        ]);
-
-        if ($validator->fails()) {
-            return response()->json([
-                'message' => 'بيانات ناقصة أو غير صحيحة',
-                'errors' => $validator->errors(),
-            ], 422);
-        }
-
-        $authHeader = $request->header('Authorization');
-
-        if (!$authHeader || !\Illuminate\Support\Str::startsWith($authHeader, 'Bearer ')) {
-            return response()->json(['message' => 'رمز التحقق مفقود'], 401);
-        }
-
-        $token = \Illuminate\Support\Str::after($authHeader, 'Bearer ');
-
-        $response = $this->userService->resetPassword($request->phone, $request->new_password, $token);
-
-        if (!$response['success']) {
-            return response()->json(['message' => $response['message']], 400);
-        }
-
-        return response()->json(['message' => $response['message']]);
-    }
 
     public function updateProfile(Request $request)
     {

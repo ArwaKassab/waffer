@@ -2,6 +2,7 @@
 
 use App\Http\Controllers\AddressController;
 use App\Http\Controllers\AreaController;
+use App\Http\Controllers\AuthResetController;
 use App\Http\Controllers\CartController;
 use App\Http\Controllers\CategoryController;
 use App\Http\Controllers\ComplaintController;
@@ -54,11 +55,10 @@ use App\Http\Controllers\SubAdmin\CustomerController as SubAdminCustomerControll
     //    Route::middleware(['auth:sanctum', 'check.role:admin'])->get('/dashboard', [AdminController::class, 'dashboard']);
         Route::middleware('auth:sanctum')->post('/logout', [AdminAuthController::class, 'logout']);
 
-        // استعادة كلمة المرور
-        Route::post('send-reset-password-code', [UserController::class, 'sendResetPasswordCode']);
-        Route::post('verify-reset-password-code', [UserController::class, 'verifyResetPasswordCode']);
-        Route::post('reset-password', [UserController::class, 'resetPassword'])->middleware('verify.temp.token');;
-
+        Route::post('send-reset-password-code', [AuthResetController::class, 'sendResetPasswordCode']);
+        Route::post('verify-reset-password-code', [AuthResetController::class, 'verifyResetPasswordCode']);
+        Route::post('reset-password', [AuthResetController::class, 'resetPassword'])
+            ->middleware('verify.temp.token');
     });
 
     // ✅ SubAdmin Auth
@@ -68,10 +68,10 @@ use App\Http\Controllers\SubAdmin\CustomerController as SubAdminCustomerControll
         Route::middleware('auth:sanctum')->post('/logout', [SupAdminAuthController::class, 'logout']);
 
         // استعادة كلمة المرور
-        Route::post('send-reset-password-code', [UserController::class, 'sendResetPasswordCode']);
-        Route::post('verify-reset-password-code', [UserController::class, 'verifyResetPasswordCode']);
-        Route::post('reset-password', [UserController::class, 'resetPassword'])->middleware('verify.temp.token');;
-
+        Route::post('send-reset-password-code', [AuthResetController::class, 'sendResetPasswordCode']);
+        Route::post('verify-reset-password-code', [AuthResetController::class, 'verifyResetPasswordCode']);
+        Route::post('reset-password', [AuthResetController::class, 'resetPassword'])
+            ->middleware('verify.temp.token');
 
     });
 
@@ -83,10 +83,10 @@ use App\Http\Controllers\SubAdmin\CustomerController as SubAdminCustomerControll
         Route::middleware('auth:sanctum')->post('/logout', [StoreAuthController::class, 'logout']);
 
         // استعادة كلمة المرور
-        Route::post('send-reset-password-code', [UserController::class, 'sendResetPasswordCode']);
-        Route::post('verify-reset-password-code', [UserController::class, 'verifyResetPasswordCode']);
-        Route::post('reset-password', [UserController::class, 'resetPassword'])->middleware('verify.temp.token');;
-
+        Route::post('send-reset-password-code', [AuthResetController::class, 'sendResetPasswordCode']);
+        Route::post('verify-reset-password-code', [AuthResetController::class, 'verifyResetPasswordCode']);
+        Route::post('reset-password', [AuthResetController::class, 'resetPassword'])
+            ->middleware('verify.temp.token');
     });
 
     // ✅ Customer Auth + Reset Password
@@ -100,10 +100,10 @@ use App\Http\Controllers\SubAdmin\CustomerController as SubAdminCustomerControll
         Route::middleware('auth:sanctum')->post('/logout', [CustomerAuthController::class, 'logout']);
 
         // استعادة كلمة المرور
-        Route::post('send-reset-password-code', [UserController::class, 'sendResetPasswordCode']);
-        Route::post('verify-reset-password-code', [UserController::class, 'verifyResetPasswordCode']);
-        Route::post('reset-password', [UserController::class, 'resetPassword'])->middleware('verify.temp.token');;
-
+        Route::post('send-reset-password-code', [AuthResetController::class, 'sendResetPasswordCode']);
+        Route::post('verify-reset-password-code', [AuthResetController::class, 'verifyResetPasswordCode']);
+        Route::post('reset-password', [AuthResetController::class, 'resetPassword'])
+            ->middleware('verify.temp.token');
     });
 
 
@@ -194,6 +194,8 @@ use App\Http\Controllers\SubAdmin\CustomerController as SubAdminCustomerControll
         //فريق الدعم
         Route::get('/support-links', [LinkController::class, 'index']);
         // الشكاوى
+        Route::get('complaints/types', [ComplaintController::class, 'types']);
+
         Route::post('complaints', [ComplaintController::class, 'store']);
 
 

@@ -30,4 +30,20 @@ class ComplaintController extends Controller
             'complaint' => $complaint
         ], 201);
     }
+
+    public function types()
+    {
+        // نفس القيم المحددة في الـ validation
+        $types = [
+            'محتوى الطلب',
+            'التوصيل',
+            'الدفع',
+            'غير ذلك',
+        ];
+
+        return response()->json([
+            'types' => $types
+        ]);
+    }
+
 }

@@ -18,7 +18,7 @@ class StoreRepository implements StoreRepositoryInterface
                 $query->where('categories.id', $categoryId);
             })
             ->get(['id', 'area_id', 'name', 'image', 'status', 'note', 'open_hour', 'close_hour']);
-        
+
         $stores->transform(function ($store) {
             $store->image = $store->image ? Storage::url($store->image) : null;
             return $store;
@@ -32,7 +32,7 @@ class StoreRepository implements StoreRepositoryInterface
     {
         $store = User::where('type', 'store')
             ->where('id', $storeId)
-            ->with('products')
+            ->with('products','categories')
             ->first(['id', 'name', 'image', 'status', 'note', 'open_hour', 'close_hour']);
 
         if (!$store) {
@@ -47,6 +47,11 @@ class StoreRepository implements StoreRepositoryInterface
 
         return [
             'store' => $store->only(['id', 'name', 'image', 'status', 'note', 'open_hour', 'close_hour']),
+            'categories' => $store->categories->map(function ($category) {
+                return [
+                    'id' => $category->id,
+                ];
+            }),
             'products' => $productsWithDiscountsFirst->map(function ($product) {
                 $discount = $product->activeDiscountToday();
 

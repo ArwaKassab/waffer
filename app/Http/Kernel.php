@@ -49,9 +49,9 @@ class Kernel extends HttpKernel
 
         'ensure.visitor' => \App\Http\Middleware\EnsureVisitorId::class,
         'detect.area' => \App\Http\Middleware\DetectArea::class,
-        'verify.temp.token' => \App\Http\Middleware\VerifyTempToken::class,
         'attach.user.area' => \App\Http\Middleware\AttachUserArea::class,
         'store.only' => \App\Http\Middleware\EnsureUserIsStore::class,
+        'verify.temp.token' => \App\Http\Middleware\VerifyResetTempToken::class,
 
     ];
 
