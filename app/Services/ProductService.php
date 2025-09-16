@@ -21,7 +21,6 @@ class ProductService
         if (!$product) {
             return null;
         }
-
         $data = [
             'id'             => $product->id,
             'name'           => $product->name,

@@ -9,6 +9,7 @@ use App\Services\DiscountService;
 use Illuminate\Http\JsonResponse;
 use Illuminate\Http\Request;
 use App\Services\ProductService;
+use Illuminate\Support\Facades\Log;
 
 class ProductController extends Controller
 {
@@ -23,21 +24,22 @@ class ProductController extends Controller
     }
     public function productDetails($id)
     {
-        try {
-            $product = $this->productService->getProductDetails($id);
+        Log::info("Fetching product details for ID: {$id}");  // السجل هنا
+        $product = $this->productService->getProductDetails($id);
 
-            if (!$product) {
-                return response()->json(['message' => 'Product not found'], 404);
-            }
-
-            return response()->json($product);
-        } catch (\Exception $e) {
-            return response()->json(['message' => 'Error: ' . $e->getMessage()], 500);
+        if (!$product) {
+            Log::info("Product with ID {$id} not found");  // السجل هنا
+            return response()->json(['message' => 'Product not found'], 404);
         }
+
+        Log::info("Product details fetched successfully for ID: {$id}");  // السجل هنا
+        return response()->json($product);
+    
     }
 
 
-     public function myStoreProducts(Request $request)
+
+    public function myStoreProducts(Request $request)
      {
          $storeId = auth()->id();
          $perPage = (int) $request->query('per_page', 10);
