@@ -42,8 +42,6 @@ class AddressController extends Controller
     {
         $address = Address::where('id', $id)->where('user_id', $request->user()->id)->firstOrFail();
 
-        \Log::info('Form Data:', $request->all());
-
         $address->update($request->all());
 
         return response()->json($address->fresh());
