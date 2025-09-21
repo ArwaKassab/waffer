@@ -24,7 +24,7 @@ class LinksTableSeeder extends Seeder
             ],
             [
                 'title' => 'telegram',
-                'link'  => '@Wafirdelivery',
+                'link'  => 'https://t.me/Wafirdelivery',
                 'created_at' => now(),
                 'updated_at' => now(),
             ],
