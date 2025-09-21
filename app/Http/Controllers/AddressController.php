@@ -25,7 +25,7 @@ class AddressController extends Controller
     {
         $data = $request->validate([
             'address_details' => 'required|string',
-//            'titel'  => 'required|string',
+            'titel'  => 'required|string',
             'latitude' => 'required|numeric',
             'longitude' => 'required|numeric',
             'is_default' => 'nullable|boolean',
