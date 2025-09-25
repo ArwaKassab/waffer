@@ -49,8 +49,22 @@ class StoreRepository implements StoreRepositoryInterface
         string $q,
         ?int $productsPerStoreLimit = 10
     ) {
-        // ... نفس تجهيز $tokens و $buildPatterns ...
+        // 1) تجهيز التوكنز وأنماط REGEXP
+        $tokens = collect(preg_split('/\s+/u', $q, -1, PREG_SPLIT_NO_EMPTY))
+            ->map(fn ($t) => trim($t))
+            ->filter(fn ($t) => mb_strlen($t, 'UTF-8') >= 2)
+            ->values();
 
+        $escape = fn (string $t): string => preg_quote($t, '/');
+        $buildPatterns = function (string $term) use ($escape) {
+            $re = $escape($term);
+            return [
+                '^[[:space:]]*' . $re,                          // بداية النص
+                '(^|[[:space:][:punct:]])(ال)?' . $re,          // بداية كلمة + "ال" اختياري
+            ];
+        };
+
+        // 2) متاجر تطابق الاسم داخل المنطقة (بدون تقييد تصنيف)
         $storesByName = User::query()
             ->where('type', 'store')
             ->where('area_id', $areaId)
@@ -69,6 +83,7 @@ class StoreRepository implements StoreRepositoryInterface
 
         $storeNameMatchedIds = $storesByName->pluck('id')->all();
 
+        // 3) منتجات تطابق الاسم داخل المنطقة (حسب متجرها)، مع خصم فعّال
         $productsMatched = Product::query()
             ->with([
                 'store:id,name,area_id,image,status,note,open_hour,close_hour',
@@ -89,8 +104,10 @@ class StoreRepository implements StoreRepositoryInterface
             ->orderBy('products.name')
             ->get();
 
-        $result = [];
+        // 4) بناء النتيجة المجمّعة بدون تكرار متجر
+        $result = []; // keyed by store_id
 
+        // (أ) المتاجر التي طابقت بالاسم
         foreach ($storesByName as $s) {
             $result[$s->id] = [
                 'id'         => $s->id,
@@ -106,6 +123,7 @@ class StoreRepository implements StoreRepositoryInterface
             ];
         }
 
+        // (ب) المتاجر الناتجة عن تطابق المنتجات + إدراج المنتج المطابق (مع الأسعار والخصم)
         foreach ($productsMatched as $p) {
             $s = $p->store;
             if (!$s) continue;
@@ -145,6 +163,7 @@ class StoreRepository implements StoreRepositoryInterface
             }
         }
 
+        // 5) لو المتجر طابق بالاسم، نحمّل منتجاته (بدون فلترة تصنيف) ونحترم حدّ المنتجات إن وُجد
         if (!empty($storeNameMatchedIds)) {
             $allProducts = Product::query()
                 ->with(['activeDiscount:id,product_id,new_price,start_date,end_date'])
@@ -196,6 +215,7 @@ class StoreRepository implements StoreRepositoryInterface
             }
         }
 
+        // 6) ترتيب المتاجر وإرجاع مصفوفة
         $result = array_values($result);
         usort($result, fn($a, $b) => strcmp($a['name'], $b['name']));
 
