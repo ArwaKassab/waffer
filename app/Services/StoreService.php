@@ -39,7 +39,15 @@ class StoreService
         );
     }
 
-
+    public function searchStoresAndProductsGroupedInArea(
+        int $areaId,
+        string $q,
+        ?int $productsPerStoreLimit = 10
+    ) {
+        return $this->storeRepository->searchStoresAndProductsGroupedInArea(
+            $areaId, $q, $productsPerStoreLimit
+        );
+    }
 
 
 }

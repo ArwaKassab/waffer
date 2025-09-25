@@ -248,6 +248,38 @@ class StoreController extends Controller
         ], 200);
     }
 
+    public function searchGroupedInArea(Request $request)
+    {
+        $q = trim((string) $request->query('q', ''));
+        $areaId = (int) $request->query('area_id');
+
+        if (!$areaId) {
+            return response()->json([
+                'q' => $q, 'area_id' => $areaId,
+                'stores' => [], 'message' => 'Area not set',
+            ], 400);
+        }
+
+        if (mb_strlen($q, 'UTF-8') < 2) {
+            return response()->json([
+                'q' => $q, 'area_id' => $areaId,
+                'stores' => [], 'message' => 'أدخل حرفين على الأقل للبحث.',
+            ], 200);
+        }
+
+        // productsPerStoreLimit = null لو بدك كل منتجات المتجر عند تطابق اسم المتجر
+        $stores = $this->storeService->searchStoresAndProductsGroupedInArea(
+            areaId: $areaId,
+            q: $q,
+            productsPerStoreLimit: 10
+        );
+
+        return response()->json([
+            'q' => $q,
+            'area_id' => $areaId,
+            'stores' => $stores,
+        ], 200);
+    }
 
 
 }
