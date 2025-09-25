@@ -29,4 +29,12 @@ class Discount extends Model
             ->withTimestamps();
     }
 
+    // App\Models\Discount.php
+    protected $casts = [
+        'start_date' => 'date',
+        'end_date'   => 'date',
+        'new_price'  => 'decimal:2',
+    ];
+
+
 }

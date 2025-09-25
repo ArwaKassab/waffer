@@ -44,6 +44,164 @@ class StoreRepository implements StoreRepositoryInterface
     }
 
 
+    public function searchStoresAndProductsGroupedInArea(
+        int $areaId,
+        string $q,
+        ?int $productsPerStoreLimit = 10
+    ) {
+        // ... نفس تجهيز $tokens و $buildPatterns ...
+
+        $storesByName = User::query()
+            ->where('type', 'store')
+            ->where('area_id', $areaId)
+            ->select('id','area_id','name','image','status','note','open_hour','close_hour')
+            ->when($tokens->isNotEmpty(), function ($query) use ($tokens, $buildPatterns) {
+                foreach ($tokens as $t) {
+                    [$p1, $p2] = $buildPatterns($t);
+                    $query->where(function ($qq) use ($p1, $p2) {
+                        $qq->whereRaw("`name` REGEXP ?", [$p1])
+                            ->orWhereRaw("`name` REGEXP ?", [$p2]);
+                    });
+                }
+            })
+            ->orderBy('name')
+            ->get();
+
+        $storeNameMatchedIds = $storesByName->pluck('id')->all();
+
+        $productsMatched = Product::query()
+            ->with([
+                'store:id,name,area_id,image,status,note,open_hour,close_hour',
+                'activeDiscount:id,product_id,new_price,start_date,end_date',
+            ])
+            ->whereHas('store', fn ($qs) => $qs->where('type','store')->where('area_id', $areaId))
+            ->select('products.id','products.name','products.price','products.store_id','products.image')
+            ->when($tokens->isNotEmpty(), function ($query) use ($tokens, $buildPatterns) {
+                foreach ($tokens as $t) {
+                    [$p1, $p2] = $buildPatterns($t);
+                    $query->where(function ($qq) use ($p1, $p2) {
+                        $qq->whereRaw("`products`.`name` REGEXP ?", [$p1])
+                            ->orWhereRaw("`products`.`name` REGEXP ?", [$p2]);
+                    });
+                }
+            })
+            ->distinct()
+            ->orderBy('products.name')
+            ->get();
+
+        $result = [];
+
+        foreach ($storesByName as $s) {
+            $result[$s->id] = [
+                'id'         => $s->id,
+                'name'       => $s->name,
+                'area_id'    => $s->area_id,
+                'status'     => $s->status,
+                'note'       => $s->note,
+                'open_hour'  => $s->open_hour,
+                'close_hour' => $s->close_hour,
+                'image'      => $s->image ? Storage::url($s->image) : null,
+                'products'   => [],
+                '_matched_by_store_name' => true,
+            ];
+        }
+
+        foreach ($productsMatched as $p) {
+            $s = $p->store;
+            if (!$s) continue;
+
+            if (!isset($result[$s->id])) {
+                $result[$s->id] = [
+                    'id'         => $s->id,
+                    'name'       => $s->name,
+                    'area_id'    => $s->area_id,
+                    'status'     => $s->status ?? null,
+                    'note'       => $s->note ?? null,
+                    'open_hour'  => $s->open_hour ?? null,
+                    'close_hour' => $s->close_hour ?? null,
+                    'image'      => $s->image ? Storage::url($s->image) : null,
+                    'products'   => [],
+                ];
+            }
+
+            $alreadyIds = array_column($result[$s->id]['products'], 'id');
+            if (!in_array($p->id, $alreadyIds, true)) {
+                $priceOriginal = (float) $p->price;
+                $priceFinal    = (float) ($p->activeDiscount?->new_price ?? $p->price);
+
+                $result[$s->id]['products'][] = [
+                    'id'             => $p->id,
+                    'name'           => $p->name,
+                    'price_original' => $priceOriginal,
+                    'price_final'    => $priceFinal,
+                    'discount'       => $p->activeDiscount ? [
+                        'new_price'  => (float) $p->activeDiscount->new_price,
+                        'start_date' => $p->activeDiscount->start_date?->toDateString(),
+                        'end_date'   => $p->activeDiscount->end_date?->toDateString(),
+                    ] : null,
+                    'image'          => $p->image ? Storage::url($p->image) : null,
+                    '_matched'       => true,
+                ];
+            }
+        }
+
+        if (!empty($storeNameMatchedIds)) {
+            $allProducts = Product::query()
+                ->with(['activeDiscount:id,product_id,new_price,start_date,end_date'])
+                ->whereIn('store_id', $storeNameMatchedIds)
+                ->select('id','name','price','store_id','image')
+                ->orderBy('name')
+                ->get()
+                ->groupBy('store_id');
+
+            foreach ($storeNameMatchedIds as $sid) {
+                if (!isset($result[$sid])) continue;
+
+                $existing = collect($result[$sid]['products'])->keyBy('id');
+
+                foreach ($allProducts->get($sid, collect()) as $p) {
+                    if ($existing->has($p->id)) continue;
+
+                    $priceOriginal = (float) $p->price;
+                    $priceFinal    = (float) ($p->activeDiscount?->new_price ?? $p->price);
+
+                    $result[$sid]['products'][] = [
+                        'id'             => $p->id,
+                        'name'           => $p->name,
+                        'price_original' => $priceOriginal,
+                        'price_final'    => $priceFinal,
+                        'discount'       => $p->activeDiscount ? [
+                            'new_price'  => (float) $p->activeDiscount->new_price,
+                            'start_date' => $p->activeDiscount->start_date?->toDateString(),
+                            'end_date'   => $p->activeDiscount->end_date?->toDateString(),
+                        ] : null,
+                        'image'          => $p->image ? Storage::url($p->image) : null,
+                    ];
+
+                    if (!is_null($productsPerStoreLimit) &&
+                        count($result[$sid]['products']) >= $productsPerStoreLimit) {
+                        break;
+                    }
+                }
+
+                if (!is_null($productsPerStoreLimit) &&
+                    count($result[$sid]['products']) > $productsPerStoreLimit) {
+                    $matched = array_values(array_filter($result[$sid]['products'], fn($x) => !empty($x['_matched'])));
+                    $others  = array_values(array_filter($result[$sid]['products'], fn($x) => empty($x['_matched'])));
+                    $result[$sid]['products'] = array_slice(array_merge($matched, $others), 0, $productsPerStoreLimit);
+                }
+
+                unset($result[$sid]['_matched_by_store_name']);
+                foreach ($result[$sid]['products'] as &$pp) { unset($pp['_matched']); }
+            }
+        }
+
+        $result = array_values($result);
+        usort($result, fn($a, $b) => strcmp($a['name'], $b['name']));
+
+        return $result;
+    }
+
 
     public function getStoreDetailsWithProductsAndDiscounts($storeId)
     {
@@ -127,9 +285,12 @@ class StoreRepository implements StoreRepositoryInterface
 
         $storeNameMatchedIds = $storesByName->pluck('id')->all();
 
-        // 3) منتجات تطابق الاسم ضمن المنطقة + التصنيف (بحسب متجرها)
+        // المنتجات المطابقة + خصم فعّال
         $productsMatched = Product::query()
-            ->with(['store:id,name,area_id,image,status,note,open_hour,close_hour'])
+            ->with([
+                'store:id,name,area_id,image,status,note,open_hour,close_hour',
+                'activeDiscount:id,product_id,new_price,start_date,end_date',
+            ])
             ->whereHas('store', function ($qs) use ($areaId, $categoryId) {
                 $qs->where('type','store')
                     ->where('area_id', $areaId)
@@ -145,14 +306,13 @@ class StoreRepository implements StoreRepositoryInterface
                     });
                 }
             })
-            ->distinct() // حماية من أي تكرار بسبب join لاحقًا
+            ->distinct()
             ->orderBy('products.name')
             ->get();
 
-        // 4) بناء النتيجة المُجمَّعة (بدون تكرار متجر)
-        $result = []; // keyed by store_id
+        $result = [];
 
-        // (أ) أضف المتاجر المطابقة بالاسم (المنتجات تُملأ لاحقًا)
+        // أ) أضف المتاجر المطابقة بالاسم
         foreach ($storesByName as $s) {
             $result[$s->id] = [
                 'id'         => $s->id,
@@ -164,11 +324,11 @@ class StoreRepository implements StoreRepositoryInterface
                 'close_hour' => $s->close_hour,
                 'image'      => $s->image ? Storage::url($s->image) : null,
                 'products'   => [],
-                '_matched_by_store_name' => true, // علامة داخلية
+                '_matched_by_store_name' => true,
             ];
         }
 
-        // (ب) أضف المتاجر الناتجة عن تطابق المنتجات + أدرج المنتج المطابق داخل متجره
+        // ب) أضف المتاجر الناتجة عن تطابق المنتجات + المنتج المطابق مع الأسعار
         foreach ($productsMatched as $p) {
             $s = $p->store;
             if (!$s) continue;
@@ -187,23 +347,31 @@ class StoreRepository implements StoreRepositoryInterface
                 ];
             }
 
-            // أضف المنتج المطابق (لو غير مضاف)
             $alreadyIds = array_column($result[$s->id]['products'], 'id');
             if (!in_array($p->id, $alreadyIds, true)) {
+                $priceOriginal = (float) $p->price;
+                $priceFinal    = (float) ($p->activeDiscount?->new_price ?? $p->price);
+
                 $result[$s->id]['products'][] = [
-                    'id'    => $p->id,
-                    'name'  => $p->name,
-                    'price' => $p->price,
-                    'image' => $p->image ? Storage::url($p->image) : null,
-                    'quantity_with_unit' => $p->quantity.','.$p->unit,
-                    '_matched' => true, // علامة داخلية للفرز لاحقًا
+                    'id'             => $p->id,
+                    'name'           => $p->name,
+                    'price_original' => $priceOriginal,
+                    'price_final'    => $priceFinal,
+                    'discount'       => $p->activeDiscount ? [
+                        'new_price'  => (float) $p->activeDiscount->new_price,
+                        'start_date' => $p->activeDiscount->start_date?->toDateString(),
+                        'end_date'   => $p->activeDiscount->end_date?->toDateString(),
+                    ] : null,
+                    'image'          => $p->image ? Storage::url($p->image) : null,
+                    '_matched'       => true,
                 ];
             }
         }
 
-        // 5) للمتاجر التي طابقت بالاسم: حمّل منتجاتها (لو بدك تعرض منتجات المتجر عند تطابق اسمه)
+        // حمّل منتجات المتاجر التي طابقت بالاسم (مع خصوماتها)
         if (!empty($storeNameMatchedIds)) {
             $allProducts = Product::query()
+                ->with(['activeDiscount:id,product_id,new_price,start_date,end_date'])
                 ->whereIn('store_id', $storeNameMatchedIds)
                 ->select('id','name','price','store_id','image')
                 ->orderBy('name')
@@ -213,27 +381,33 @@ class StoreRepository implements StoreRepositoryInterface
             foreach ($storeNameMatchedIds as $sid) {
                 if (!isset($result[$sid])) continue;
 
-                // اجمع المنتجات الموجودة مسبقًا (من التطابق بالمنتج)
                 $existing = collect($result[$sid]['products'])->keyBy('id');
 
-                // أضف بقية منتجات المتجر
                 foreach ($allProducts->get($sid, collect()) as $p) {
                     if ($existing->has($p->id)) continue;
+
+                    $priceOriginal = (float) $p->price;
+                    $priceFinal    = (float) ($p->activeDiscount?->new_price ?? $p->price);
+
                     $result[$sid]['products'][] = [
-                        'id'    => $p->id,
-                        'name'  => $p->name,
-                        'price' => $p->price,
-                        'image' => $p->image ? Storage::url($p->image) : null,
+                        'id'             => $p->id,
+                        'name'           => $p->name,
+                        'price_original' => $priceOriginal,
+                        'price_final'    => $priceFinal,
+                        'discount'       => $p->activeDiscount ? [
+                            'new_price'  => (float) $p->activeDiscount->new_price,
+                            'start_date' => $p->activeDiscount->start_date?->toDateString(),
+                            'end_date'   => $p->activeDiscount->end_date?->toDateString(),
+                        ] : null,
+                        'image'          => $p->image ? Storage::url($p->image) : null,
                     ];
 
-                    // احترم الحد إن كان محدَّدًا
                     if (!is_null($productsPerStoreLimit) &&
                         count($result[$sid]['products']) >= $productsPerStoreLimit) {
                         break;
                     }
                 }
 
-                // قصّ النهائي: حافظ على المطابق أولاً ثم أكمل
                 if (!is_null($productsPerStoreLimit) &&
                     count($result[$sid]['products']) > $productsPerStoreLimit) {
                     $matched = array_values(array_filter($result[$sid]['products'], fn($x) => !empty($x['_matched'])));
@@ -246,170 +420,10 @@ class StoreRepository implements StoreRepositoryInterface
             }
         }
 
-        // 6) ترتيب المتاجر بالاسم وإرجاع كمصفوفة (بدون مفاتيح store_id)
         $result = array_values($result);
         usort($result, fn($a, $b) => strcmp($a['name'], $b['name']));
 
         return $result;
     }
 
-    public function searchStoresAndProductsGroupedInArea(
-        int $areaId,
-        string $q,
-        ?int $productsPerStoreLimit = 10
-    )
-    {
-        // 1) تحضير التوكنز وأنماط REGEXP (نفس منطقك السابق)
-        $tokens = collect(preg_split('/\s+/u', $q, -1, PREG_SPLIT_NO_EMPTY))
-            ->map(fn($t) => trim($t))
-            ->filter(fn($t) => mb_strlen($t, 'UTF-8') >= 2)
-            ->values();
-
-        $escape = fn(string $t): string => preg_quote($t, '/');
-        $buildPatterns = function (string $term) use ($escape) {
-            $re = $escape($term);
-            return [
-                '^[[:space:]]*' . $re,                          // بداية النص
-                '(^|[[:space:][:punct:]])(ال)?' . $re,          // بداية كلمة + "ال" اختياري
-            ];
-        };
-
-        // 2) متاجر تطابق الاسم داخل المنطقة (بدون تقييد تصنيف)
-        $storesByName = User::query()
-            ->where('type', 'store')
-            ->where('area_id', $areaId)
-            ->select('id', 'area_id', 'name', 'image', 'status', 'note', 'open_hour', 'close_hour')
-            ->when($tokens->isNotEmpty(), function ($query) use ($tokens, $buildPatterns) {
-                foreach ($tokens as $t) {
-                    [$p1, $p2] = $buildPatterns($t);
-                    $query->where(function ($qq) use ($p1, $p2) {
-                        $qq->whereRaw("`name` REGEXP ?", [$p1])
-                            ->orWhereRaw("`name` REGEXP ?", [$p2]);
-                    });
-                }
-            })
-            ->orderBy('name')
-            ->get();
-
-        $storeNameMatchedIds = $storesByName->pluck('id')->all();
-
-        // 3) منتجات تطابق الاسم داخل المنطقة (حسب متجرها)، بدون تقييد تصنيف
-        $productsMatched = Product::query()
-            ->with(['store:id,name,area_id,image,status,note,open_hour,close_hour'])
-            ->whereHas('store', function ($qs) use ($areaId) {
-                $qs->where('type', 'store')->where('area_id', $areaId);
-            })
-            ->select('products.id', 'products.name', 'products.price', 'products.store_id', 'products.image')
-            ->when($tokens->isNotEmpty(), function ($query) use ($tokens, $buildPatterns) {
-                foreach ($tokens as $t) {
-                    [$p1, $p2] = $buildPatterns($t);
-                    $query->where(function ($qq) use ($p1, $p2) {
-                        $qq->whereRaw("`products`.`name` REGEXP ?", [$p1])
-                            ->orWhereRaw("`products`.`name` REGEXP ?", [$p2]);
-                    });
-                }
-            })
-            ->distinct()
-            ->orderBy('products.name')
-            ->get();
-
-        // 4) بناء النتيجة المجمّعة بدون تكرار متجر
-        $result = []; // keyed by store_id
-
-        // (أ) المتاجر التي طابقت بالاسم
-        foreach ($storesByName as $s) {
-            $result[$s->id] = [
-                'id' => $s->id,
-                'name' => $s->name,
-                'area_id' => $s->area_id,
-                'status' => $s->status,
-                'note' => $s->note,
-                'open_hour' => $s->open_hour,
-                'close_hour' => $s->close_hour,
-                'image' => $s->image ? Storage::url($s->image) : null,
-                'products' => [],
-                '_matched_by_store_name' => true,
-            ];
-        }
-
-        // (ب) المتاجر القادمة من تطابق المنتجات + إدراج المنتج المطابق
-        foreach ($productsMatched as $p) {
-            $s = $p->store;
-            if (!$s) continue;
-
-            if (!isset($result[$s->id])) {
-                $result[$s->id] = [
-                    'id' => $s->id,
-                    'name' => $s->name,
-                    'area_id' => $s->area_id,
-                    'status' => $s->status ?? null,
-                    'note' => $s->note ?? null,
-                    'open_hour' => $s->open_hour ?? null,
-                    'close_hour' => $s->close_hour ?? null,
-                    'image' => $s->image ? Storage::url($s->image) : null,
-                    'products' => [],
-                ];
-            }
-
-            $alreadyIds = array_column($result[$s->id]['products'], 'id');
-            if (!in_array($p->id, $alreadyIds, true)) {
-                $result[$s->id]['products'][] = [
-                    'id' => $p->id,
-                    'name' => $p->name,
-                    'price' => $p->price,
-                    'image' => $p->image ? Storage::url($p->image) : null,
-                    '_matched' => true,
-                ];
-            }
-        }
-
-        // 5) لو المتجر طابق بالاسم، نحمّل منتجاته (بدون فلترة تصنيف)
-        if (!empty($storeNameMatchedIds)) {
-            $allProducts = Product::query()
-                ->whereIn('store_id', $storeNameMatchedIds)
-                ->select('id', 'name', 'price', 'store_id', 'image')
-                ->orderBy('name')
-                ->get()
-                ->groupBy('store_id');
-
-            foreach ($storeNameMatchedIds as $sid) {
-                if (!isset($result[$sid])) continue;
-
-                $existing = collect($result[$sid]['products'])->keyBy('id');
-
-                foreach ($allProducts->get($sid, collect()) as $p) {
-                    if ($existing->has($p->id)) continue;
-                    $result[$sid]['products'][] = [
-                        'id' => $p->id,
-                        'name' => $p->name,
-                        'price' => $p->price,
-                        'image' => $p->image ? Storage::url($p->image) : null,
-                    ];
-
-                    if (!is_null($productsPerStoreLimit) &&
-                        count($result[$sid]['products']) >= $productsPerStoreLimit) {
-                        break;
-                    }
-                }
-
-                if (!is_null($productsPerStoreLimit) &&
-                    count($result[$sid]['products']) > $productsPerStoreLimit) {
-                    $matched = array_values(array_filter($result[$sid]['products'], fn($x) => !empty($x['_matched'])));
-                    $others = array_values(array_filter($result[$sid]['products'], fn($x) => empty($x['_matched'])));
-                    $result[$sid]['products'] = array_slice(array_merge($matched, $others), 0, $productsPerStoreLimit);
-                }
-
-                unset($result[$sid]['_matched_by_store_name']);
-                foreach ($result[$sid]['products'] as &$pp) {
-                    unset($pp['_matched']);
-                }
-            }
-        }
-
-        // 6) ترتيب المتاجر وإرجاع مصفوفة
-        $result = array_values($result);
-        usort($result, fn($a, $b) => strcmp($a['name'], $b['name']));
-
-        return $result;
-    }
 }

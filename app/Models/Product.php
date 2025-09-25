@@ -59,6 +59,16 @@ class Product extends Model
         return $this->hasOne(Discount::class);
     }
 
+    public function activeDiscount()
+    {
+        return $this->hasOne(Discount::class)
+            ->where('status', 'active')
+            ->whereDate('start_date', '<=', now())
+            ->whereDate('end_date', '>=', now())
+            ->latestOfMany('start_date');
+    }
+
+
     public function offers()
     {
         return $this->belongsToMany(Offer::class, 'offer_product', 'product_id', 'offer_id');
@@ -80,6 +90,8 @@ class Product extends Model
     {
         return $this->hasMany(ProductRequest::class, 'product_id');
     }
+
+
 
 
 }
