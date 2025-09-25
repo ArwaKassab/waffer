@@ -166,7 +166,7 @@ class StoreRepository implements StoreRepositoryInterface
         // 5) لو المتجر طابق بالاسم، نحمّل منتجاته (بدون فلترة تصنيف) ونحترم حدّ المنتجات إن وُجد
         if (!empty($storeNameMatchedIds)) {
             $allProducts = Product::query()
-                ->with(['activeDiscount:id,product_id,new_price,start_date,end_date'])
+                ->with(['activeDiscount,product_id,new_price,start_date,end_date'])
                 ->whereIn('store_id', $storeNameMatchedIds)
                 ->select('id','name','price','store_id','image')
                 ->orderBy('name')
@@ -309,7 +309,7 @@ class StoreRepository implements StoreRepositoryInterface
         $productsMatched = Product::query()
             ->with([
                 'store:id,name,area_id,image,status,note,open_hour,close_hour',
-                'activeDiscount:id,product_id,new_price,start_date,end_date',
+                'activeDiscount,product_id,new_price,start_date,end_date',
             ])
             ->whereHas('store', function ($qs) use ($areaId, $categoryId) {
                 $qs->where('type','store')
