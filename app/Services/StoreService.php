@@ -28,5 +28,18 @@ class StoreService
         return $this->storeRepository->getStoreDetailsWithProductsAndDiscounts($storeId);
     }
 
+    public function searchStoresAndProductsGrouped(
+        int $areaId,
+        int $categoryId,
+        string $q,
+        ?int $productsPerStoreLimit = 10 //  منتجات المتجر
+    ) {
+        return $this->storeRepository->searchStoresAndProductsGrouped(
+            $areaId, $categoryId, $q, $productsPerStoreLimit
+        );
+    }
+
+
+
 
 }

@@ -159,7 +159,7 @@ use App\Http\Controllers\SubAdmin\CustomerController as SubAdminCustomerControll
 
         //search
         Route::get('store/search', [StoreController::class, 'search']);
-        Route::get('store/categories-stores/search/{categoryId}', [StoreController::class, 'searchByCategory']);
+        Route::get('store/categories-stores/search/{categoryId}', [StoreController::class, 'searchByCategoryGrouped']);
         Route::get('store/products/search/{store}', [ProductController::class, 'searchProductsInStore']);
 
 
