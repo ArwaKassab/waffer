@@ -17,7 +17,8 @@ class OrderResource extends JsonResource
         return [
             'order_id' => $this->id,
             'status' => $this->status,
-            'order_time' => $this->created_at->format('Y-m-d H:i'),
+            'order_date' => optional($this->created_at)->format('Y-m-d'),
+            'order_time' => optional($this->created_at)->format('H:i'),
             'items_count' => $this->items->count(),
             'product_total' => (float)$this->total_product_price,
             'discount_fee' => (float)$this->orderDiscounts->sum('discount_fee'),
@@ -40,6 +41,7 @@ class OrderResource extends JsonResource
                     'product_name' => $product->name,
                     'store_id' => $store->id,
                     'store_name' => $store->name,
+                    'quantity_with_unit' => $product->quantity.','.$product->unit,
                     'quantity' => $item->quantity,
                     'unit_price' => (float)$item->unit_price,
                     'unit_price_after_discount' => (float)$item->unit_price_after_discount,

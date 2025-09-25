@@ -29,36 +29,41 @@ class UserController extends Controller
 
     public function profile()
     {
+
         $user = auth('sanctum')->user();
 
-        if (!$user instanceof User) {
+        if (!$user instanceof \App\Models\User) {
             return response()->json(['message' => 'المستخدم غير مصرح له'], 403);
         }
 
-        $userData = $user->toArray();
+        $user->loadMissing([
+            'area' => fn ($q) => $q->withTrashed()->select('id','name')
+        ]);
+;
 
         if ($user->type === 'store') {
             $filteredUser = [
-                'name' => $userData['name'],
-                'open_hour' => $userData['open_hour'],
-                'close_hour' => $userData['close_hour'],
-                'status' => $userData['status'],
-                'image' => $userData['image'] ? asset('storage/' . $userData['image']) : null,
+                'name'       => $user->name,
+                'open_hour'  => $user->open_hour,
+                'close_hour' => $user->close_hour,
+                'status'     => $user->status,
+                'image'      => $user->image ? asset('storage/'.$user->image) : null,
+                'area_id'    => $user->area_id,
+                'area_name'  => optional($user->area)->name,
             ];
         } elseif ($user->type === 'customer') {
             $filteredUser = [
-                'id' => $userData['id'],
-                'name' => $userData['name'],
-                'phone' => $userData['phone'],
-                'area_id' => $userData['area_id'],
-
+                'id'        => $user->id,
+                'name'      => $user->name,
+                'phone'     => $user->phone,
+                'area_id'   => $user->area_id,
+                'area_name' => optional($user->area)->name,
             ];
-        } else {
-            $filteredUser = ['message' => 'نوع المستخدم غير معروف'];
         }
 
         return response()->json(['user' => $filteredUser]);
     }
+
 
 
 

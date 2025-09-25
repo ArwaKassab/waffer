@@ -35,7 +35,7 @@ class AuthResetController extends Controller
         $user = $this->userRepo->findByPhoneAndType($phone);
         if (!$user) {
             return response()->json([
-                'message' => 'إن وُجد حساب مطابق سيتم إرسال رمز إعادة التعيين.',
+                'message' => 'لا يوجد حساب مطابق سيتم إرسال رمز إعادة التعيين.',
             ]);
         }
 
@@ -176,6 +176,87 @@ class AuthResetController extends Controller
 
         return response()->json(['message' => 'تم تحديث كلمة المرور بنجاح.'], 200);
     }
+    /**
+     * إعادة إرسال رمز OTP لخطوة إعادة التعيين
+     * المتطلبات: temp_id + phone (بنفس الصيغة التي بدأ بها المستخدم)
+     */
+    public function resendResetPasswordCode(Request $request): JsonResponse
+    {
+        $data = $request->validate([
+            'temp_id' => ['required', 'string'],
+        ]);
+
+        $tempId     = $data['temp_id'];
+        $pendingKey = $this->cacheKeyPending($tempId);
+
+        // الجلسة الأصلية لازم تكون موجودة
+        $encrypted = Cache::get($pendingKey);
+        if (!$encrypted) {
+            return response()->json([
+                'message' => 'انتهت صلاحية الجلسة. ابدأ من جديد.',
+            ], 410);
+        }
+
+        // فك التشفير وجلب الهاتف من الجلسة
+        $session = json_decode(Crypt::decryptString($encrypted), true) ?: [];
+        $phone   = $session['phone'] ?? null;
+        if (!$phone) {
+            return response()->json([
+                'message' => 'جلسة غير صالحة (لا يوجد هاتف مخزَّن).',
+            ], 400);
+        }
+
+        // Rate limit للإعادة
+        $rlKey = 'reset-resend:' . sha1($phone . '|' . $request->ip());
+        if (RateLimiter::tooManyAttempts($rlKey, 5)) {
+            return response()->json([
+                'message'             => 'محاولات كثيرة. حاول لاحقًا.',
+                'retry_after_seconds' => RateLimiter::availableIn($rlKey),
+            ], 429);
+        }
+        RateLimiter::hit($rlKey, 60); // إعادة كل 60 ثانية
+
+        // (اختياري) حد أقصى لمرات الإعادة داخل نفس الجلسة
+        $maxResends = 5;
+        $resends    = (int) ($session['resend_count'] ?? 0);
+        if ($resends >= $maxResends) {
+            return response()->json([
+                'message' => 'تم تجاوز الحد المسموح لإعادة الإرسال.',
+            ], 429);
+        }
+
+        // توليد OTP جديد وتحديث الجلسة
+        $otpPlain                = $this->otpService->generateOtp(6);
+        $session['otp_hash']     = Hash::make($otpPlain);
+        $session['resend_count'] = $resends + 1;
+
+        // إعادة حفظ الجلسة (بنفس TTL المستخدم في الإرسال الأول)
+        $ttlSeconds = (int) config('services.smschef.expire', 300) + 120;
+        Cache::put($pendingKey, Crypt::encryptString(json_encode($session, JSON_UNESCAPED_UNICODE)), $ttlSeconds);
+
+        // إرسال الرسالة
+        $phoneForSms = $this->toSmsE164PlusFromCanonical($phone); // الهاتف مخزَّن بصيغة 00963xxxx
+        $sendMeta = $this->otpService->sendOtpViaDevice(
+            $phoneForSms,
+            $otpPlain,
+            'رمز إعادة تعيين كلمة المرور (إعادة إرسال)'
+        );
+
+        if (!empty($sendMeta['ok'])) {
+            return response()->json([
+                'message'           => 'تمت إعادة إرسال الرمز.',
+                'verification_step' => 'otp_pending',
+                'temp_id'           => $tempId,
+            ], 200);
+        }
+
+        return response()->json([
+            'message' => 'تعذّر إرسال الرمز حاليًا. حاول بعد قليل.',
+        ], 502);
+    }
+
+
+
 
     /* ========================
      * Helpers – أرقام + مفاتيح

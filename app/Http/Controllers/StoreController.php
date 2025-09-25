@@ -16,6 +16,18 @@ class StoreController extends Controller
     {
         $this->storeService = $storeService;
     }
+    public function indexByArea(Request $request)
+    {
+        $areaId = $request->get('area_id');
+
+        if (!$areaId) {
+            return response()->json(['message' => 'Area not set'], 400);
+        }
+
+        $stores = $this->storeService->getStoresByArea($areaId);
+
+        return response()->json($stores);
+    }
 
     public function index(Request $request,$categoryId)
     {

@@ -11,37 +11,37 @@ class LinksTableSeeder extends Seeder
     {
         DB::table('links')->insert([
             [
-                'title' => 'phone',
+                'title' => '00963965885266',
                 'link'  => '00963965885266',
                 'created_at' => now(),
                 'updated_at' => now(),
             ],
             [
-                'title' => 'Whatsapp',
+                'title' => 'واتساب',
                 'link'  => 'https://wa.me/963965885266',
                 'created_at' => now(),
                 'updated_at' => now(),
             ],
             [
-                'title' => 'telegram',
+                'title' => 'تيليغرام',
                 'link'  => 'https://t.me/Wafirdelivery',
                 'created_at' => now(),
                 'updated_at' => now(),
             ],
             [
-                'title' => 'facebook',
+                'title' => 'فيسبوك',
                 'link'  => 'https://www.facebook.com/profile.php?id=61577646494156',
                 'created_at' => now(),
                 'updated_at' => now(),
             ],
             [
-                'title' => 'instagram',
+                'title' => 'انستاغرام',
                 'link'  => 'https://www.instagram.com/wafirdelivery?utm_source=qr&igsh=MXYzYTdxdmw3a2xmZA==',
                 'created_at' => now(),
                 'updated_at' => now(),
             ],
             [
-                'title' => 'email',
+                'title' => 'wafirdelivry@gmail.com',
                 'link'  => 'wafirdelivry@gmail.com',
                 'created_at' => now(),
                 'updated_at' => now(),

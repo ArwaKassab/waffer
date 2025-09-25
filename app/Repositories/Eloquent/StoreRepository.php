@@ -10,14 +10,12 @@ use Illuminate\Support\Facades\Storage;
 
 class StoreRepository implements StoreRepositoryInterface
 {
-    public function getStoresByAreaAndCategory($areaId, $categoryId)
+
+    public function getStoresByArea(int $areaId)
     {
         $stores = User::where('type', 'store')
             ->where('area_id', $areaId)
-            ->whereHas('categories', function ($query) use ($categoryId) {
-                $query->where('categories.id', $categoryId);
-            })
-            ->get(['id', 'area_id', 'name', 'image', 'status', 'note', 'open_hour', 'close_hour']);
+            ->get(['id','area_id','name','image','status','note','open_hour','close_hour']);
 
         $stores->transform(function ($store) {
             $store->image = $store->image ? Storage::url($store->image) : null;
@@ -26,6 +24,24 @@ class StoreRepository implements StoreRepositoryInterface
 
         return $stores;
     }
+
+    public function getStoresByAreaAndCategory($areaId, $categoryId)
+    {
+        $stores = User::where('type', 'store')
+            ->where('area_id', $areaId)
+            ->whereHas('categories', function ($query) use ($categoryId) {
+                $query->where('categories.id', $categoryId);
+            })
+            ->get(['id', 'area_id', 'name', 'image', 'status', 'note', 'open_hour', 'close_hour' ]);
+
+        $stores->transform(function ($store) {
+            $store->image = $store->image ? Storage::url($store->image) : null;
+            return $store;
+        });
+
+        return $stores;
+    }
+
 
 
     public function getStoreDetailsWithProductsAndDiscounts($storeId)

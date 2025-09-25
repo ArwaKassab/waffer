@@ -104,6 +104,8 @@ use App\Http\Controllers\SubAdmin\CustomerController as SubAdminCustomerControll
         Route::post('verify-reset-password-code', [AuthResetController::class, 'verifyResetPasswordCode']);
         Route::post('reset-password', [AuthResetController::class, 'resetPassword'])
             ->middleware('verify.temp.token');
+        Route::post('resend-reset-password-otp', [AuthResetController::class, 'resendResetPasswordCode']);
+
     });
 
 
@@ -133,8 +135,10 @@ use App\Http\Controllers\SubAdmin\CustomerController as SubAdminCustomerControll
         Route::get('categories', [CategoryController::class, 'index']);
 
         //المتاجر
+        Route::get('/area-stores', [StoreController::class, 'indexByArea']);
         Route::get('/category-stores/{categoryId}', [StoreController::class, 'index']);
         Route::get('/stores/{id}', [StoreController::class, 'show']);
+
 
         //المنتجات
         Route::get('products/{id}', [ProductController::class, 'productDetails']);
