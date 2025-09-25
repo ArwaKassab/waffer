@@ -59,12 +59,12 @@ class StoreRepository implements StoreRepositoryInterface
         $buildPatterns = function (string $term) use ($escape) {
             $re = $escape($term);
             return [
-                '^[[:space:]]*' . $re,                          // بداية النص
-                '(^|[[:space:][:punct:]])(ال)?' . $re,          // بداية كلمة + "ال" اختياري
+                '^[[:space:]]*' . $re,
+                '(^|[[:space:][:punct:]])(ال)?' . $re,
             ];
         };
 
-        // 2) متاجر تطابق الاسم داخل المنطقة (بدون تقييد تصنيف)
+        // 2) متاجر تطابق الاسم داخل المنطقة
         $storesByName = User::query()
             ->where('type', 'store')
             ->where('area_id', $areaId)
@@ -83,11 +83,20 @@ class StoreRepository implements StoreRepositoryInterface
 
         $storeNameMatchedIds = $storesByName->pluck('id')->all();
 
-        // 3) منتجات تطابق الاسم داخل المنطقة (حسب متجرها)، مع خصم فعّال
+        // 3) منتجات تطابق الاسم داخل المنطقة (مع eager-load للخصم الفعّال)
         $productsMatched = Product::query()
             ->with([
                 'store:id,name,area_id,image,status,note,open_hour,close_hour',
-                'activeDiscount:id,product_id,new_price,start_date,end_date',
+                'activeDiscount' => function ($q2) {
+                    $q2->select(
+                        'discounts.id',
+                        'discounts.product_id',
+                        'discounts.new_price',
+                        'discounts.start_date',
+                        'discounts.end_date',
+                        'discounts.status'
+                    );
+                },
             ])
             ->whereHas('store', fn ($qs) => $qs->where('type','store')->where('area_id', $areaId))
             ->select('products.id','products.name','products.price','products.store_id','products.image')
@@ -104,7 +113,7 @@ class StoreRepository implements StoreRepositoryInterface
             ->orderBy('products.name')
             ->get();
 
-        // 4) بناء النتيجة المجمّعة بدون تكرار متجر
+        // 4) بناء النتيجة (stores[] مع products[])
         $result = []; // keyed by store_id
 
         // (أ) المتاجر التي طابقت بالاسم
@@ -123,7 +132,7 @@ class StoreRepository implements StoreRepositoryInterface
             ];
         }
 
-        // (ب) المتاجر الناتجة عن تطابق المنتجات + إدراج المنتج المطابق (مع الأسعار والخصم)
+        // (ب) المتاجر القادمة من تطابق المنتجات + إدراج المنتج المطابق
         foreach ($productsMatched as $p) {
             $s = $p->store;
             if (!$s) continue;
@@ -144,29 +153,33 @@ class StoreRepository implements StoreRepositoryInterface
 
             $alreadyIds = array_column($result[$s->id]['products'], 'id');
             if (!in_array($p->id, $alreadyIds, true)) {
-                $priceOriginal = (float) $p->price;
-                $priceFinal    = (float) ($p->activeDiscount?->new_price ?? $p->price);
+                $finalPrice = (float) ($p->activeDiscount?->new_price ?? $p->price);
 
                 $result[$s->id]['products'][] = [
-                    'id'             => $p->id,
-                    'name'           => $p->name,
-                    'price_original' => $priceOriginal,
-                    'price_final'    => $priceFinal,
-                    'discount'       => $p->activeDiscount ? [
-                        'new_price'  => (float) $p->activeDiscount->new_price,
-                        'start_date' => $p->activeDiscount->start_date?->toDateString(),
-                        'end_date'   => $p->activeDiscount->end_date?->toDateString(),
-                    ] : null,
-                    'image'          => $p->image ? Storage::url($p->image) : null,
-                    '_matched'       => true,
+                    'id'    => $p->id,
+                    'name'  => $p->name,
+                    'price' => $finalPrice,            // ← فقط السعر النهائي
+                    'image' => $p->image ? Storage::url($p->image) : null,
+                    '_matched' => true,               // علامة داخلية للقصّ ثم تُزال
                 ];
             }
         }
 
-        // 5) لو المتجر طابق بالاسم، نحمّل منتجاته (بدون فلترة تصنيف) ونحترم حدّ المنتجات إن وُجد
+        // 5) للمتاجر المطابقة بالاسم: أضف منتجاتها (إن رغبت بحدّ)
         if (!empty($storeNameMatchedIds)) {
             $allProducts = Product::query()
-                ->with(['activeDiscount,product_id,new_price,start_date,end_date'])
+                ->with([
+                    'activeDiscount' => function ($q2) {
+                        $q2->select(
+                            'discounts.id',
+                            'discounts.product_id',
+                            'discounts.new_price',
+                            'discounts.start_date',
+                            'discounts.end_date',
+                            'discounts.status'
+                        );
+                    }
+                ])
                 ->whereIn('store_id', $storeNameMatchedIds)
                 ->select('id','name','price','store_id','image')
                 ->orderBy('name')
@@ -181,20 +194,14 @@ class StoreRepository implements StoreRepositoryInterface
                 foreach ($allProducts->get($sid, collect()) as $p) {
                     if ($existing->has($p->id)) continue;
 
-                    $priceOriginal = (float) $p->price;
-                    $priceFinal    = (float) ($p->activeDiscount?->new_price ?? $p->price);
+                    $finalPrice = (float) ($p->activeDiscount?->new_price ?? $p->price);
 
                     $result[$sid]['products'][] = [
-                        'id'             => $p->id,
-                        'name'           => $p->name,
-                        'price_original' => $priceOriginal,
-                        'price_final'    => $priceFinal,
-                        'discount'       => $p->activeDiscount ? [
-                            'new_price'  => (float) $p->activeDiscount->new_price,
-                            'start_date' => $p->activeDiscount->start_date?->toDateString(),
-                            'end_date'   => $p->activeDiscount->end_date?->toDateString(),
-                        ] : null,
-                        'image'          => $p->image ? Storage::url($p->image) : null,
+                        'id'    => $p->id,
+                        'name'  => $p->name,
+                        'price' => $p->price,
+                        'new_price' => $finalPrice,
+                        'image' => $p->image ? Storage::url($p->image) : null,
                     ];
 
                     if (!is_null($productsPerStoreLimit) &&
@@ -221,7 +228,6 @@ class StoreRepository implements StoreRepositoryInterface
 
         return $result;
     }
-
 
     public function getStoreDetailsWithProductsAndDiscounts($storeId)
     {
