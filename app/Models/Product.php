@@ -59,16 +59,14 @@ class Product extends Model
         return $this->hasOne(Discount::class);
     }
 
-    public function activeDiscount()
-    {
-        return $this->hasOne(\App\Models\Discount::class)
-            ->where('status', 'active')
-            ->whereDate('start_date', '<=', now())
-            ->whereDate('end_date', '>=', now())
-            ->latestOfMany('start_date');
+
+    public function activeDiscount() {
+        return $this->hasOne(Discount::class)
+            ->where('status','active')
+            ->whereDate('start_date','<=',now())
+            ->whereDate('end_date','>=',now())
+            ->latestOfMany('start_date'); 
     }
-
-
 
     public function offers()
     {
