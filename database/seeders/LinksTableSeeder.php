@@ -9,6 +9,9 @@ class LinksTableSeeder extends Seeder
 {
     public function run(): void
     {
+        // حذف جميع السجلات القديمة في جدول store_category
+        DB::table('links')->truncate();
+
         DB::table('links')->insert([
             [
                 'title' => '00963965885266',

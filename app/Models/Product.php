@@ -65,7 +65,7 @@ class Product extends Model
             ->where('status','active')
             ->whereDate('start_date','<=',now())
             ->whereDate('end_date','>=',now())
-            ->latestOfMany('start_date'); 
+            ->latestOfMany('start_date');
     }
 
     public function offers()

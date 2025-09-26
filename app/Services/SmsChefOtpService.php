@@ -19,18 +19,17 @@ class SmsChefOtpService
             'expire'  => (int) $cfg['expire'],
         ];
 
-        // اسم باراميتر الجهاز وقيمته من .env (device_id أو host)
+
         if (!empty($cfg['device_param']) && !empty($cfg['device_value'])) {
             $payload[$cfg['device_param']] = $cfg['device_value'];
         }
 
-        // لا تستخدمي sender إذا ترسلين من شريحة الجهاز
         if (!empty($cfg['sender'])) {
             $payload['sender'] = $cfg['sender'];
         }
 
-        // أرسل الطلب وأرجع الرد كما هو (بدون retry للتشخيص)
-        $res = \Illuminate\Support\Facades\Http::asForm()->post($cfg['base_url'] . '/api/send/otp', $payload);
+
+        $res = Http::asForm()->post($cfg['base_url'] . '/api/send/otp', $payload);
 
         return [
             'http_status' => $res->status(),
@@ -52,7 +51,7 @@ class SmsChefOtpService
         return $res->json() ?? ['raw' => $res->body()];
     }
 
-    public function generateOtp(int $digits = 6): string
+    public function generateOtp(int $digits = 4): string
     {
         // توليد رقم OTP آمن
         $min = 10 ** ($digits - 1);
