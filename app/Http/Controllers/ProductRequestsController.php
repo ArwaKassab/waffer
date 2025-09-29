@@ -52,8 +52,8 @@ class ProductRequestsController extends Controller
         return response()->json([
             'message'    => 'تم إنشاء طلب إضافة المنتج وبانتظار موافقة الأدمن.',
             'request_id' => $reqModel->id,
-            'image_url'  => $reqModel->image,
-        ], 201);
+            'image_url'  => $reqModel->image_url,
+            ], 201);
     }
 
 
