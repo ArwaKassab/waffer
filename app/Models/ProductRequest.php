@@ -3,6 +3,7 @@
 namespace App\Models;
 
 use Illuminate\Database\Eloquent\Model;
+use Illuminate\Support\Facades\Storage;
 
 class ProductRequest extends Model
 {
@@ -30,5 +31,27 @@ class ProductRequest extends Model
     public function store()
     {
         return $this->belongsTo(User::class, 'store_id');
+    }
+
+    protected $appends = ['image_url'];
+    protected $hidden  = ['image'];
+
+    // خزّني المسار النسبي فقط
+    public function setImageAttribute($value): void
+    {
+        if (!$value) { $this->attributes['image'] = null; return; }
+
+        if (preg_match('#^https?://#i', $value)) {
+            $value = parse_url($value, PHP_URL_PATH) ?? $value;
+        }
+
+        $path = ltrim(preg_replace('#^/?storage/#', '', $value), '/');
+        $this->attributes['image'] = $path; // مثال: product-requests/xxx.jpg
+    }
+
+    // رجّعي الرابط الكامل
+    public function getImageUrlAttribute(): ?string
+    {
+        return $this->image ? Storage::disk('public')->url($this->image) : null;
     }
 }
