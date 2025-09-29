@@ -24,6 +24,8 @@ class StoreSeeder extends Seeder
                 'status' => true,
                 'open_hour' => '08:00:00',
                 'close_hour' => '22:00:00',
+                'image' => 'stores/خضار.jpg',
+
             ],
             [
                 'name' => 'معجنات ببيلا',
@@ -34,6 +36,8 @@ class StoreSeeder extends Seeder
                 'status' => true,
                 'open_hour' => '09:00:00',
                 'close_hour' => '23:00:00',
+                'image' => 'stores/معجنات.jpg',
+
             ],
             [
                 'name' => 'مواد غذائية ركن الدين',
@@ -44,6 +48,8 @@ class StoreSeeder extends Seeder
                 'status' => true,
                 'open_hour' => '07:30:00',
                 'close_hour' => '21:00:00',
+                'image' => 'stores/غذائية.jpg',
+
             ],
         ];
 

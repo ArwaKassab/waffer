@@ -34,7 +34,7 @@ class RefreshVisitorId
             Cookie::queue(cookie($gateCookie, '1', 60 * 24 * 23, '/', $domain, $secure, $httpOnly, false, $sameSite));
         }
 
-        
+
         $request->attributes->set('visitor_id', $visitorId);
 
         return $response;
