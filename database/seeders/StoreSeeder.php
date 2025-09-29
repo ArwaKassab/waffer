@@ -12,7 +12,7 @@ class StoreSeeder extends Seeder
     public function run()
     {
         // حذف المتاجر القديمة فقط
-        DB::table('users')->where('type', 'store')->delete();
+//        DB::table('users')->where('type', 'store')->delete();
 
         $stores = [
             [
