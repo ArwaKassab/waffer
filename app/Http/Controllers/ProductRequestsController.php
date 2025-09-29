@@ -49,11 +49,10 @@ class ProductRequestsController extends Controller
         }
 
         $reqModel = $this->service->submitCreateRequest($data, $storeId);
-        $imageUrl = Storage::url($data['image']);
         return response()->json([
             'message'    => 'تم إنشاء طلب إضافة المنتج وبانتظار موافقة الأدمن.',
             'request_id' => $reqModel->id,
-            'image_url'  => $imageUrl,  // تم إضافة الرابط الصحيح هنا
+            'image_url'  => $reqModel->image,
         ], 201);
     }
 
