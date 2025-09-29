@@ -18,6 +18,8 @@ class Product extends Model
         'quantity',
         'unit',
         'store_id',
+        'details',
+
     ];
     public function getImageUrlAttribute(): ?string
     {

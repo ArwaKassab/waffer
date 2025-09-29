@@ -53,6 +53,8 @@ class Kernel extends HttpKernel
         'attach.user.area' => \App\Http\Middleware\AttachUserArea::class,
         'store.only' => \App\Http\Middleware\EnsureUserIsStore::class,
         'verify.temp.token' => \App\Http\Middleware\VerifyResetTempToken::class,
+        'refresh.visitor' => \App\Http\Middleware\RefreshVisitorId::class,
+
 
     ];
 

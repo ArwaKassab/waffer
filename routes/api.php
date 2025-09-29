@@ -129,7 +129,7 @@ use App\Http\Controllers\SubAdmin\CustomerController as SubAdminCustomerControll
 |--------------------------------------------------------------------------
 */
 
-    Route::prefix('customer')->middleware(['ensure.visitor', 'detect.area'])->group(function () {
+    Route::prefix('customer')->middleware(['ensure.visitor', 'detect.area','refresh.visitor'])->group(function () {
 
         //التصنيفات
         Route::get('categories', [CategoryController::class, 'index']);
@@ -158,8 +158,8 @@ use App\Http\Controllers\SubAdmin\CustomerController as SubAdminCustomerControll
 
 
         //search
-        Route::get('store/search', [StoreController::class, 'searchGroupedInArea']);
-        Route::get('store/categories-stores/search/{categoryId}', [StoreController::class, 'searchByCategoryGrouped']);
+//        Route::get('store/search', [StoreController::class, 'searchGroupedInArea']);
+//        Route::get('store/categories-stores/search/{categoryId}', [StoreController::class, 'searchByCategoryGrouped']);
         Route::get('store/products/search/{store}', [ProductController::class, 'searchProductsInStore']);
         Route::get('store/search/{categoryId?}', [StoreController::class, 'searchUnified']);
 
