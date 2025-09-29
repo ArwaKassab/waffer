@@ -38,41 +38,16 @@ class ProductRepository
     }
     public function getStoreProducts(int $storeId, int $perPage = 10): LengthAwarePaginator
     {
-        // استرجاع المنتجات مع الخصومات إذا كانت موجودة
-        $products = Product::query()
-            ->from('products')
-            ->leftJoin('discounts as d', function ($join) {
-                $join->on('d.product_id', '=', 'products.id')
-                    ->where('d.status', 'active')
-                    ->whereNull('d.deleted_at')
-                    ->whereDate('d.start_date', '<=', now())
-                    ->whereDate('d.end_date', '>=', now());
-            })
-            ->where('products.store_id', $storeId)
-            ->select(
-                'products.id',
-                'products.name',
-                'products.image',
-                'products.status',
-                'products.quantity',
-                'products.unit',
-                'products.price',
-            )
-            ->selectRaw('COALESCE(d.new_price, products.price) AS new_price')
-            ->selectRaw('CASE WHEN d.id IS NULL THEN 0 ELSE 1 END AS has_active_discount')
-            ->orderByDesc('has_active_discount')
-            ->orderByRaw("CASE WHEN products.status = 'available' THEN 0 WHEN products.status = 'not_available' THEN 1 ELSE 2 END")
-            ->orderByDesc('products.created_at')
+        $products = Product::with('activeDiscount')
+            ->where('store_id', $storeId)
+            ->orderByRaw("CASE WHEN status = 'available' THEN 0 WHEN status = 'not_available' THEN 1 ELSE 2 END")
+            ->orderByDesc('created_at')
             ->paginate($perPage);
 
-
-        $products->getCollection()->transform(function ($product) {
-            $product->image = Storage::url($product->image);
-            return $product;
-        });
-
+        // لا داعي لأي transform أو Storage::url
         return $products;
     }
+
 
 
 }

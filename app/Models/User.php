@@ -30,6 +30,25 @@ class User extends Authenticatable
     protected $casts = [
         'phone_verified_at' => 'datetime',
     ];
+    protected $appends = ['image_url'];
+
+    public function setImageAttribute($value): void
+    {
+        if (!$value) { $this->attributes['image'] = null; return; }
+
+        if (preg_match('#^https?://#i', $value)) {
+            $value = parse_url($value, PHP_URL_PATH) ?? $value;
+        }
+
+        $path = ltrim(preg_replace('#^/?storage/#', '', $value), '/');
+        $this->attributes['image'] = $path;
+    }
+
+    public function getImageUrlAttribute(): ?string
+    {
+        return $this->image ? Storage::disk('public')->url($this->image) : null;
+    }
+
     public function area()
     {
         return $this->belongsTo(Area::class);

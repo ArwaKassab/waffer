@@ -21,20 +21,20 @@ class Product extends Model
         'details',
 
     ];
+    protected $appends = ['image_url'];
     public function getImageUrlAttribute(): ?string
     {
-        if (!$this->image) {
-            return null;
-        }
-        $path = ltrim(preg_replace('#^/?storage/#', '', $this->image), '/');
-        return Storage::url($path);
+        return $this->image ? Storage::disk('public')->url($this->image) : null;
     }
-    public function setImageAttribute($value)
+
+    public function setImageAttribute($value): void
     {
-        if (!$value) {
-            $this->attributes['image'] = null;
-            return;
+        if (!$value) { $this->attributes['image'] = null; return; }
+
+        if (preg_match('#^https?://#i', $value)) {
+            $value = parse_url($value, PHP_URL_PATH) ?? $value;
         }
+
         $path = ltrim(preg_replace('#^/?storage/#', '', $value), '/');
         $this->attributes['image'] = $path;
     }

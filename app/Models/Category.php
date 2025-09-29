@@ -18,9 +18,20 @@ class Category extends Model
     {
         return $this->belongsToMany(User::class, 'store_category', 'category_id', 'store_id');
     }
-    public function getImageAttribute($value)
+    public function setImageAttribute($value): void
     {
+        if (!$value) { $this->attributes['image'] = null; return; }
 
-        return $value ? Storage::url($value) : null;
+        if (preg_match('#^https?://#i', $value)) {
+            $value = parse_url($value, PHP_URL_PATH) ?? $value;
+        }
+
+        $path = ltrim(preg_replace('#^/?storage/#', '', $value), '/');
+        $this->attributes['image'] = $path;
+    }
+
+    public function getImageUrlAttribute(): ?string
+    {
+        return $this->image ? Storage::disk('public')->url($this->image) : null;
     }
 }
