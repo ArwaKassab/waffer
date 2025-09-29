@@ -27,7 +27,7 @@ class OrderResource extends JsonResource
             'final_total' => (float)$this->total_price,
             'payment_method' => $this->payment_method,
             'notes' => $this->notes,
-            'address' => $this->address_id,
+            'address' => new AddressResource($this->whenLoaded('address')),
             'area' => [
                 'id' => optional($this->area)->id,
                 'name' => optional($this->area)->name,

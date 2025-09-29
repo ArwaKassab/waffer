@@ -362,11 +362,14 @@ class OrderService
                 'items.product',
                 'items.store',
                 'area',
-                'orderDiscounts.discount'
+                'orderDiscounts.discount',
+                'address', // 👈 أضفها
             ])
             ->first();
+
         return $order ? new OrderResource($order) : null;
     }
+
 
 
 

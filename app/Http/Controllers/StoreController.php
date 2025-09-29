@@ -18,16 +18,20 @@ class StoreController extends Controller
     }
     public function indexByArea(Request $request)
     {
-        $areaId = $request->get('area_id');
+        $areaId  = (int) $request->query('area_id');
+        $perPage = (int) $request->query('per_page', 15);
+        $perPage = $perPage > 0 ? min($perPage, 100) : 20;
 
         if (!$areaId) {
             return response()->json(['message' => 'Area not set'], 400);
         }
 
-        $stores = $this->storeService->getStoresByArea($areaId);
+        $stores = $this->storeService->getStoresByArea($areaId, $perPage);
+
 
         return response()->json($stores);
     }
+
 
     public function index(Request $request,$categoryId)
     {

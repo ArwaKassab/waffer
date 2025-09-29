@@ -13,10 +13,11 @@ class StoreService
     {
         $this->storeRepository = $storeRepository;
     }
-    public function getStoresByArea(int $areaId)
+    public function getStoresByArea(int $areaId, int $perPage = 20)
     {
-        return $this->storeRepository->getStoresByArea($areaId);
+        return $this->storeRepository->getStoresByArea($areaId, $perPage);
     }
+
 
 
     public function getStores($areaId, $categoryId)

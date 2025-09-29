@@ -12,19 +12,23 @@ use Illuminate\Support\Facades\Storage;
 class StoreRepository implements StoreRepositoryInterface
 {
 
-    public function getStoresByArea(int $areaId)
+    public function getStoresByArea(int $areaId, int $perPage = 20)
     {
-        $stores = User::where('type', 'store')
+        $paginator = User::where('type', 'store')
             ->where('area_id', $areaId)
-            ->get(['id','area_id','name','image','status','note','open_hour','close_hour']);
+            ->select('id','area_id','name','image','status','note','open_hour','close_hour')
+            ->orderBy('name')
+            ->paginate($perPage);
 
-        $stores->transform(function ($store) {
+
+        $paginator->getCollection()->transform(function ($store) {
             $store->image = $store->image ? Storage::url($store->image) : null;
             return $store;
         });
 
-        return $stores;
+        return $paginator;
     }
+
 
     public function getStoresByAreaAndCategory($areaId, $categoryId)
     {

@@ -15,6 +15,7 @@ class AddressResource extends JsonResource
             'is_default'      => $this->is_default,
             'area_id'         => $this->area_id,
             'title'           => $this->title,
+
         ];
     }
 }
