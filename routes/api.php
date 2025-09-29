@@ -161,6 +161,7 @@ use App\Http\Controllers\SubAdmin\CustomerController as SubAdminCustomerControll
         Route::get('store/search', [StoreController::class, 'searchGroupedInArea']);
         Route::get('store/categories-stores/search/{categoryId}', [StoreController::class, 'searchByCategoryGrouped']);
         Route::get('store/products/search/{store}', [ProductController::class, 'searchProductsInStore']);
+        Route::get('store/search/{categoryId?}', [StoreController::class, 'searchUnified']);
 
 
 

@@ -95,6 +95,41 @@ class StoreController extends Controller
         ], 200);
     }
 
+    public function searchUnified(Request $request, ?int $categoryId = null)
+    {
+        $q      = trim((string) $request->query('q', ''));
+        $areaId = (int) $request->query('area_id');
+        $limit  = (int) $request->query('limit', 10); // عدد المنتجات كحد أقصى لكل متجر
+
+        if (!$areaId) {
+            return response()->json([
+                'q' => $q, 'area_id' => $areaId, 'category_id' => $categoryId,
+                'stores' => [], 'message' => 'Area not set',
+            ], 400);
+        }
+
+        if (mb_strlen($q, 'UTF-8') < 2) {
+            return response()->json([
+                'q' => $q, 'area_id' => $areaId, 'category_id' => $categoryId,
+                'stores' => [], 'message' => 'أدخل حرفين على الأقل للبحث.',
+            ], 200);
+        }
+
+        $stores = $this->storeService->searchStoresAndProductsGroupedUniversal(
+            areaId: $areaId,
+            q: $q,
+            productsPerStoreLimit: $limit,
+            categoryId: $categoryId // null = بدون تصنيف
+        );
+
+        return response()->json([
+            'q' => $q,
+            'area_id' => $areaId,
+            'category_id' => $categoryId,
+            'stores' => $stores,
+        ], 200);
+    }
+
 //
 //    public function searchByCategory(Request $request, int $categoryId)
 //    {

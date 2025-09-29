@@ -27,10 +27,12 @@ class ProductService
             'image'          => $product->image_url,
             'quantity'       =>$product->quantity,
             'unit'           => $product->unit,
+            'details'     => $product->details,
             'status'         => $product->status,
             'original_price' => $product->price,
             'store_id'       => $product->store_id,
             'store_name'     => $product->store?->name,
+
         ];
 
         $discount = $product->activeDiscountToday();

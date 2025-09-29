@@ -50,5 +50,27 @@ class StoreService
         );
     }
 
+    public function searchStoresAndProductsGroupedUniversal(
+        int $areaId,
+        string $q,
+        ?int $productsPerStoreLimit = 10,
+        ?int $categoryId = null
+    ) {
+        if ($categoryId) {
+            return $this->searchStoresAndProductsGrouped(
+                areaId: $areaId,
+                categoryId: $categoryId,
+                q: $q,
+                productsPerStoreLimit: $productsPerStoreLimit
+            );
+        }
+
+        return $this->searchStoresAndProductsGroupedInArea(
+            areaId: $areaId,
+            q: $q,
+            productsPerStoreLimit: $productsPerStoreLimit
+        );
+    }
+
 
 }
