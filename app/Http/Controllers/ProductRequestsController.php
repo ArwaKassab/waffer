@@ -38,22 +38,22 @@ class ProductRequestsController extends Controller
     }
 
 
-    public function submitCreateRequest(array $data, int $storeId): ProductRequest
+    public function createRequest(ProductRequestStore $request): JsonResponse
     {
-        $payload = [
-            'store_id' => $storeId,
-            'name'     => $data['name'],
-            'price'    => $data['price'],
-            'quantity' => $data['quantity'] ?? 1,
-            'unit'     => $data['unit'] ?? 'قطعة',
-            'details'  => $data['details'] ?? null,
-            'image'    => $data['image'] ?? null,
-        ];
+        $storeId = (int) auth()->id();
+        $data = $request->validated();
 
-        $req = ProductRequest::create($payload);
+        if ($request->hasFile('image')) {
+            $data['image'] = $request->file('image')->store('product-requests', 'public');
+        }
 
-        
-        return $req->refresh();
+        $reqModel = $this->service->submitCreateRequest($data, $storeId)->refresh();
+
+        return response()->json([
+            'message'    => 'تم إنشاء طلب إضافة المنتج وبانتظار موافقة الأدمن.',
+            'request_id' => $reqModel->id,
+            'image_url'  => $reqModel->image_url,
+        ], 201);
     }
 
 
