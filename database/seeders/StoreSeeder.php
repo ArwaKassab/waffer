@@ -17,7 +17,7 @@ class StoreSeeder extends Seeder
         $stores = [
             [
                 'name' => 'خضار مزة',
-                'phone' => '00963935971522',
+                'phone' => '0096393597133',
                 'password' => Hash::make('12345678'),
                 'area_id' => 1,
                 'type' => 'store',
@@ -29,7 +29,7 @@ class StoreSeeder extends Seeder
             ],
             [
                 'name' => 'معجنات ببيلا',
-                'phone' => '00963935971544',
+                'phone' => '00963935971555',
                 'password' => Hash::make('12345678'),
                 'area_id' => 2,
                 'type' => 'store',
@@ -41,7 +41,7 @@ class StoreSeeder extends Seeder
             ],
             [
                 'name' => 'مواد غذائية ركن الدين',
-                'phone' => '00963935971566',
+                'phone' => '00963935971577',
                 'password' => Hash::make('12345678'),
                 'area_id' => 3,
                 'type' => 'store',
