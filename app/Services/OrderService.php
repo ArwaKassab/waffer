@@ -363,7 +363,7 @@ class OrderService
                 'items.store',
                 'area',
                 'orderDiscounts.discount',
-                'address', // 👈 أضفها
+                'address',
             ])
             ->first();
 
