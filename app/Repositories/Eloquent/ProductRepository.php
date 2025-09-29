@@ -44,7 +44,7 @@ class ProductRepository
             ->orderByDesc('created_at')
             ->paginate($perPage);
 
-        // لا داعي لأي transform أو Storage::url
+
         return $products;
     }
 
