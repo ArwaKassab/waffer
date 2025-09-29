@@ -18,8 +18,9 @@ class OrderResource extends JsonResource
             'order_id' => $this->id,
             'status' => $this->status,
             'order_date' => optional($this->created_at)->format('Y-m-d'),
-            'order_time' => optional($this->created_at)->format('H:i'),
-            'items_count' => $this->items->count(),
+            'order_time' => optional($this->created_at)
+                ? $this->created_at->timezone(config('app.timezone'))->format('h:i A')
+                : null,            'items_count' => $this->items->count(),
             'product_total' => (float)$this->total_product_price,
             'discount_fee' => (float)$this->orderDiscounts->sum('discount_fee'),
             'total_after_discount' => (float)$this->totalAfterDiscount,
