@@ -3,6 +3,7 @@
 namespace App\Http\Controllers;
 
 use App\Http\Requests\StoreProductDiscountRequest;
+use App\Http\Resources\ProductResource;
 use App\Models\Product;
 use App\Models\User;
 use App\Services\DiscountService;
@@ -39,7 +40,9 @@ class ProductController extends Controller
      {
          $storeId = auth()->id();
          $perPage = (int) $request->query('per_page', 10);
-         return $this->productService->listStoreProductsSorted($storeId, $perPage);
+         $products= $this->productService->listStoreProductsSorted($storeId, $perPage);
+         return ProductResource::collection($products);
+
      }
 
     public function searchProductsInStore( User $store,Request $request)
