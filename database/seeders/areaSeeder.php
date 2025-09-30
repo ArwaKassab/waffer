@@ -11,7 +11,7 @@ class areaSeeder extends Seeder
 {
     public function run()
     {
-        DB::table('area')->truncate();
+        DB::table('areas')->truncate();
         Area::create([
             'name' => 'مزة',
             'delivery_fee' => '10000',
