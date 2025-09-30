@@ -22,7 +22,7 @@ class Product extends Model
 
     ];
     protected $appends = ['image_url'];
-    protected $hidden  = ['image'];       // إخفاء المسار الخام
+    protected $hidden  = ['image'];
     public function getImageUrlAttribute(): ?string
     {
         return $this->image ? Storage::disk('public')->url($this->image) : null;

@@ -32,6 +32,7 @@ class User extends Authenticatable
         'phone_verified_at' => 'datetime',
     ];
     protected $appends = ['image_url'];
+    protected $hidden  = ['image'];
 
     public function setImageAttribute($value): void
     {
