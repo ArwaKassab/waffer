@@ -16,7 +16,7 @@ class StoreRepository implements StoreRepositoryInterface
     {
         $paginator = User::where('type', 'store')
             ->where('area_id', $areaId)
-            ->select('id','area_id','name','image','status','note','open_hour','close_hour')
+            ->select('id','area_id','name','status','note','open_hour','close_hour')
             ->orderBy('name')
             ->paginate($perPage);
 
