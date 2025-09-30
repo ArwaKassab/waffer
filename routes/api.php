@@ -185,7 +185,7 @@ use App\Http\Controllers\SubAdmin\CustomerController as SubAdminCustomerControll
         Route::post('/orders/changePaymentMethod/{order_id}', [OrderController::class, 'changePaymentMethod']);
         Route::get('/orders/my', [OrderController::class, 'myOrders']);
         Route::get('/orders/{orderId}', [OrderController::class, 'show']);
-        Route::get('/orders/status/{orderId}', [OrderController::class, 'orderStatus']);
+        Route::get('/orders/{orderId}/status', [OrderController::class, 'orderStatus']);
         // إدارة العناوين
         Route::get('addresses', [AddressController::class, 'index']);
         Route::post('addresses/new', [AddressController::class, 'add']);
