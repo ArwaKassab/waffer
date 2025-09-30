@@ -10,8 +10,7 @@ class CreateLinksTable extends Migration
     {
         Schema::create('links', function (Blueprint $table) {
             $table->id();
-//            $table->string('title_ar');
-//            $table->string('title_en');
+            $table->string('type');
             $table->string('title');
 
             $table->string('link');

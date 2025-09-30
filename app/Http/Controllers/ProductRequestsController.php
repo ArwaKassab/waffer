@@ -87,9 +87,8 @@ class ProductRequestsController extends Controller
         if ($request->hasFile('image')) {
             $data['image'] = $request->file('image')->store('products', 'public');
         }
-        $imageUrl = Storage::url($data['image']);
+        $imageUrl = $data['image'];
 
-        \Log::info('update-pending incoming', $data);
         $req = $this->service->editPendingRequest($requestId, $storeId, $data);
 
         return response()->json([

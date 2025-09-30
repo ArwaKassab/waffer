@@ -9,18 +9,26 @@ class StoreCategorySeeder extends Seeder
 {
     public function run()
     {
-        // حذف جميع السجلات القديمة في جدول store_category
+
         DB::table('store_category')->truncate();
 
-        // ربط المتاجر مع التصنيفات
+
         $storeCategoryData = [
-            ['store_id' => 7, 'category_id' => 1],  // ربط متجر 1 مع تصنيف 1
-            ['store_id' => 6, 'category_id' => 2],  // ربط متجر 1 مع تصنيف 2
-            ['store_id' => 8, 'category_id' => 3],  // ربط متجر 2 مع تصنيف 3
-            // أضف المزيد من الربط كما ترغبين
+            ['store_id' => 1, 'category_id' => 1],
+            ['store_id' => 2, 'category_id' => 2],
+            ['store_id' => 3, 'category_id' => 3],
+
+            ['store_id' => 4, 'category_id' => 1],
+            ['store_id' => 5, 'category_id' => 2],
+            ['store_id' => 6, 'category_id' => 3],
+
+            ['store_id' => 7, 'category_id' => 1],
+            ['store_id' => 8, 'category_id' => 2],
+            ['store_id' => 9, 'category_id' => 3],
+
         ];
 
-        // إضافة البيانات إلى جدول الربط store_category
+
         DB::table('store_category')->insert($storeCategoryData);
     }
 }

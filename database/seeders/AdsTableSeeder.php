@@ -9,7 +9,7 @@ class AdsTableSeeder extends Seeder
 {
     public function run()
     {
-        // إضافة بيانات للجدول
+        DB::table('ads')->truncate();
         DB::table('ads')->insert([
             [
                 'image' => 'ads/1vEBH4lHVpQbuaAZdUIHj8wI5STG6v6FWUpRVBeo.jpg',
