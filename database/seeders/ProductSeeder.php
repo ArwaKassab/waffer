@@ -18,17 +18,17 @@ class ProductSeeder extends Seeder
         $areas = ['مزة', 'ببيلا', 'ركن الدين'];
 
         $productsByType = [
-            'خضار' => [
-                ['name' => 'موز',            'price' => 15000, 'image' => 'products/موز.jpg',            'quantity' => 1,   'unit' => 'كيلوغرام', 'details' => null],
-                ['name' => 'كرز',            'price' => 30000, 'image' => 'products/كرز.jpg',            'quantity' => 1,   'unit' => 'كيلوغرام', 'details' => null],
+            'خضار ' => [
+                ['name' => 'موز',            'price' => 15000, 'image' => 'products/موز.jpg',            'quantity' => 1,   'unit' => 'كيلوغرام', 'details' => 'طازج'],
+                ['name' => 'كرز',            'price' => 30000, 'image' => 'products/كرز.jpg',            'quantity' => 1,   'unit' => 'كيلوغرام', 'details' => 'طازج'],
             ],
-            'معجنات' => [
-                ['name' => 'جبنة',          'price' => 1500,  'image' => 'products/جبنة.jpg',          'quantity' => 1,   'unit' => 'قطعة',      'details' => null],
-                ['name' => 'بيتزا',         'price' => 30000, 'image' => 'products/بيتزا.jpg',         'quantity' => 1,   'unit' => 'قطعة',      'details' => null],
+            'معجنات ' => [
+                ['name' => 'جبنة',          'price' => 1500,  'image' => 'products/جبنة.jpg',          'quantity' => 1,   'unit' => 'قطعة',      'details' => 'ل شخص واحد'],
+                ['name' => 'بيتزا',         'price' => 30000, 'image' => 'products/بيتزا.jpg',         'quantity' => 1,   'unit' => 'قطعة',      'details' => 'تكفي 4 اشخاص'],
             ],
-            'مواد غذائية' => [
-                ['name' => 'مرتديلا',        'price' => 10000, 'image' => 'products/مرتديلا.jpg',        'quantity' => 1,   'unit' => 'قطعة',      'details' => null],
-                ['name' => 'معجون الطماطم',  'price' => 25000, 'image' => 'products/معجون الطماطم.jpg', 'quantity' => 350, 'unit' => 'غرام',      'details' => null],
+            'مواد غذائية ' => [
+                ['name' => 'مرتديلا',        'price' => 10000, 'image' => 'products/مرتديلا.jpg',        'quantity' => 1,   'unit' => 'غرام',      'details' => 'محشوة بالزيتون'],
+                ['name' => 'معجون الطماطم',  'price' => 25000, 'image' => 'products/معجون الطماطم.jpg', 'quantity' => 350, 'unit' => 'غرام',      'details' => 'أجود الانواع '],
             ],
         ];
 

@@ -14,11 +14,22 @@ class StoreRepository implements StoreRepositoryInterface
 
     public function getStoresByArea(int $areaId, int $perPage = 20)
     {
-        return User::where('type', 'store')
+        $paginator = User::where('type', 'store')
             ->where('area_id', $areaId)
             ->select('id','area_id','name','image','status','note','open_hour','close_hour')
+            ->with(['categories:id'])
             ->orderBy('name')
             ->paginate($perPage);
+
+        $paginator->getCollection()->transform(function ($store) {
+            $store->category_ids = $store->categories->pluck('id')->values();
+            unset($store->categories);
+
+
+            return $store;
+        });
+
+        return $paginator;
     }
 
     public function getStoresByAreaAndCategoryPaged(int $areaId, int $categoryId, int $perPage = 20)
