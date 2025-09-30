@@ -80,6 +80,22 @@ class OrderController extends Controller
         return response()->json($order);
     }
 
+    public function orderStatus(Request $request, int $orderId): JsonResponse
+    {
+        $userId = $request->user()->id;
+
+        $data = $this->orderService->getOrderStatusForUser($userId, $orderId);
+        if (!$data) {
+            return response()->json(['message' => 'الطلب غير موجود'], 404);
+        }
+
+        return response()->json([
+            'order_id'   => $data['order_id'],
+            'status'     => $data['status'],
+            'updated_at' => optional($data['updated_at'])->format('Y-m-d H:i'),
+        ]);
+    }
+
 
     ////////////////////////////for store/////////////////////
     public function pendingOrders(): JsonResponse

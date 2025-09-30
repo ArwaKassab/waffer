@@ -7,6 +7,7 @@ use App\Models\OrderDiscount;
 use App\Models\OrderItem;
 use App\Models\StoreOrderResponse;
 use Illuminate\Contracts\Pagination\LengthAwarePaginator;
+use Illuminate\Database\Eloquent\ModelNotFoundException;
 use Illuminate\Support\Facades\Storage;
 
 class OrderRepository
@@ -229,6 +230,16 @@ class OrderRepository
             ->sum('total_price_after_discount');
     }
 
-
+    public function getStatusForUser(int $userId, int $orderId): ?Order
+    {
+        try {
+            return Order::where('user_id', $userId)
+                ->where('id', $orderId)
+                ->select(['id','status','updated_at'])
+                ->firstOrFail(); // مُtyped كـ Order
+        } catch (ModelNotFoundException $e) {
+            return null;
+        }
+    }
 
 }

@@ -21,11 +21,6 @@ class StoreRepository implements StoreRepositoryInterface
             ->paginate($perPage);
 
 
-        $paginator->getCollection()->transform(function ($store) {
-            $store->image = $store->image ? Storage::url($store->image) : null;
-            return $store;
-        });
-
         return $paginator;
     }
 

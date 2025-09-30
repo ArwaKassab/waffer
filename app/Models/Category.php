@@ -10,9 +10,8 @@ class Category extends Model
 {
     use SoftDeletes;
     protected $fillable = ['name', 'image'];
-
-
-    protected $appends = ['image'];
+    protected $appends = ['image_url'];
+    protected $hidden = ['image'];
 
     public function stores()
     {

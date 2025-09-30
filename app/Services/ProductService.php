@@ -21,29 +21,29 @@ class ProductService
         if (!$product) {
             return null;
         }
+
         $data = [
             'id'             => $product->id,
             'name'           => $product->name,
             'image'          => $product->image_url,
-            'quantity'       =>$product->quantity,
+            'quantity'       => (int) round((float) $product->quantity),
             'unit'           => $product->unit,
-            'details'     => $product->details,
+            'details'        => $product->details,
             'status'         => $product->status,
-            'original_price' => $product->price,
+            'original_price' => (int) round((float) $product->price),
             'store_id'       => $product->store_id,
             'store_name'     => $product->store?->name,
-
         ];
 
         $discount = $product->activeDiscountToday();
-
         if ($discount) {
-            $data['new_price']      = $discount->new_price;
+            $data['new_price']   = (int) round((float) $discount->new_price);
             $data['discount_id'] = $discount->id;
         }
 
         return $data;
     }
+
 
     /**
      * عرض منتجات المتجر مرتبة:

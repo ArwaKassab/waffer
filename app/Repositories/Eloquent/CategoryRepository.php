@@ -9,6 +9,6 @@ class CategoryRepository implements CategoryRepositoryInterface
 {
     public function getAll()
     {
-        return Category::select('id', 'name')->get();
+        return Category::all();
     }
 }

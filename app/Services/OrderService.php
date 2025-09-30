@@ -371,7 +371,15 @@ class OrderService
     }
 
 
-
+    public function getOrderStatusForUser(int $userId, int $orderId): ?array
+    {
+        $order = $this->orderRepo->getStatusForUser($userId, $orderId);
+        return $order ? [
+            'order_id'   => $order->id,
+            'status'     => $order->status,
+            'updated_at' => $order->updated_at,
+        ] : null;
+    }
 
 
     ///////////////////////////////////////for store/////////////////////////////
