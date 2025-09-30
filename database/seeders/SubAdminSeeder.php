@@ -13,17 +13,17 @@ class SubAdminSeeder extends Seeder
         $subAdmins = [
             [
                 'name' => 'Sub Admin area 1',
-                'phone' => '00963935971599',
+                'phone' => '00963935971591',
                 'area_id' => 1,
             ],
             [
                 'name' => 'Sub Admin area 2',
-                'phone' => '00963945565414',
+                'phone' => '00963935971592',
                 'area_id' => 2,
             ],
             [
                 'name' => 'Sub Admin area 3',
-                'phone' => '00963935971533',
+                'phone' => '00963935971593',
                 'area_id' => 3,
             ],
         ];
