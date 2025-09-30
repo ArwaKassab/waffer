@@ -72,5 +72,11 @@ class StoreService
         );
     }
 
+    public function getStoresByAreaAndCategoryPaged(int $areaId, int $categoryId, int $perPage = 20)
+    {
+        return $this->storeRepository->getStoresByAreaAndCategoryPaged($areaId, $categoryId, $perPage);
+    }
+
+
 
 }

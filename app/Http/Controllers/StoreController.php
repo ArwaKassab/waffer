@@ -3,6 +3,7 @@
 namespace App\Http\Controllers;
 
 use App\Http\Controllers\Controller;
+use App\Models\Category;
 use App\Models\Product;
 use App\Models\User;
 use Illuminate\Http\Request;
@@ -95,40 +96,110 @@ class StoreController extends Controller
         ], 200);
     }
 
-    public function searchUnified(Request $request, ?int $categoryId = null)
+    public function searchUnified(Request $request)
     {
-        $q      = trim((string) $request->query('q', ''));
-        $areaId = (int) $request->query('area_id');
-        $limit  = (int) $request->query('limit', 10); // عدد المنتجات كحد أقصى لكل متجر
+        $q       = trim((string) $request->query('q', ''));
+        $areaId  = (int) ($request->query('area_id'));
+        $limit   = (int) $request->query('limit', 10);      // عدد المنتجات كحد أقصى لكل متجر عند البحث
+        $perPage = (int) $request->query('per_page', 20);   // التصفح عند عدم وجود بحث
+        $hasSearch = ($q !== '') && (mb_strlen($q, 'UTF-8') >= 2);
 
         if (!$areaId) {
             return response()->json([
-                'q' => $q, 'area_id' => $areaId, 'category_id' => $categoryId,
+                'q' => $q, 'area_id' => $areaId, 'category_id' => null,
                 'stores' => [], 'message' => 'Area not set',
             ], 400);
         }
 
-        if (mb_strlen($q, 'UTF-8') < 2) {
+        // 🔎 استلام التصنيف كـ query param:
+        // - لو فيه category_id ناخده كما هو (int)
+        // - لو فيه category (اسم) نحوله لـ id
+        $categoryId = $request->integer('category_id') ?: null;
+        if (!$categoryId && $request->filled('category')) {
+            $categoryName = trim((string) $request->query('category'));
+            $categoryId = Category::where('name', $categoryName)->value('id'); // طبقّيها حسب سكيمتك
+            // ملاحظة: فيكِ تعملي whereRaw('LOWER(name)=LOWER(?)', [$categoryName]) لو بدك case-insensitive
+        }
+
+        // ✅ السيناريو 1: لا بحث + لا تصنيف => كل متاجر المنطقة (paginated)
+        if (!$hasSearch && !$categoryId) {
+            $paginator = $this->storeService->getStoresByArea($areaId, $perPage)
+                ->through(fn ($s) => [
+                    'id'         => $s->id,
+                    'name'       => $s->name,
+                    'area_id'    => $s->area_id,
+                    'status'     => $s->status,
+                    'note'       => $s->note,
+                    'open_hour'  => $s->open_hour,
+                    'close_hour' => $s->close_hour,
+                    'image'      => $s->image_url,   // رابط كامل
+                    'image_url'  => $s->image_url,   // (اختياري)
+                ]);
+
             return response()->json([
-                'q' => $q, 'area_id' => $areaId, 'category_id' => $categoryId,
-                'stores' => [], 'message' => 'أدخل حرفين على الأقل للبحث.',
+                'mode'        => 'browse_all',
+                'q'           => $q,
+                'area_id'     => $areaId,
+                'category_id' => null,
+                'stores'      => $paginator,
             ], 200);
         }
 
+        // ✅ السيناريو 2: لا بحث + مع تصنيف => فلترة بالتصنيف فقط (paginated)
+        if (!$hasSearch && $categoryId) {
+            $paginator = $this->storeService
+                ->getStoresByAreaAndCategoryPaged($areaId, $categoryId, $perPage)
+                ->through(fn ($s) => [
+                    'id'         => $s->id,
+                    'name'       => $s->name,
+                    'area_id'    => $s->area_id,
+                    'status'     => $s->status,
+                    'note'       => $s->note,
+                    'open_hour'  => $s->open_hour,
+                    'close_hour' => $s->close_hour,
+                    'image'      => $s->image_url,
+                    'image_url'  => $s->image_url,
+                ]);
+
+            return response()->json([
+                'mode'        => 'filter_only',
+                'q'           => $q,
+                'area_id'     => $areaId,
+                'category_id' => $categoryId,
+                'stores'      => $paginator,
+            ], 200);
+        }
+
+        // 🚦 تنبيه البحث: لو q موجودة لكنها أقل من حرفين
+        if ($q !== '' && !$hasSearch) {
+            return response()->json([
+                'mode'        => $categoryId ? 'filter_and_search' : 'search_only',
+                'q'           => $q,
+                'area_id'     => $areaId,
+                'category_id' => $categoryId,
+                'stores'      => [],
+                'message'     => 'أدخل حرفين على الأقل للبحث.',
+            ], 200);
+        }
+
+        // ✅ السيناريو 3 و 4: بحث فقط أو بحث + تصنيف
         $stores = $this->storeService->searchStoresAndProductsGroupedUniversal(
             areaId: $areaId,
             q: $q,
             productsPerStoreLimit: $limit,
-            categoryId: $categoryId // null = بدون تصنيف
+            categoryId: $categoryId
         );
 
         return response()->json([
-            'q' => $q,
-            'area_id' => $areaId,
+            'mode'        => $categoryId ? 'filter_and_search' : 'search_only',
+            'q'           => $q,
+            'area_id'     => $areaId,
             'category_id' => $categoryId,
-            'stores' => $stores,
+            'stores'      => $stores,
         ], 200);
     }
+
+
 
 //
 //    public function searchByCategory(Request $request, int $categoryId)

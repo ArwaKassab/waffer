@@ -14,14 +14,21 @@ class StoreRepository implements StoreRepositoryInterface
 
     public function getStoresByArea(int $areaId, int $perPage = 20)
     {
-        $paginator = User::where('type', 'store')
+        return User::where('type', 'store')
             ->where('area_id', $areaId)
             ->select('id','area_id','name','image','status','note','open_hour','close_hour')
             ->orderBy('name')
             ->paginate($perPage);
+    }
 
-
-        return $paginator;
+    public function getStoresByAreaAndCategoryPaged(int $areaId, int $categoryId, int $perPage = 20)
+    {
+        return User::where('type', 'store')
+            ->where('area_id', $areaId)
+            ->whereHas('categories', fn($q) => $q->where('categories.id', $categoryId))
+            ->select('id','area_id','name','image','status','note','open_hour','close_hour')
+            ->orderBy('name')
+            ->paginate($perPage);
     }
 
 
@@ -35,7 +42,7 @@ class StoreRepository implements StoreRepositoryInterface
             ->get(['id', 'area_id', 'name', 'image', 'status', 'note', 'open_hour', 'close_hour' ]);
 
         $stores->transform(function ($store) {
-            $store->image = $store->image ? Storage::url($store->image) : null;
+            $store->image = $store->image_url;
             return $store;
         });
 
@@ -112,8 +119,8 @@ class StoreRepository implements StoreRepositoryInterface
             ->orderBy('products.name')
             ->get();
 
-        // 4) بناء النتيجة المجمّعة (stores[] مع products[])
-        $result = []; // keyed by store_id
+
+        $result = [];
 
         // (أ) المتاجر التي طابقت بالاسم
         foreach ($storesByName as $s) {
@@ -125,7 +132,7 @@ class StoreRepository implements StoreRepositoryInterface
                 'note'       => $s->note,
                 'open_hour'  => $s->open_hour,
                 'close_hour' => $s->close_hour,
-                'image'      => $s->image ? Storage::url($s->image) : null,
+                'image'      => $s->image_url,
                 'products'   => [],
                 '_matched_by_store_name' => true,
             ];
@@ -145,7 +152,7 @@ class StoreRepository implements StoreRepositoryInterface
                     'note'       => $s->note ?? null,
                     'open_hour'  => $s->open_hour ?? null,
                     'close_hour' => $s->close_hour ?? null,
-                    'image'      => $s->image ? Storage::url($s->image) : null,
+                    'image'      => $s->image_url,
                     'products'   => [],
                 ];
             }
@@ -155,8 +162,8 @@ class StoreRepository implements StoreRepositoryInterface
                 $productArr = [
                     'id'    => $p->id,
                     'name'  => $p->name,
-                    'price' => (float) $p->price, // دائماً السعر الأصلي
-                    'image' => $p->image ? Storage::url($p->image) : null,
+                    'price' => (float) $p->price,
+                    'image' => $p->image_url,
                     '_matched' => true,
                 ];
                 if ($p->activeDiscount?->new_price !== null) {
@@ -199,7 +206,7 @@ class StoreRepository implements StoreRepositoryInterface
                         'id'    => $p->id,
                         'name'  => $p->name,
                         'price' => (float) $p->price,
-                        'image' => $p->image ? Storage::url($p->image) : null,
+                        'image' => $p->image_url,
                     ];
                     if ($p->activeDiscount?->new_price !== null) {
                         $productArr['new_price'] = (float) $p->activeDiscount->new_price;
@@ -243,7 +250,7 @@ class StoreRepository implements StoreRepositoryInterface
             return null;
         }
 
-        $store->image = $store->image ? Storage::url($store->image) : null;
+        $store->image = $store->image_url;
 
         $productsWithDiscountsFirst = $store->products->sortByDesc(function ($product) {
             return $product->activeDiscountToday() ? 1 : 0;
@@ -262,7 +269,7 @@ class StoreRepository implements StoreRepositoryInterface
                 return [
                     'id' => $product->id,
                     'name' => $product->name,
-                    'image' => Storage::url($product->image),
+                    'image' => $product->image_url,
                     'status' => $product->status,
                     'unit' => $product->unit,
                     'original_price' => $product->price,
@@ -360,7 +367,7 @@ class StoreRepository implements StoreRepositoryInterface
                 'note'       => $s->note,
                 'open_hour'  => $s->open_hour,
                 'close_hour' => $s->close_hour,
-                'image'      => $s->image ? Storage::url($s->image) : null,
+                'image'       => $s->image_url,
                 'products'   => [],
                 '_matched_by_store_name' => true,
             ];
@@ -380,7 +387,7 @@ class StoreRepository implements StoreRepositoryInterface
                     'note'       => $s->note ?? null,
                     'open_hour'  => $s->open_hour ?? null,
                     'close_hour' => $s->close_hour ?? null,
-                    'image'      => $s->image ? Storage::url($s->image) : null,
+                    'image'      => $s->image_url,
                     'products'   => [],
                 ];
             }
@@ -391,7 +398,7 @@ class StoreRepository implements StoreRepositoryInterface
                     'id'    => $p->id,
                     'name'  => $p->name,
                     'price' => (float) $p->price,
-                    'image' => $p->image ? Storage::url($p->image) : null,
+                    'image' => $p->image_url,
                     '_matched' => true,
                 ];
                 if ($p->activeDiscount?->new_price !== null) {
@@ -434,7 +441,7 @@ class StoreRepository implements StoreRepositoryInterface
                         'id'    => $p->id,
                         'name'  => $p->name,
                         'price' => (float) $p->price,
-                        'image' => $p->image ? Storage::url($p->image) : null,
+                        'image' => $p->image_url,
                     ];
                     if ($p->activeDiscount?->new_price !== null) {
                         $productArr['new_price'] = (float) $p->activeDiscount->new_price;
