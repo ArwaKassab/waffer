@@ -4,32 +4,45 @@ namespace Database\Seeders;
 
 use Illuminate\Database\Seeder;
 use Illuminate\Support\Facades\DB;
+use Illuminate\Support\Facades\Schema;
+use App\Models\User;
+use App\Models\Category;
 
 class StoreCategorySeeder extends Seeder
 {
-    public function run()
+    public function run(): void
     {
-
+        // نظّف الجدول بأمان
+        Schema::disableForeignKeyConstraints();
         DB::table('store_category')->truncate();
+        Schema::enableForeignKeyConstraints();
 
+        // خرائط اسم المتجر ← اسم التصنيف
+        $map = [
+            'خضار مزة'            => 'خضار',
+            'معجنات مزة'          => 'معجنات',
+            'مواد غذائية مزة'     => 'مواد غذائية',
 
-        $storeCategoryData = [
-            ['store_id' => 1, 'category_id' => 1],
-            ['store_id' => 2, 'category_id' => 2],
-            ['store_id' => 3, 'category_id' => 3],
+            'خضار ببيلا'          => 'خضار',
+            'معجنات ببيلا'        => 'معجنات',
+            'مواد غذائية ببيلا'   => 'مواد غذائية',
 
-            ['store_id' => 4, 'category_id' => 1],
-            ['store_id' => 5, 'category_id' => 2],
-            ['store_id' => 6, 'category_id' => 3],
-
-            ['store_id' => 7, 'category_id' => 1],
-            ['store_id' => 8, 'category_id' => 2],
-            ['store_id' => 9, 'category_id' => 3],
-
+            'خضار ركن الدين'      => 'خضار',
+            'معجنات ركن الدين'    => 'معجنات',
+            'مواد غذائية ركن الدين'=> 'مواد غذائية',
         ];
 
+        foreach ($map as $storeName => $categoryName) {
+            $storeId = User::where('type', 'store')->where('name', $storeName)->value('id');
+            $catId   = Category::where('name', $categoryName)->value('id');
 
-        DB::table('store_category')->insert($storeCategoryData);
+            if ($storeId && $catId) {
+                DB::table('store_category')->insert([
+                    'store_id'    => $storeId,
+                    'category_id' => $catId,
+                    'created_at' => now(), 'updated_at' => now(),
+                ]);
+            }
+        }
     }
 }
-

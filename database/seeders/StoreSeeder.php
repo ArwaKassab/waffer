@@ -9,10 +9,12 @@ use App\Models\User;
 
 class StoreSeeder extends Seeder
 {
-    public function run()
+    public function run(): void
     {
-        // حذف المتاجر القديمة فقط
+        // حذف المتاجر القديمة فقط (سيحذف المنتجات المرتبطة إذا FK عليها cascade)
         DB::table('users')->where('type', 'store')->delete();
+
+        $note = 'ستجد لدينا كل ما تحتاج';
 
         $stores = [
             [
@@ -25,8 +27,7 @@ class StoreSeeder extends Seeder
                 'open_hour' => '08:00:00',
                 'close_hour' => '22:00:00',
                 'image' => 'stores/خضار.jpg',
-                'note' =>'ستجد لدينا كل كا تحتاج',
-
+                'note'  => $note,
             ],
             [
                 'name' => 'معجنات مزة',
@@ -38,9 +39,7 @@ class StoreSeeder extends Seeder
                 'open_hour' => '09:00:00',
                 'close_hour' => '23:00:00',
                 'image' => 'stores/معجنات.jpg',
-                'note' =>'ستجد لدينا كل كا تحتاج',
-
-
+                'note'  => $note,
             ],
             [
                 'name' => 'مواد غذائية مزة',
@@ -52,11 +51,8 @@ class StoreSeeder extends Seeder
                 'open_hour' => '07:30:00',
                 'close_hour' => '21:00:00',
                 'image' => 'stores/غذائية.jpg',
-                'note' =>'ستجد لدينا كل كا تحتاج',
-
+                'note'  => $note,
             ],
-
-
             [
                 'name' => 'خضار ببيلا',
                 'phone' => '00963935971521',
@@ -67,8 +63,7 @@ class StoreSeeder extends Seeder
                 'open_hour' => '08:00:00',
                 'close_hour' => '22:00:00',
                 'image' => 'stores/خضار.jpg',
-                'note' =>'ستجد لدينا كل كا تحتاج',
-
+                'note'  => $note,
             ],
             [
                 'name' => 'معجنات ببيلا',
@@ -80,8 +75,7 @@ class StoreSeeder extends Seeder
                 'open_hour' => '09:00:00',
                 'close_hour' => '23:00:00',
                 'image' => 'stores/معجنات.jpg',
-                'note' =>'ستجد لدينا كل كا تحتاج',
-
+                'note'  => $note,
             ],
             [
                 'name' => 'مواد غذائية ببيلا',
@@ -93,11 +87,8 @@ class StoreSeeder extends Seeder
                 'open_hour' => '07:30:00',
                 'close_hour' => '21:00:00',
                 'image' => 'stores/غذائية.jpg',
-                'note' =>'ستجد لدينا كل كا تحتاج',
-
+                'note'  => $note,
             ],
-
-
             [
                 'name' => 'خضار ركن الدين',
                 'phone' => '00963935971531',
@@ -108,8 +99,7 @@ class StoreSeeder extends Seeder
                 'open_hour' => '08:00:00',
                 'close_hour' => '22:00:00',
                 'image' => 'stores/خضار.jpg',
-                'note' =>'ستجد لدينا كل كا تحتاج',
-
+                'note'  => $note,
             ],
             [
                 'name' => 'معجنات ركن الدين',
@@ -121,8 +111,7 @@ class StoreSeeder extends Seeder
                 'open_hour' => '09:00:00',
                 'close_hour' => '23:00:00',
                 'image' => 'stores/معجنات.jpg',
-                'note' =>'ستجد لدينا كل كا تحتاج',
-
+                'note'  => $note,
             ],
             [
                 'name' => 'مواد غذائية ركن الدين',
@@ -134,8 +123,7 @@ class StoreSeeder extends Seeder
                 'open_hour' => '07:30:00',
                 'close_hour' => '21:00:00',
                 'image' => 'stores/غذائية.jpg',
-                'note' =>'ستجد لدينا كل كا تحتاج',
-
+                'note'  => $note,
             ],
         ];
 

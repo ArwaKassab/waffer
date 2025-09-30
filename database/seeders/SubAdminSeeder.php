@@ -8,40 +8,43 @@ use App\Models\User;
 
 class SubAdminSeeder extends Seeder
 {
-    public function run()
+    public function run(): void
     {
         $subAdmins = [
             [
                 'name' => 'Sub Admin area 1',
                 'phone' => '00963935971599',
-                'password' => Hash::make('password123'),
                 'area_id' => 1,
-                'type' => 'sub_admin',
-                'status' => true,
             ],
             [
                 'name' => 'Sub Admin area 2',
                 'phone' => '00963945565414',
-                'password' => Hash::make('password123'),
                 'area_id' => 2,
-                'type' => 'sub_admin',
-                'status' => true,
             ],
             [
                 'name' => 'Sub Admin area 3',
-                'phone' => '00963935971511',
-                'password' => Hash::make('password123'),
+                'phone' => '00963935971533',
                 'area_id' => 3,
-                'type' => 'sub_admin',
-                'status' => true,
             ],
         ];
 
         foreach ($subAdmins as $admin) {
-            User::updateOrCreate(
-                ['phone' => $admin['phone']], // شرط uniqueness
-                $admin
-            );
+            $user = User::firstOrNew([
+                'phone' => $admin['phone'],
+                'type'  => 'sub_admin',
+            ]);
+
+            $user->fill([
+                'name'    => $admin['name'],
+                'area_id' => $admin['area_id'],
+                'status'  => true,
+            ]);
+
+            if (!$user->exists) {
+                $user->password = Hash::make('password123');
+            }
+
+            $user->save();
         }
     }
 }
