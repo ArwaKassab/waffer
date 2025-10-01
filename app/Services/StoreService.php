@@ -77,6 +77,46 @@ class StoreService
         return $this->storeRepository->getStoresByAreaAndCategoryPaged($areaId, $categoryId, $perPage);
     }
 
+    public function getStoresByAreaAndCategoriesPaged(int $areaId, array $categoryIds, int $perPage = 20, string $matchMode = 'any')
+    {
+        return $this->storeRepository->getStoresByAreaAndCategoriesPaged($areaId, $categoryIds, $perPage, $matchMode);
+    }
+
+    public function searchStoresAndProductsGroupedByCategories(
+        int $areaId,
+        array $categoryIds,
+        string $q,
+        ?int $productsPerStoreLimit = 10,
+        string $matchMode = 'any'
+    ) {
+        return $this->storeRepository->searchStoresAndProductsGroupedByCategories(
+            $areaId, $categoryIds, $q, $productsPerStoreLimit, $matchMode
+        );
+    }
+
+    public function searchStoresAndProductsGroupedUniversalMulti(
+        int $areaId,
+        string $q,
+        ?int $productsPerStoreLimit = 10,
+        ?array $categoryIds = null,
+        string $matchMode = 'any'
+    ) {
+        if ($categoryIds && count($categoryIds) > 0) {
+            return $this->searchStoresAndProductsGroupedByCategories(
+                areaId: $areaId,
+                categoryIds: $categoryIds,
+                q: $q,
+                productsPerStoreLimit: $productsPerStoreLimit,
+                matchMode: $matchMode
+            );
+        }
+
+        return $this->searchStoresAndProductsGroupedInArea(
+            areaId: $areaId,
+            q: $q,
+            productsPerStoreLimit: $productsPerStoreLimit
+        );
+    }
 
 
 }

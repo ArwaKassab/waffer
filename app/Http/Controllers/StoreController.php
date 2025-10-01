@@ -99,57 +99,60 @@ class StoreController extends Controller
     public function searchUnified(Request $request)
     {
         $q       = trim((string) $request->query('q', ''));
-        $areaId  = (int) ($request->query('area_id'));
-        $limit   = (int) $request->query('limit', 10);      // عدد المنتجات كحد أقصى لكل متجر عند البحث
-        $perPage = (int) $request->query('per_page', 20);   // التصفح عند عدم وجود بحث
+        $areaId  = (int) $request->query('area_id');
+        $limit   = (int) $request->query('limit', 10);
+        $perPage = (int) $request->query('per_page', 20);
         $hasSearch = ($q !== '') && (mb_strlen($q, 'UTF-8') >= 2);
 
         if (!$areaId) {
             return response()->json([
-                'q' => $q, 'area_id' => $areaId, 'category_id' => null,
+                'q' => $q, 'area_id' => $areaId, 'category_ids' => [],
                 'stores' => [], 'message' => 'Area not set',
             ], 400);
         }
 
-        // 🔎 استلام التصنيف كـ query param:
-        // - لو فيه category_id ناخده كما هو (int)
-        // - لو فيه category (اسم) نحوله لـ id
-        $categoryId = $request->integer('category_id') ?: null;
-        if (!$categoryId && $request->filled('category')) {
-            $categoryName = trim((string) $request->query('category'));
-            $categoryId = Category::where('name', $categoryName)->value('id'); // طبقّيها حسب سكيمتك
-            // ملاحظة: فيكِ تعملي whereRaw('LOWER(name)=LOWER(?)', [$categoryName]) لو بدك case-insensitive
+        // اجمع category_ids كـ مصفوفة أرقام
+        $categoryIds = collect((array) $request->query('category_ids', []))
+            ->flatMap(function ($v) {
+                // يسمح بصيغ مثل category_ids=1,2
+                if (is_string($v) && str_contains($v, ',')) {
+                    return array_map('trim', explode(',', $v));
+                }
+                return [$v];
+            })
+            ->filter(fn($v) => $v !== '' && $v !== null)
+            ->map(fn($v) => (int) $v)
+            ->filter()
+            ->unique()
+            ->values()
+            ->all();
+
+        // لو ما وصل IDs، اسمح بأسماء: categories=خضار,مواد غذائية
+        if (empty($categoryIds) && $request->filled('categories')) {
+            $names = collect(explode(',', (string) $request->query('categories')))
+                ->map(fn($s) => trim($s))
+                ->filter()
+                ->unique()
+                ->values();
+
+            if ($names->isNotEmpty()) {
+                $categoryIds = Category::whereIn('name', $names)->pluck('id')->all();
+            }
         }
 
-        // ✅ السيناريو 1: لا بحث + لا تصنيف => كل متاجر المنطقة (paginated)
-        if (!$hasSearch && !$categoryId) {
-            $paginator = $this->storeService->getStoresByArea($areaId, $perPage)
-                ->through(fn ($s) => [
-                    'id'         => $s->id,
-                    'name'       => $s->name,
-                    'area_id'    => $s->area_id,
-                    'status'     => $s->status,
-                    'note'       => $s->note,
-                    'open_hour'  => $s->open_hour,
-                    'close_hour' => $s->close_hour,
-                    'image'      => $s->image_url,   // رابط كامل
-                    'image_url'  => $s->image_url,   // (اختياري)
-                ]);
-
-            return response()->json([
-                'mode'        => 'browse_all',
-                'q'           => $q,
-                'area_id'     => $areaId,
-                'category_id' => null,
-                'stores'      => $paginator,
-            ], 200);
+        // وضع المطابقة: any (OR) أو all (AND)
+        $matchMode = strtolower((string) $request->query('match', 'any')); // any | all
+        if (!in_array($matchMode, ['any','all'], true)) {
+            $matchMode = 'any';
         }
 
-        // ✅ السيناريو 2: لا بحث + مع تصنيف => فلترة بالتصنيف فقط (paginated)
-        if (!$hasSearch && $categoryId) {
-            $paginator = $this->storeService
-                ->getStoresByAreaAndCategoryPaged($areaId, $categoryId, $perPage)
-                ->through(fn ($s) => [
+        // 1) لا بحث + لا تصنيفات => كل المتاجر (paginated)
+        if (!$hasSearch && empty($categoryIds)) {
+            $paginator = $this->storeService->getStoresByArea($areaId, $perPage);
+
+            // إن ما كان عندك through، استخدم:
+            $paginator->getCollection()->transform(function ($s) {
+                return [
                     'id'         => $s->id,
                     'name'       => $s->name,
                     'area_id'    => $s->area_id,
@@ -158,44 +161,77 @@ class StoreController extends Controller
                     'open_hour'  => $s->open_hour,
                     'close_hour' => $s->close_hour,
                     'image'      => $s->image_url,
-                    'image_url'  => $s->image_url,
-                ]);
+                    'category_ids' => $s->category_ids ?? [], // أضفناها في الريبو
+                ];
+            });
 
             return response()->json([
-                'mode'        => 'filter_only',
-                'q'           => $q,
-                'area_id'     => $areaId,
-                'category_id' => $categoryId,
-                'stores'      => $paginator,
+                'mode'         => 'browse_all',
+                'q'            => $q,
+                'area_id'      => $areaId,
+                'category_ids' => [],
+                'stores'       => $paginator,
             ], 200);
         }
 
-        // 🚦 تنبيه البحث: لو q موجودة لكنها أقل من حرفين
+        // 2) لا بحث + مع تصنيفات (متعددة) => فلترة فقط (paginated)
+        if (!$hasSearch && !empty($categoryIds)) {
+            $paginator = $this->storeService
+                ->getStoresByAreaAndCategoriesPaged($areaId, $categoryIds, $perPage, $matchMode);
+
+            $paginator->getCollection()->transform(function ($s) {
+                return [
+                    'id'           => $s->id,
+                    'name'         => $s->name,
+                    'area_id'      => $s->area_id,
+                    'status'       => $s->status,
+                    'note'         => $s->note,
+                    'open_hour'    => $s->open_hour,
+                    'close_hour'   => $s->close_hour,
+                    'image'        => $s->image_url,
+                    'category_ids' => $s->category_ids ?? [],
+                ];
+            });
+
+            return response()->json([
+                'mode'         => 'filter_only',
+                'q'            => $q,
+                'area_id'      => $areaId,
+                'category_ids' => $categoryIds,
+                'match'        => $matchMode,
+                'stores'       => $paginator,
+            ], 200);
+        }
+
+        // تنبيه: q أقل من حرفين
         if ($q !== '' && !$hasSearch) {
             return response()->json([
-                'mode'        => $categoryId ? 'filter_and_search' : 'search_only',
-                'q'           => $q,
-                'area_id'     => $areaId,
-                'category_id' => $categoryId,
-                'stores'      => [],
-                'message'     => 'أدخل حرفين على الأقل للبحث.',
+                'mode'         => !empty($categoryIds) ? 'filter_and_search' : 'search_only',
+                'q'            => $q,
+                'area_id'      => $areaId,
+                'category_ids' => $categoryIds,
+                'match'        => $matchMode,
+                'stores'       => [],
+                'message'      => 'أدخل حرفين على الأقل للبحث.',
             ], 200);
         }
 
-        // ✅ السيناريو 3 و 4: بحث فقط أو بحث + تصنيف
-        $stores = $this->storeService->searchStoresAndProductsGroupedUniversal(
+        // 3/4) بحث فقط أو بحث + تصنيفات متعددة (array)
+        $stores = $this->storeService->searchStoresAndProductsGroupedUniversalMulti(
             areaId: $areaId,
             q: $q,
             productsPerStoreLimit: $limit,
-            categoryId: $categoryId
+            categoryIds: $categoryIds ?: null,
+            matchMode: $matchMode
         );
 
         return response()->json([
-            'mode'        => $categoryId ? 'filter_and_search' : 'search_only',
-            'q'           => $q,
-            'area_id'     => $areaId,
-            'category_id' => $categoryId,
-            'stores'      => $stores,
+            'mode'         => !empty($categoryIds) ? 'filter_and_search' : 'search_only',
+            'q'            => $q,
+            'area_id'      => $areaId,
+            'category_ids' => $categoryIds,
+            'match'        => $matchMode,
+            'stores'       => $stores,
         ], 200);
     }
 
