@@ -31,17 +31,16 @@ class DiscountService
         // التواريخ
         $start = Carbon::parse($data['start_date']);
         $end   = Carbon::parse($data['end_date']);
-        // لا يوجد تداخل مع خصومات active|scheduled
         if ($this->repo->hasOverlapping($product->id, $start, $end)) {
             throw ValidationException::withMessages(['date_range' => 'هناك خصم آخر يتقاطع مع هذه الفترة.']);
         }
 
-        // تحديد الحالة
-        $now = now();
-        $status = ($start->lte($now) && $end->gte($now)) ? 'active' : 'scheduled';
+//        // تحديد الحالة
+//        $now = now();
+//        $status = ($start->lte($now) && $end->gte($now)) ? 'active' : 'scheduled';
 
         // إنشاء الخصم
-        $discount = $this->repo->create($product->id, $newPrice, $start, $end, $status );
+        $discount = $this->repo->create($product->id, $newPrice, $start, $end );
 
         return [$product, $discount];
     }
