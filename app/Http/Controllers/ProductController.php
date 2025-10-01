@@ -104,14 +104,14 @@ class ProductController extends Controller
         );
 
         return response()->json([
-            'message'      => 'تم إضافة الخصم بنجاح.',
-            'product_id'   => $product->id,
+            'message'        => 'تم إضافة الخصم بنجاح.',
+            'product_id'     => $product->id,
             'original_price' => $product->price,
-            'discount'     => [
+            'discount'       => [
                 'id'         => $discount->id,
                 'new_price'  => $discount->new_price,
-                'start_date' => $discount->start_date->toDateTimeString(),
-                'end_date'   => $discount->end_date->toDateTimeString(),
+                'start_date' => $discount->start_date->toDateString(),
+                'end_date'   => $discount->end_date->toDateString(),
             ],
         ], 201);
     }

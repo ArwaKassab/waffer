@@ -12,11 +12,19 @@ class Discount extends Model
         'title',
         'description',
         'product_id',
-        'new_price',
         'start_date',
         'end_date',
+        'new_price',
         'status',
     ];
+
+    protected $casts = [
+        'start_date' => 'datetime:Y-m-d',
+        'end_date'   => 'datetime:Y-m-d',
+        'new_price'  => 'float',
+    ];
+
+
     public function product()
     {
         return $this->belongsTo(Product::class);
@@ -29,12 +37,6 @@ class Discount extends Model
             ->withTimestamps();
     }
 
-    // App\Models\Discount.php
-    protected $casts = [
-        'start_date' => 'date',
-        'end_date'   => 'date',
-        'new_price'  => 'decimal:2',
-    ];
 
 
 }
