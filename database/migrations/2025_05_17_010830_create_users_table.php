@@ -27,14 +27,19 @@ class CreateUsersTable extends Migration
             $table->enum('type', ['admin', 'sub_admin', 'customer', 'store']);
             $table->text('note')->nullable();
             $table->boolean('is_banned')->default(false);
+            $table->string('phone_shadow', 20)->nullable();
+            $table->index('phone_shadow');
             $table->timestamps();
             $table->softDeletes();
         });
     }
 
-    public function down()
+    public function down(): void
     {
-        Schema::dropIfExists('users');
+        Schema::table('users', function (Blueprint $table) {
+            $table->dropIndex(['phone_shadow']);
+            $table->dropColumn(['phone_shadow', 'restorable_until']);
+        });
     }
 
 };

@@ -64,4 +64,26 @@ class CustomerController extends Controller
 
         return CustomerSubAdminResource::collection($paginator);
     }
+//استرجاع يدوي عبر الدعم
+    public function adminRestoreByPhone(string $canonical00963Phone)
+    {
+        $user = \App\Models\User::onlyTrashed()
+            ->where('phone_shadow', $canonical00963Phone)
+            ->first();
+
+        if (!$user) {
+            abort(404, 'لا يوجد حساب محذوف بهذا الرقم.');
+        }
+
+        // أعيدي الهاتف الحقيقي
+        $user->phone = $user->phone_shadow;
+        $user->phone_shadow = null;
+        $user->status = true;
+
+        $user->restore();
+        $user->save();
+
+        return response()->json(['message' => 'تم استرجاع الحساب.']);
+    }
+
 }

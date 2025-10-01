@@ -178,6 +178,7 @@ use App\Http\Controllers\SubAdmin\CustomerController as SubAdminCustomerControll
         Route::put('/profile/update-profile', [UserController::class, 'updateProfile']);
         Route::post('/profile/change-area', [UserController::class, 'changeArea']);
         Route::get('/profile', [UserController::class, 'profile']);
+        Route::delete('/deleteMyAccount', [UserController::class, 'deleteMyAccount']);
 
         //الطلبات
         Route::post('/orders/confirmOrder', [OrderController::class, 'confirm']);

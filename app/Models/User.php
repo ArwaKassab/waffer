@@ -26,10 +26,13 @@ class User extends Authenticatable
         'wallet_balance',
         'type',
         'note',
+        'phone_shadow',
+        'restorable_until',
 
     ];
     protected $casts = [
         'phone_verified_at' => 'datetime',
+        'restorable_until'  => 'datetime',
     ];
     protected $appends = ['image_url'];
     protected $hidden  = ['image'];

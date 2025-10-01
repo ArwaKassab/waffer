@@ -158,6 +158,41 @@ class UserController extends Controller
         ]);
     }
 
+    public function deleteMyAccount(Request $request)
+    {
+        /** @var \App\Models\User|null $user */
+        $user = $request->user(); // sanctum
+
+        if (!$user) {
+            return response()->json(['message' => 'غير مصرح'], 401);
+        }
+
+        if ($user->type !== 'customer') {
+            return response()->json(['message' => 'مسموح فقط لحسابات العملاء'], 403);
+        }
+
+        // التحقق من كلمة المرور الحالية
+        $request->validate([
+            'current_password' => 'required|string',
+        ]);
+
+        if (!Hash::check($request->input('current_password'), $user->password)) {
+            return response()->json([
+                'message' => 'البيانات غير صالحة.',
+                'errors'  => [
+                    'current_password' => ['كلمة المرور غير صحيحة.'],
+                ],
+            ], 422);
+        }
+
+        app(UserService::class)->softDeleteAccount($user);
+
+        return response()->json([
+            'message' => 'تم حذف حسابك بشكل آمن (Soft Delete). يمكنك التواصل مع فريق الدعم إن رغبت باسترجاعه.',
+        ]);
+    }
+
+
 
 
 }
