@@ -18,43 +18,42 @@ class ProductSeeder extends Seeder
         $areas = ['مزة', 'ببيلا', 'ركن الدين'];
 
         $productsByType = [
-            'خضار ' => [
-                ['name' => 'موز',            'price' => 15000, 'image' => 'products/موز.jpg',            'quantity' => 1,   'unit' => 'كيلوغرام', 'details' => 'طازج'],
-                ['name' => 'كرز',            'price' => 30000, 'image' => 'products/كرز.jpg',            'quantity' => 1,   'unit' => 'كيلوغرام', 'details' => 'طازج'],
+            'خضار' => [
+                ['name' => 'موز',   'price' => 15000, 'image' => 'products/موز.jpg',   'quantity' => 1,   'unit' => 'كيلوغرام', 'details' => 'طازج'],
+                ['name' => 'كرز',   'price' => 30000, 'image' => 'products/كرز.jpg',   'quantity' => 1,   'unit' => 'كيلوغرام', 'details' => 'طازج'],
             ],
-            'معجنات ' => [
-                ['name' => 'جبنة',          'price' => 1500,  'image' => 'products/جبنة.jpg',          'quantity' => 1,   'unit' => 'قطعة',      'details' => 'ل شخص واحد'],
-                ['name' => 'بيتزا',         'price' => 30000, 'image' => 'products/بيتزا.jpg',         'quantity' => 1,   'unit' => 'قطعة',      'details' => 'تكفي 4 اشخاص'],
+            'معجنات' => [
+                ['name' => 'جبنة',  'price' => 1500,  'image' => 'products/جبنة.jpg', 'quantity' => 1,   'unit' => 'قطعة',     'details' => 'ل شخص واحد'],
+                ['name' => 'بيتزا', 'price' => 30000, 'image' => 'products/بيتزا.jpg','quantity' => 1,   'unit' => 'قطعة',     'details' => 'تكفي 4 اشخاص'],
             ],
-            'مواد غذائية ' => [
-                ['name' => 'مرتديلا',        'price' => 10000, 'image' => 'products/مرتديلا.jpg',        'quantity' => 1,   'unit' => 'غرام',      'details' => 'محشوة بالزيتون'],
-                ['name' => 'معجون الطماطم',  'price' => 25000, 'image' => 'products/معجون الطماطم.jpg', 'quantity' => 350, 'unit' => 'غرام',      'details' => 'أجود الانواع '],
+            'مواد غذائية' => [
+                ['name' => 'مرتديلا',       'price' => 10000, 'image' => 'products/مرتديلا.jpg',       'quantity' => 1,   'unit' => 'غرام', 'details' => 'محشوة بالزيتون'],
+                ['name' => 'معجون الطماطم', 'price' => 25000, 'image' => 'products/معجون الطماطم.jpg', 'quantity' => 350, 'unit' => 'غرام', 'details' => 'أجود الانواع '],
             ],
         ];
 
         foreach ($areas as $areaName) {
             foreach ($productsByType as $typePrefix => $products) {
 
+                // اسم المتجر بشكل نظيف (بدون مسافتين)
+                $storeName = preg_replace('/\s+/', ' ', trim($typePrefix).' '.trim($areaName));
 
-                $storeName = "{$typePrefix} {$areaName}";
-
-                // جيبي المتجر
                 $store = User::query()
                     ->where('type', 'store')
                     ->where('name', $storeName)
                     ->first(['id']);
 
                 if (!$store) {
+                    $this->command?->warn("Skip: store not found [$storeName]");
                     continue;
                 }
 
-                // أضِف المنتجات لهذا المتجر
                 foreach ($products as $p) {
                     Product::create([
                         'store_id' => $store->id,
                         'name'     => $p['name'],
                         'price'    => $p['price'],
-                        'image'    => $p['image'],
+                        'image'    => $p['image'],   // مسار نسبي مثل products/..، والـ accessor يولّد URL
                         'status'   => 'available',
                         'quantity' => $p['quantity'],
                         'unit'     => $p['unit'],
@@ -64,4 +63,5 @@ class ProductSeeder extends Seeder
             }
         }
     }
+
 }
