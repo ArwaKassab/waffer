@@ -160,8 +160,7 @@ class UserController extends Controller
 
     public function deleteMyAccount(Request $request)
     {
-        /** @var \App\Models\User|null $user */
-        $user = $request->user(); // sanctum
+        $user = $request->user();
 
         if (!$user) {
             return response()->json(['message' => 'غير مصرح'], 401);
