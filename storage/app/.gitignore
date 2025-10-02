@@ -1,3 +1,5 @@
 *
 !public/
 !.gitignore
+/storage/app/keys/
+/storage/keys/
