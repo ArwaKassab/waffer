@@ -40,5 +40,10 @@ return [
         'expire'       => (int) env('SMSCHEF_EXPIRE', 300),
     ],
 
+    'fcm_v1' => [
+        'project_id'            => env('FCM_PROJECT_ID'),
+        'service_account_file'  => env('GOOGLE_APPLICATION_CREDENTIALS'),
+        'service_account_json'  => env('FCM_SERVICE_ACCOUNT_JSON'), // بديل اختياري
+    ]
 
 ];

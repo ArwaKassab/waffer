@@ -548,7 +548,8 @@ class OrderService
                 'message' => 'تعذر تحديث حالة الطلب.',
             ];
         }
-
+        \App\Jobs\SendOrderStatusNotification::dispatch($order->user_id, $order->id, $order->status)
+            ->onQueue('notifications');
 
         return [
             'success' => true,

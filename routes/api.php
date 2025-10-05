@@ -7,7 +7,9 @@ use App\Http\Controllers\CartController;
 use App\Http\Controllers\CategoryController;
 use App\Http\Controllers\ComplaintController;
 use App\Http\Controllers\CustomerAuthController;
+use App\Http\Controllers\DeviceController;
 use App\Http\Controllers\LinkController;
+use App\Http\Controllers\NotificationController;
 use App\Http\Controllers\OfferDiscountController;
 use App\Http\Controllers\OrderController;
 use App\Http\Controllers\ProductController;
@@ -299,3 +301,13 @@ use App\Http\Controllers\SubAdmin\CustomerController as SubAdminCustomerControll
         Route::patch('/orders/{orderId}/status', [OrderController::class, 'changeStatus']);
 
     });
+
+
+Route::middleware('auth:sanctum')->group(function () {
+    Route::post('devices/register-token',   [DeviceController::class,'register'])->middleware('throttle:20,1');
+    Route::delete('devices/unregister-token',[DeviceController::class,'unregister'])->middleware('throttle:20,1');
+
+    Route::get('notifications',               [NotificationController::class,'index']);
+    Route::patch('notifications/{id}/read',   [NotificationController::class,'markRead']);
+    Route::patch('notifications/read-all',    [NotificationController::class,'markAllRead']);
+});

@@ -94,4 +94,8 @@ class User extends Authenticatable
         return $this->hasMany(ProductRequest::class, 'store_id');
     }
 
+    public function deviceTokens(){ return $this->hasMany(\App\Models\DeviceToken::class); }
+    public function appNotifications(){ return $this->hasMany(\App\Models\Notification::class); }
+
+
 }

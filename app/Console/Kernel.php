@@ -12,7 +12,12 @@ class Kernel extends ConsoleKernel
      */
     protected function schedule(Schedule $schedule): void
     {
-        // $schedule->command('inspire')->hourly();
+        $schedule->call(fn()=> \App\Models\DeviceToken::where('last_used_at','<',now()->subDays(90))->delete())
+            ->daily();
+
+        //  حذف إشعارات قديمة
+        $schedule->call(fn()=> \App\Models\Notification::where('created_at','<',now()->subMonths(6))->delete())
+            ->weekly();
     }
 
     /**
