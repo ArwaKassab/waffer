@@ -294,4 +294,8 @@ use App\Http\Controllers\SubAdmin\CustomerController as SubAdminCustomerControll
         Route::get('customers/search-name',   [SubAdminCustomerController::class, 'searchByName']);
         Route::get('customers/search-phone',  [SubAdminCustomerController::class, 'searchByPhone']);
 
+
+        //الطلبات
+        Route::patch('/orders/{orderId}/status', [OrderController::class, 'changeStatus']);
+
     });

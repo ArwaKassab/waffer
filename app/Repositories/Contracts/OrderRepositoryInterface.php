@@ -15,4 +15,8 @@ interface OrderRepositoryInterface
     public function findById($id);
 
     public function update($id, array $data);
+
+    public function updateStatus(int $orderId, string $newStatus): bool;
+    public function allowedStatuses(): array;
+
 }

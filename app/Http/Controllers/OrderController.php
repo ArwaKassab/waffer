@@ -182,5 +182,23 @@ class OrderController extends Controller
         return response()->json(['message' => 'تم رفض الطلب من قبل المتجر']);
     }
 
+    //////////////////////////////sub admin///////////////////////
+    /**
+     * تحديث حالة الطلب
+     */
+    public function changeStatus(Request $request, $orderId)
+    {
+        $validated = $request->validate([
+            'status' => 'required|string',
+        ]);
+
+        $response = $this->orderService->updateOrderStatus($orderId, $validated['status']);
+
+        $statusCode = $response['success'] ? 200 : 400;
+
+        return response()->json($response, $statusCode);
+    }
+
+
 }
 

@@ -16,6 +16,8 @@ use App\Events\OrderConfirmed;
 use Illuminate\Http\Resources\Json\AnonymousResourceCollection;
 use Illuminate\Support\Facades\DB;
 use Illuminate\Support\Facades\Storage;
+use Illuminate\Support\Facades\Validator;
+use Illuminate\Validation\Rule;
 use Illuminate\Validation\ValidationException;
 use App\Http\Resources\OrderResource;
 use App\Http\Resources\ConfirmedOrderResource;
@@ -510,5 +512,49 @@ class OrderService
         });
     }
 
+
+    ///////////////////////sub admin////////////////
+    ///     /**
+    //     * تحديث حالة الطلب
+    //     */
+    public function updateOrderStatus(int $orderId, string $newStatus): array
+    {
+        $allowed = $this->orderRepo->allowedStatuses();
+
+        $validator = Validator::make(
+            ['status' => $newStatus],
+            ['status' => ['required', Rule::in($allowed)]]
+        );
+
+        if ($validator->fails()) {
+            return [
+                'success' => false,
+                'message' => 'الحالة غير صالحة. المسموح: ' . implode('، ', $allowed),
+            ];
+        }
+        $order = $this->orderRepo->find($orderId);
+        if (!$order) {
+            return [
+                'success' => false,
+                'message' => 'الطلب غير موجود.',
+            ];
+        }
+
+        $ok = $this->orderRepo->updateStatus($orderId, $newStatus);
+
+        if (!$ok) {
+            return [
+                'success' => false,
+                'message' => 'تعذر تحديث حالة الطلب.',
+            ];
+        }
+
+
+        return [
+            'success' => true,
+            'message' => "تم تغيير حالة الطلب إلى {$newStatus} بنجاح.",
+            'order'   => $this->orderRepo->find($orderId),
+        ];
+    }
 
 }

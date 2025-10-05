@@ -12,6 +12,9 @@ use Illuminate\Support\Facades\Storage;
 
 class OrderRepository
 {
+
+    protected array $statuses = ['انتظار', 'مقبول', 'يجهز', 'حضر', 'في الطريق', 'مستلم', 'مرفوض'];
+
     public function create(array $data)
     {
         return Order::create($data);
@@ -241,5 +244,29 @@ class OrderRepository
             return null;
         }
     }
+
+
+
+    public function allowedStatuses(): array
+    {
+        return $this->statuses;
+    }
+
+    public function find(int $id): ?Order
+    {
+        return Order::find($id);
+    }
+
+    public function updateStatus(int $orderId, string $newStatus): bool
+    {
+        $order = $this->find($orderId);
+        if (!$order) {
+            return false;
+        }
+
+        $order->status = $newStatus;
+        return (bool) $order->save();
+    }
+
 
 }
