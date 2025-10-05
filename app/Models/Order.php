@@ -22,6 +22,7 @@ class Order extends Model
         'status',
         'payment_method',
         'notes',
+        'store_total_invoice',
     ];
     public function user()
     {
