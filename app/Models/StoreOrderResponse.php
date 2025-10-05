@@ -7,7 +7,7 @@ use Illuminate\Database\Eloquent\Model;
 
 class StoreOrderResponse extends Model
 {
-    protected $fillable = ['order_id', 'store_id', 'status', 'reason', 'responded_at'];
+    protected $fillable = ['order_id', 'store_id', 'status', 'reason', 'responded_at','store_total_invoice'];
 
     public function store()
     {
