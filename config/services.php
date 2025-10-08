@@ -40,10 +40,15 @@ return [
         'expire'       => (int) env('SMSCHEF_EXPIRE', 300),
     ],
 
-    'fcm_v1' => [
-        'project_id'            => env('FCM_PROJECT_ID'),
-        'service_account_file'  => env('GOOGLE_APPLICATION_CREDENTIALS'),
-        'service_account_json'  => env('FCM_SERVICE_ACCOUNT_JSON'), // بديل اختياري
-    ]
+    'firebase_web' => [
+        'api_key'          => env('FIREBASE_WEB_API_KEY'),
+        'auth_domain'      => env('FIREBASE_WEB_AUTH_DOMAIN'),
+        'project_id'       => env('FIREBASE_WEB_PROJECT_ID'),
+        'sender_id'        => env('FIREBASE_WEB_SENDER_ID'),
+        'app_id'           => env('FIREBASE_WEB_APP_ID'),
+        'vapid_public_key' => env('FIREBASE_WEB_VAPID_KEY'),
+    ],
+
+
 
 ];
