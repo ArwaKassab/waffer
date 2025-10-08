@@ -182,6 +182,7 @@ class OrderController extends Controller
         return response()->json(['message' => 'تم رفض الطلب من قبل المتجر']);
     }
 
+
     //////////////////////////////sub admin///////////////////////
     /**
      * تحديث حالة الطلب

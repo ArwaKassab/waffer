@@ -1,0 +1,118 @@
+<!doctype html>
+<html lang="ar">
+<head>
+    <meta charset="utf-8"/>
+    <title>اختبار FCM للويب</title>
+    <meta name="viewport" content="width=device-width, initial-scale=1"/>
+    <style>
+        body { font-family: sans-serif; max-width:800px; margin:20px auto; }
+        textarea{ width:100%; height:120px; }
+        code { background:#f4f4f4; padding:2px 4px; }
+        .error{color:#b00020}
+    </style>
+</head>
+<body>
+<h1>اختبار إشعارات FCM للويب</h1>
+
+<p>
+    <button id="btnPerm">تفعيل الإشعارات</button>
+    <button id="btnCopy">نسخ التوكن</button>
+</p>
+
+<h3><label for="tokenBox">FCM Token</label></h3>
+<textarea id="tokenBox" readonly aria-label="FCM Token"></textarea>
+<div id="err" class="error"></div>
+
+<h3>الرسائل (Foreground)</h3>
+<div id="messages" style="border:1px solid #ddd; padding:10px; min-height:100px;"></div>
+
+<script src="https://www.gstatic.com/firebasejs/9.23.0/firebase-app-compat.js"></script>
+<script src="https://www.gstatic.com/firebasejs/9.23.0/firebase-messaging-compat.js"></script>
+<script>
+    // ضعي إعداداتك الحقيقية هنا
+    const firebaseConfig = {
+        apiKey: "AIzaSyDT12lG2vjiUMRJqy21MVzxTh-Q1maK4zU",
+        authDomain: "waffer-fa237.firebaseapp.com",
+        projectId: "waffer-fa237",
+        messagingSenderId: "467018159330",
+        appId: "1:467018159330:web:df3e5a93a5e3df4a2b7abb",
+    };
+    const VAPID_PUBLIC_KEY = "BP_t5Y8xs86HzdiPt9B8nYvAoXxsQeFJJ6aRvpigoQJbgAyY3og9-VXbJhOMNxmJkGkDoDni-Udp7iyL6Bq2K60";
+
+    const errBox = document.getElementById('err');
+    function showErr(e){ console.error(e); errBox.textContent = (e && e.message) ? e.message : String(e); }
+
+    firebase.initializeApp(firebaseConfig);
+    const messaging = firebase.messaging();
+
+    async function initSW() {
+        // مهم: المسار جذر الدومين
+        const reg = await navigator.serviceWorker.register('/firebase-messaging-sw.js', { scope: '/' });
+        console.log('SW registered', reg);
+        return reg;
+    }
+
+    // async function enableNotifications() {
+    //     try {
+    //         const perm = await Notification.requestPermission();
+    //         if (perm !== 'granted') throw new Error('لم يتم منح إذن الإشعارات من المتصفح');
+    //
+    //         await initSW();
+    //
+    //         const token = await messaging.getToken({ vapidKey: VAPID_PUBLIC_KEY });
+    //         if (!token) throw new Error('لم يتم الحصول على توكن. تحققي من VAPID key و messagingSenderId.');
+    //
+    //         document.getElementById('tokenBox').value = token;
+    //     } catch (e) { showErr(e); }
+    // }
+
+    async function enableNotifications() {
+        try {
+            if (!firebase.messaging.isSupported()) {
+                throw new Error('Firebase Messaging غير مدعوم في هذا المتصفح/الوضع.');
+            }
+
+            const perm = await Notification.requestPermission();
+            console.log('Notification permission =', perm);
+            if (perm !== 'granted') {
+                throw new Error('الإذن مرفوض. من Site settings → Notifications → Allow ثم Reload.');
+            }
+
+            const reg = await navigator.serviceWorker.register('/firebase-messaging-sw.js', { scope: '/' });
+            console.log('SW registered:', reg);
+
+            const token = await messaging.getToken({
+                vapidKey: VAPID_PUBLIC_KEY,
+                serviceWorkerRegistration: reg,
+            });
+            if (!token) throw new Error('getToken رجّع null. تأكدي من VAPID key و messagingSenderId.');
+            document.getElementById('tokenBox').value = token;
+            console.log('FCM token:', token);
+        } catch (e) {
+            console.error(e);
+            document.getElementById('err').textContent = e.message || String(e);
+        }
+    }
+
+
+    messaging.onMessage((payload) => {
+        const box = document.getElementById('messages');
+        const pre = document.createElement('pre');
+        pre.textContent = JSON.stringify(payload, null, 2);
+        box.prepend(pre);
+    });
+
+    document.getElementById('btnPerm').addEventListener('click', enableNotifications);
+    document.getElementById('btnCopy').addEventListener('click', () => {
+        const t = document.getElementById('tokenBox');
+        t.select(); document.execCommand('copy');
+    });
+
+    // فحوصات مساعدة:
+    (async () => {
+        if (!('serviceWorker' in navigator)) showErr('هذا المتصفح لا يدعم Service Workers');
+        // Chrome/Brave/Firefox قد تحتاجي السماح يدوي من شريط العنوان: الموقع -> Notifications -> Allow
+    })();
+</script>
+</body>
+</html>
