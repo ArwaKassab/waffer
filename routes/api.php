@@ -17,6 +17,7 @@ use App\Http\Controllers\ProductRequestsController;
 use App\Http\Controllers\StoreController;
 use App\Http\Controllers\SupAdminAuthController;
 use App\Http\Controllers\WalletController;
+use App\Services\FcmV1Client;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Route;
 use App\Http\Controllers\AdController;
@@ -310,4 +311,17 @@ Route::middleware('auth:sanctum')->group(function () {
     Route::get('notifications',               [NotificationController::class,'index']);
     Route::patch('notifications/{id}/read',   [NotificationController::class,'markRead']);
     Route::patch('notifications/read-all',    [NotificationController::class,'markAllRead']);
+});
+
+Route::middleware('auth:sanctum')->
+post('test/push', function (Request $r, FcmV1Client $fcm) {
+    $data = $r->validate([
+        'token' => 'required|string',
+        'title' => 'required|string',
+        'body'  => 'nullable|string',
+        'data'  => 'array'
+    ]);
+
+    $fcm->sendToToken($data['token'], $data['title'], $data['body'] ?? '', $data['data'] ?? []);
+    return response()->json(['ok' => true]);
 });
