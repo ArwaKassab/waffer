@@ -485,22 +485,20 @@ class StoreRepository implements StoreRepositoryInterface
         return $result;
     }
 
-    public function getStoresByAreaAndCategoriesPaged(int $areaId, array $categoryIds, int $perPage = 20, string $matchMode = 'any')
+    public function getStoresByAreaAndCategoriesPaged(int $areaId, array $categoryIds, int $perPage = 20, string $matchMode = 'all')
     {
         $q = User::where('type', 'store')
             ->where('area_id', $areaId)
             ->with(['categories:id'])
             ->select('id','area_id','name','image','status','note','open_hour','close_hour');
 
-        if ($matchMode === 'all') {
-            // المتجر يجب أن يملك كل التصنيفات المختارة
+        if ($matchMode === 'all') { // الآن هذا هو الافتراضي
             $q->where(function ($qq) use ($categoryIds) {
                 foreach ($categoryIds as $cid) {
                     $qq->whereHas('categories', fn($q2) => $q2->where('categories.id', $cid));
                 }
             });
         } else {
-            // any (OR)
             $q->whereHas('categories', fn($qq) => $qq->whereIn('categories.id', $categoryIds));
         }
 
@@ -514,12 +512,13 @@ class StoreRepository implements StoreRepositoryInterface
 
         return $paginator;
     }
+
     public function searchStoresAndProductsGroupedByCategories(
         int $areaId,
         array $categoryIds,
         string $q,
         ?int $productsPerStoreLimit = 10,
-        string $matchMode = 'any'
+        string $matchMode = 'all' // بدل any
     ) {
         // تجهيز التوكنز وأنماط REGEXP (نفس كودك الحالي)
         $tokens = collect(preg_split('/\s+/u', $q, -1, PREG_SPLIT_NO_EMPTY))
