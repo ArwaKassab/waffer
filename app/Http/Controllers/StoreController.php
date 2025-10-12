@@ -140,11 +140,11 @@ class StoreController extends Controller
             }
         }
 
-        // وضع المطابقة: any (OR) أو all (AND)
-        $matchMode = strtolower((string) $request->query('match', 'any')); // any | all
+        $matchMode = strtolower((string) $request->query('match', 'all')); // الافتراضي AND
         if (!in_array($matchMode, ['any','all'], true)) {
-            $matchMode = 'any';
+            $matchMode = 'all';
         }
+
 
         // 1) لا بحث + لا تصنيفات => كل المتاجر (paginated)
         if (!$hasSearch && empty($categoryIds)) {

@@ -87,7 +87,7 @@ class StoreService
         array $categoryIds,
         string $q,
         ?int $productsPerStoreLimit = 10,
-        string $matchMode = 'any'
+        string $matchMode = 'all'
     ) {
         return $this->storeRepository->searchStoresAndProductsGroupedByCategories(
             $areaId, $categoryIds, $q, $productsPerStoreLimit, $matchMode
@@ -99,7 +99,7 @@ class StoreService
         string $q,
         ?int $productsPerStoreLimit = 10,
         ?array $categoryIds = null,
-        string $matchMode = 'any'
+        string $matchMode = 'all'
     ) {
         if ($categoryIds && count($categoryIds) > 0) {
             return $this->searchStoresAndProductsGroupedByCategories(
