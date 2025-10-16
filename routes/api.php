@@ -178,7 +178,7 @@ use App\Http\Controllers\SubAdmin\CustomerController as SubAdminCustomerControll
     Route::prefix('customer-auth')->middleware(['auth:sanctum','attach.user.area'])->group(function () {
 
         // الحساب الشخصي
-        Route::put('/profile/update-profile', [UserController::class, 'updateProfile']);
+        Route::patch('/profile/update-profile', [UserController::class, 'updateProfile']);
         Route::post('/profile/change-area', [UserController::class, 'changeArea']);
         Route::get('/profile', [UserController::class, 'profile']);
         Route::delete('/deleteMyAccount', [UserController::class, 'deleteMyAccount']);
@@ -297,6 +297,11 @@ use App\Http\Controllers\SubAdmin\CustomerController as SubAdminCustomerControll
         Route::get('customers/search-name',   [SubAdminCustomerController::class, 'searchByName']);
         Route::get('customers/search-phone',  [SubAdminCustomerController::class, 'searchByPhone']);
 
+        //عناوبن المستخدمين
+        Route::get('/customers/addresses/{user}', [SubAdminCustomerController::class, 'addresses']);
+
+        //المستخدمين المحظورين
+        Route::get('/customers/banned', [SubAdminCustomerController::class, 'banned']);
 
         //الطلبات
         Route::patch('/orders/{orderId}/status', [OrderController::class, 'changeStatus']);
