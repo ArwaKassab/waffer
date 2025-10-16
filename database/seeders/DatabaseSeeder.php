@@ -29,6 +29,7 @@ class DatabaseSeeder extends Seeder
         $this->call(Store2catSeeder::class);
         $this->call(Store2cat2Seeder::class);
         $this->call(ProductForTwoCatsSeeder::class);
+        $this->call(WalletTopUpByPhoneSeeder::class);
 
 
 
