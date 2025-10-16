@@ -11,6 +11,5 @@ interface CustomerRepositoryInterface
 {
     public function getCustomersByAreaIdPaginated(int $areaId, int $perPage): LengthAwarePaginator;
     public function baseQuery(int $areaId): Builder;
-    public function searchCustomersByNamePrefix(int $areaId, string $prefix, int $perPage): LengthAwarePaginator;
-    public function searchCustomersByPhonePrefix(int $areaId, string $prefix, int $perPage): LengthAwarePaginator;
+
 }

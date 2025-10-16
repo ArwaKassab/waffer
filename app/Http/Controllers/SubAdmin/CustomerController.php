@@ -4,6 +4,8 @@
 namespace App\Http\Controllers\SubAdmin;
 
 use App\Http\Controllers\Controller;
+use App\Http\Resources\AddressResource;
+use App\Http\Resources\BannedUserResource;
 use App\Http\Resources\CustomerSubAdminResource;
 use App\Models\User;
 use App\Services\CustomerService;
@@ -31,40 +33,7 @@ class CustomerController extends Controller
         return CustomerSubAdminResource::collection($paginator);
     }
 
-    // بحث بالاسم (بداية الكلمة)
-    public function searchByName(Request $request)
-    {
-        $request->validate([
-            'q'        => 'required|string|min:2',
-            'per_page' => 'nullable|integer|min:1|max:100',
-        ]);
-
-        $areaId  = (int) $request->input('area_id');
-        $perPage = (int) $request->input('per_page', 15);
-        $q       = $request->input('q');
-
-        $paginator = $this->customerService->searchByNamePrefix($areaId, $q, $perPage);
-
-        return CustomerSubAdminResource::collection($paginator);
-    }
-
-    // بحث بالهاتف (بداية الرقم)
-    public function searchByPhone(Request $request)
-    {
-        $request->validate([
-            'q'        => 'required|string|min:2',
-            'per_page' => 'nullable|integer|min:1|max:100',
-        ]);
-
-        $areaId  = (int) $request->input('area_id');
-        $perPage = (int) $request->input('per_page', 15);
-        $q       = $request->input('q');
-
-        $paginator = $this->customerService->searchByPhonePrefix($areaId, $q, $perPage);
-
-        return CustomerSubAdminResource::collection($paginator);
-    }
-//استرجاع يدوي عبر الدعم
+//استرجاع يدوي لحساب محذوف عبر الدعم
     public function adminRestoreByPhone(string $canonical00963Phone)
     {
         $user = \App\Models\User::onlyTrashed()
@@ -85,5 +54,60 @@ class CustomerController extends Controller
 
         return response()->json(['message' => 'تم استرجاع الحساب.']);
     }
+
+
+    /**
+     * GET /sub_admin/users/{user}/addresses
+     * ?include_deleted=0
+     */
+    public function addresses(Request $request, int $user)
+    {
+
+        $subAdminAreaId = (int) $request->area_id;
+
+        $items = $this->customerService
+            ->listCustomerAddressesForSubAdminNoPaginate($user, $subAdminAreaId);
+
+        return AddressResource::collection($items);
+
+    }
+
+    public function banned(Request $request)
+    {
+        $areaId = (int) $request->user()->area_id;
+
+        $paginator = $this->customerService
+            ->listBannedCustomersForSubAdminPaginated($areaId);
+
+        return BannedUserResource::collection($paginator);
+    }
+
+    public function setOrToggleBan(Request $request, int $user)
+    {
+        $request->validate([
+            'banned' => 'sometimes|boolean',
+        ]);
+
+        $areaId  = (int) $request->user()->area_id;
+        $desired = $request->has('banned') ? (bool) $request->boolean('banned') : null; // null => toggle
+
+        [$changed, $nowBanned] = $this->customerService
+            ->setOrToggleBanInArea($user, $areaId, $desired);
+
+        if (!$changed) {
+            return response()->json([
+                'message' => $nowBanned ? 'المستخدم محظور مسبقًا.' : 'المستخدم غير محظور أصلًا.',
+                'banned'  => $nowBanned,
+            ]);
+        }
+
+        return response()->json([
+            'message' => $nowBanned ? 'تم حظر المستخدم.' : 'تم رفع الحظر عن المستخدم.',
+            'banned'  => $nowBanned,
+        ]);
+    }
+
+
+
 
 }

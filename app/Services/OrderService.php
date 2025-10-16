@@ -548,7 +548,7 @@ class OrderService
                 'message' => 'تعذر تحديث حالة الطلب.',
             ];
         }
-        $order = $this->orderRepo->find($orderId); // refresh
+        $order = $this->orderRepo->find($orderId);
         \App\Jobs\SendOrderStatusNotification::dispatch($order->user_id, $order->id, $order->status)
             ->onQueue('notifications');
 

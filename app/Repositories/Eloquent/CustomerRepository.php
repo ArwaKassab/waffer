@@ -5,7 +5,9 @@ namespace App\Repositories\Eloquent;
 
 use App\Models\User;
 use App\Repositories\Contracts\CustomerRepositoryInterface;
-use Illuminate\Contracts\Database\Query\Builder;
+use Illuminate\Database\Eloquent\Builder;
+use Illuminate\Database\Eloquent\Collection;
+use Illuminate\Database\Eloquent\ModelNotFoundException;
 use Illuminate\Pagination\LengthAwarePaginator;
 
 class CustomerRepository implements CustomerRepositoryInterface
@@ -15,11 +17,12 @@ class CustomerRepository implements CustomerRepositoryInterface
     {
         return User::query()
             ->where('area_id', $areaId)
-            ->whereRaw('LOWER(type) = ?', ['customer'])
+            ->where('type', 'customer')
             ->with(['addresses'])
             ->withCount('orders')
             ->select(['id','name','phone','wallet_balance','is_banned','area_id','type']);
     }
+
 
     public function getCustomersByAreaIdPaginated(int $areaId, int $perPage): LengthAwarePaginator
     {
@@ -28,46 +31,67 @@ class CustomerRepository implements CustomerRepositoryInterface
             ->paginate($perPage);
     }
 
-    /** بحث بالاسم: بداية الكلمة (q% أو % q%) وحد أدنى حرفين */
-    public function searchCustomersByNamePrefix(int $areaId, string $prefix, int $perPage): LengthAwarePaginator
-    {
-        $q = trim($prefix);
-        if (mb_strlen($q) < 2) {
-            // ترجيع قائمة فارغة بنفس شكل الـ paginator
-            return $this->baseQuery($areaId)->whereRaw('1=0')->paginate($perPage);
+    /**
+     * يعيد عناوين مستخدم مع التحقق أنه زبون وبنفس الـarea
+     */
+
+    public function getUserAddresses(
+        int $userId,
+        int $areaId,
+        bool $includeDeleted = false
+    ): Collection {
+        $user = User::query()
+            ->whereKey($userId)
+            ->where('area_id', $areaId)
+            ->where('type', 'customer')
+            ->first();
+
+        if (!$user) {
+            throw new ModelNotFoundException('العميل غير موجود ضمن منطقتك.');
         }
 
+        $q = $user->addresses()
+            ->when($includeDeleted, fn($q) => $q->withTrashed())
+            ->orderByDesc('is_default')
+            ->orderByDesc('id')
+            ->select([
+                'id','user_id','title','address_details','latitude','longitude','is_default','area_id'
+            ]);
+
+        return $q->get();
+    }
+
+    public function getBannedCustomersPaginated(
+        int $areaId,
+        int $perPage = 10
+    ):LengthAwarePaginator {
         return $this->baseQuery($areaId)
-            ->where(function ($w) use ($q) {
-                $w->where('name', 'like', $q.'%')       // بداية السطر
-                ->orWhere('name', 'like', '% '.$q.'%'); // بداية كلمة داخل الاسم
-            })
-            ->orderBy('name')
+            ->where('is_banned', true)
+            ->orderByDesc('id')
             ->paginate($perPage);
     }
 
-    /** بحث بالهاتف: يطابق البداية، ويحوّل 0xxxx إلى 00963xxxx تلقائيًا */
-    public function searchCustomersByPhonePrefix(int $areaId, string $prefix, int $perPage): LengthAwarePaginator
+    public function findCustomerInAreaOrFail(int $userId, int $areaId): User
     {
-        $q = trim($prefix);
-
-        if (mb_strlen($q) < 2) {
-            return $this->baseQuery($areaId)->whereRaw('1=0')->paginate($perPage);
+        /** @var User|null $user */
+        $user = User::query()
+            ->whereKey($userId)
+            ->where('area_id', $areaId)
+            ->where('type', 'customer')
+            ->first();
+        if (!$user) {
+            throw new ModelNotFoundException('العميل غير موجود ضمن منطقتك.');
         }
 
-
-        if (str_starts_with($q, '09')) {
-
-            $q = '009639' . substr($q, 2);
-        }
-
-        elseif (str_starts_with($q, '0')) {
-            $q = '009639' . substr($q, 1);
-        }
-
-        return $this->baseQuery($areaId)
-            ->where('phone', 'like', $q.'%')
-            ->orderBy('phone')
-            ->paginate($perPage);
+        return $user;
     }
+
+    public function setBanned(int $userId, bool $banned): void
+    {
+        $data = ['is_banned' => $banned];
+
+
+        User::whereKey($userId)->update($data);
+    }
+
 }
