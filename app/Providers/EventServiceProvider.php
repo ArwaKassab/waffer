@@ -21,6 +21,12 @@ class EventServiceProvider extends ServiceProvider
         \App\Events\OrderConfirmed::class => [
             \App\Listeners\HandleOrderConfirmed::class,
         ],
+        \App\Events\UserBanned::class => [
+            \App\Listeners\SendUserBannedNotification::class,
+        ],
+        \App\Events\UserUnbanned::class => [
+            \App\Listeners\SendUserUnbannedNotification::class,
+        ],
     ];
 
     /**
