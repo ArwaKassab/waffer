@@ -302,7 +302,7 @@ use App\Http\Controllers\SubAdmin\CustomerController as SubAdminCustomerControll
 
         //المستخدمين المحظورين
         Route::get('/customers/banned', [SubAdminCustomerController::class, 'banned']);
-
+        Route::put('/customers/ban/{user}', [SubAdminCustomerController::class, 'setOrToggleBan']);
         //الطلبات
         Route::patch('/orders/{orderId}/status', [OrderController::class, 'changeStatus']);
 
