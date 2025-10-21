@@ -93,12 +93,13 @@ class User extends Authenticatable
     {
         return $this->hasMany(ProductRequest::class, 'store_id');
     }
-    public function deviceTokens() {
-        return $this->hasMany(DeviceToken::class,'user_id');
+    public function deviceTokens()
+    {
+        return $this->hasMany(\App\Models\DeviceToken::class, 'user_id');
     }
 
-    public function routeNotificationForFcm(): array {
+    public function routeNotificationForFcm(): array
+    {
         return $this->deviceTokens()->pluck('token')->all();
     }
-
 }

@@ -513,52 +513,5 @@ class OrderService
     }
 
 
-    ///////////////////////sub admin////////////////
-    ///     /**
-    //     * تحديث حالة الطلب
-    //     */
-    public function updateOrderStatus(int $orderId, string $newStatus): array
-    {
-        $allowed = $this->orderRepo->allowedStatuses();
-
-        $validator = Validator::make(
-            ['status' => $newStatus],
-            ['status' => ['required', Rule::in($allowed)]]
-        );
-
-        if ($validator->fails()) {
-            return [
-                'success' => false,
-                'message' => 'الحالة غير صالحة. المسموح: ' . implode('، ', $allowed),
-            ];
-        }
-        $order = $this->orderRepo->find($orderId);
-        if (!$order) {
-            return [
-                'success' => false,
-                'message' => 'الطلب غير موجود.',
-            ];
-        }
-
-        $ok = $this->orderRepo->updateStatus($orderId, $newStatus);
-
-        if (!$ok) {
-            return [
-                'success' => false,
-                'message' => 'تعذر تحديث حالة الطلب.',
-            ];
-        }
-        $order = $this->orderRepo->find($orderId);
-        \App\Jobs\SendOrderStatusNotification::dispatch($order->user_id, $order->id, $order->status)
-            ->onQueue('notifications');
-
-
-
-        return [
-            'success' => true,
-            'message' => "تم تغيير حالة الطلب إلى {$newStatus} بنجاح.",
-            'order'   => $this->orderRepo->find($orderId),
-        ];
-    }
 
 }

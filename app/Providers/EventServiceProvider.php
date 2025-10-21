@@ -18,15 +18,13 @@ class EventServiceProvider extends ServiceProvider
         Registered::class => [
             SendEmailVerificationNotification::class,
         ],
-        \App\Events\OrderConfirmed::class => [
-            \App\Listeners\HandleOrderConfirmed::class,
+        \Illuminate\Notifications\Events\NotificationSent::class => [
+            \App\Listeners\ProjectNotificationToFeed::class,
         ],
-        \App\Events\UserBanned::class => [
-            \App\Listeners\SendUserBannedNotification::class,
-        ],
-        \App\Events\UserUnbanned::class => [
-            \App\Listeners\SendUserUnbannedNotification::class,
-        ],
+        \App\Events\OrderStatusUpdated::class => [ \App\Listeners\SendOrderStatusNotification::class ],
+        \App\Events\UserBanned::class        => [ \App\Listeners\SendUserBannedNotification::class ],
+        \App\Events\UserUnbanned::class      => [ \App\Listeners\SendUserUnbannedNotification::class ],
+
     ];
 
     /**

@@ -18,7 +18,7 @@ class StoreOrderResource extends JsonResource
                 return [
                     'product_id' => $product->id,
                     'product_name' => $product->name,
-                    'image' => $product->image,
+                    'image' => $product->image_url,
                     'quantity' => $item->quantity,
                     'unit_price' => $item->unit_price,
                     'unit_price_with_discount' => $item->unit_price_after_discount,

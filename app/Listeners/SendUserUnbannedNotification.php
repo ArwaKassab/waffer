@@ -9,6 +9,6 @@ class SendUserUnbannedNotification
 {
     public function handle(UserUnbanned $event): void
     {
-        $event->user->notify(new UserUnbannedNotification());
+        $event->user->notify(new \App\Notifications\UserUnbannedNotification());
     }
 }

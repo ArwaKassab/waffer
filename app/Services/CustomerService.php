@@ -3,12 +3,12 @@
 // app/Services/SubAdminUserService.php
 namespace App\Services;
 
+use Illuminate\Support\Facades\DB;
 use App\Events\UserBanned;
 use App\Events\UserUnbanned;
 use App\Repositories\Contracts\CustomerRepositoryInterface;
 use Illuminate\Contracts\Pagination\LengthAwarePaginator;
 use Illuminate\Database\Eloquent\Collection;
-use Illuminate\Support\Facades\DB;
 
 class CustomerService
 {
@@ -38,17 +38,22 @@ class CustomerService
     }
 
     /**
-     * @param int $customerId
-     * @param int $areaId
-     * @param bool|null $desired  null => toggle, otherwise set to given bool
+     * يعيّن حالة الحظر أو يقلبها (toggle) إن لم تُمرَّر قيمة صريحة.
+     *
+     * @param  int        $customerId
+     * @param  int        $areaId
+     * @param  bool|null  $desired  null => toggle, otherwise set to given bool
+     * @param  string|null $reason  سبب الحظر (اختياري)
      * @return array{0: bool $changed, 1: bool $nowBanned}
      */
+
     public function setOrToggleBanInArea(
         int $customerId,
         int $areaId,
         ?bool $desired = null,
+        ?string $reason = null
     ): array {
-        return DB::transaction(function () use ($customerId, $areaId, $desired) {
+        return DB::transaction(function () use ($customerId, $areaId, $desired, $reason) {
             $user = $this->customerRepo->findCustomerInAreaOrFail($customerId, $areaId);
 
             $target = is_null($desired) ? !$user->is_banned : $desired;
@@ -59,9 +64,8 @@ class CustomerService
 
             $this->customerRepo->setBanned($user->id, $target);
 
-            // أطلق الحدث الصحيح
             if ($target) {
-                event(new UserBanned($user));
+                event(new UserBanned($user, $reason));
             } else {
                 event(new UserUnbanned($user));
             }
@@ -69,6 +73,8 @@ class CustomerService
             return [true, $target];
         });
     }
+
+
 
 
 }

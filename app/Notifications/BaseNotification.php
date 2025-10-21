@@ -11,20 +11,17 @@ abstract class BaseNotification extends Notification implements ShouldQueue
 {
     use Queueable;
 
-    /** القنوات الافتراضية: Database + FCM v1 */
     public function via($notifiable): array
     {
-        return ['database', FcmV1Channel::class];
-    }
+        $via = ['database']; // اكتب في DB دائمًا أولًا
 
-    /** اختياري: اختصارات للترجمة */
-    protected function title(string $key, array $params = []): string
-    {
-        return __($key, $params);
-    }
+        $hasProject = (bool) config('services.fcm_v1.project_id');
+        $hasTokens  = method_exists($notifiable, 'routeNotificationForFcm')
+            && !empty($notifiable->routeNotificationForFcm());
 
-    protected function body(string $key, array $params = []): string
-    {
-        return __($key, $params);
+        if ($hasProject && $hasTokens) {
+            $via[] = FcmV1Channel::class;
+        }
+        return $via;
     }
 }

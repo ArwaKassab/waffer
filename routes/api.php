@@ -19,6 +19,7 @@ use App\Http\Controllers\SupAdminAuthController;
 use App\Http\Controllers\WalletController;
 use App\Services\FcmV1Client;
 use Illuminate\Http\Request;
+use Illuminate\Support\Facades\DB;
 use Illuminate\Support\Facades\Route;
 use App\Http\Controllers\AdController;
 
@@ -27,6 +28,8 @@ use App\Http\Controllers\AdminAuthController;
 use App\Http\Controllers\StoreAuthController;
 use App\Http\Controllers\UserController;
 use App\Http\Controllers\SubAdmin\CustomerController as SubAdminCustomerController;
+use App\Http\Controllers\SubAdmin\OrderController as SubAdminOrderController;
+
 //use App\Http\Controllers\AdminController;
 //use App\Http\Controllers\StoreController;
 //use App\Http\Controllers\CustomerController;
@@ -304,7 +307,16 @@ use App\Http\Controllers\SubAdmin\CustomerController as SubAdminCustomerControll
         Route::get('/customers/banned', [SubAdminCustomerController::class, 'banned']);
         Route::put('/customers/ban/{user}', [SubAdminCustomerController::class, 'setOrToggleBan']);
         //الطلبات
-        Route::patch('/orders/{orderId}/status', [OrderController::class, 'changeStatus']);
+        Route::patch('/orders/{orderId}/status', [SubAdminOrderController::class, 'changeStatus']);
+        Route::get('/orders/today/pending/count', [SubAdminOrderController::class, 'countTodayPending']);
+        Route::get('/orders/today/pending/ids',       [SubAdminOrderController::class, 'listTodayPending']);
+        Route::get('/orders/today/OnWay/count', [SubAdminOrderController::class, 'countTodayOnWay']);
+        Route::get('/orders/today/OnWay/ids',       [SubAdminOrderController::class, 'listTodayOnWay']);
+        Route::get('/orders/today/Done/count', [SubAdminOrderController::class, 'countTodayDone']);
+        Route::get('/orders/today/Done/ids',       [SubAdminOrderController::class, 'listTodayDone']);
+        Route::get('/orders/orderDitales/{orderId}',       [SubAdminOrderController::class, 'getOrderDetailsForSubAdmin']);
+
+
 
     });
 
@@ -316,6 +328,30 @@ Route::middleware('auth:sanctum')->group(function () {
     Route::get('notifications',               [NotificationController::class,'index']);
     Route::patch('notifications/{id}/read',   [NotificationController::class,'markRead']);
     Route::patch('notifications/read-all',    [NotificationController::class,'markAllRead']);
+
+    Route::middleware('auth:sanctum')->get('/feed', function () {
+        $uid = auth()->id();
+        return DB::table('app_user_notifications')
+            ->where('user_id', $uid)
+            ->orderByDesc('id')
+            ->paginate(15);
+    });
+
+    Route::middleware('auth:sanctum')->post('/feed/{id}/read', function ($id) {
+        $uid = auth()->id();
+
+        // حدّث Projection
+        DB::table('app_user_notifications')
+            ->where('id', $id)
+            ->where('user_id', $uid)
+            ->update(['read_at' => now(), 'updated_at' => now()]);
+
+        // (اختياري) حدّث القياسي أيضًا إن استطعتِ مطابقة السطر؛
+        // الأسهل: وفرّي أيضاً API مستقل يستخدم notifications() القياسي:
+        // auth()->user()->unreadNotifications()->find($nid)?->markAsRead();
+
+        return response()->json(['ok' => true]);
+    });
 });
 
 Route::middleware('auth:sanctum')->
