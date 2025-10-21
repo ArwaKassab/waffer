@@ -6,8 +6,10 @@ use App\Models\Order;
 use App\Models\OrderDiscount;
 use App\Models\OrderItem;
 use App\Models\StoreOrderResponse;
+use Carbon\Carbon;
 use Illuminate\Contracts\Pagination\LengthAwarePaginator;
 use Illuminate\Database\Eloquent\ModelNotFoundException;
+use Illuminate\Support\Facades\DB;
 use Illuminate\Support\Facades\Storage;
 
 class OrderRepository
@@ -259,14 +261,173 @@ class OrderRepository
 
     public function updateStatus(int $orderId, string $newStatus): bool
     {
-        $order = $this->find($orderId);
-        if (!$order) {
-            return false;
-        }
+        return DB::transaction(function () use ($orderId, $newStatus) {
+            $order = $this->find($orderId);
+            if (!$order) {
+                return false;
+            }
+            $order->status = $newStatus;
+            $saved = (bool) $order->save();
 
-        $order->status = $newStatus;
-        return (bool) $order->save();
+            if (!$saved) {
+                return false;
+            }
+            OrderItem::query()
+                ->where('order_id', $orderId)
+                ->where('status', '!=', 'مرفوض')
+                ->update([
+                    'status'     => $newStatus,
+                    'updated_at' => now(),
+                ]);
+
+            return true;
+        });
     }
 
 
+    //////////////////////////SUB ADMIN////////////////////////////
+    /**
+     * عدّاد طلبات اليوم بحالة "انتظار" لمنطقة معيّنة.
+     */
+    public function countTodayPendingByArea(int $areaId): int
+    {
+        $today = Carbon::today(config('app.timezone'))->toDateString();
+
+        return Order::query()
+            ->whereDate('date', $today)
+            ->where('area_id', $areaId)
+            ->where('status', 'انتظار')
+            ->count();
+    }
+
+    /**
+     * إرجاع قائمة طلبات اليوم بحالة "انتظار" لمنطقة معيّنة (مع باجينيشن).
+     */
+    public function listTodayPendingByArea(int $areaId, int $perPage = 15)
+    {
+        $today = Carbon::today(config('app.timezone'))->toDateString();
+
+        return Order::query()
+            ->whereDate('date', $today)
+            ->where('area_id', $areaId)
+            ->where('status', 'انتظار')
+            ->latest('id')
+            ->select([
+                'id','user_id','area_id','address_id',
+                'total_product_price','discount_fee','totalAfterDiscount',
+                'delivery_fee','total_price','date','time','status','payment_method',
+                'notes','created_at'
+            ])
+            ->paginate($perPage);
+    }
+
+    /**
+     * عدّاد طلبات اليوم بحالة "في الطريق" لمنطقة معيّنة.
+     */
+    public function countTodayOnWayByArea(int $areaId): int
+    {
+        $today = Carbon::today(config('app.timezone'))->toDateString();
+
+        return Order::query()
+            ->whereDate('date', $today)
+            ->where('area_id', $areaId)
+            ->where('status', 'في الطريق')
+            ->count();
+    }
+
+    /**
+     * إرجاع قائمة طلبات اليوم بحالة "في الطريق" لمنطقة معيّنة (مع باجينيشن).
+     */
+    public function listTodayOnWayByArea(int $areaId, int $perPage = 15)
+    {
+        $today = Carbon::today(config('app.timezone'))->toDateString();
+
+        return Order::query()
+            ->whereDate('date', $today)
+            ->where('area_id', $areaId)
+            ->where('status', 'في الطريق')
+            ->latest('id')
+            ->select([
+                'id','user_id','area_id','address_id',
+                'total_product_price','discount_fee','totalAfterDiscount',
+                'delivery_fee','total_price','date','time','status','payment_method',
+                'notes','created_at'
+            ])
+            ->paginate($perPage);
+    }
+
+    /**
+     * عدّاد طلبات اليوم بحالة "مستلم" لمنطقة معيّنة.
+     */
+    public function countTodayDoneByArea(int $areaId): int
+    {
+        $today = Carbon::today(config('app.timezone'))->toDateString();
+
+        return Order::query()
+            ->whereDate('date', $today)
+            ->where('area_id', $areaId)
+            ->where('status', 'مستلم')
+            ->count();
+    }
+
+    /**
+     * إرجاع قائمة طلبات اليوم بحالة "مستلمة" لمنطقة معيّنة (مع باجينيشن).
+     */
+    public function listTodayDoneByArea(int $areaId, int $perPage = 15)
+    {
+        $today = Carbon::today(config('app.timezone'))->toDateString();
+
+        return Order::query()
+            ->whereDate('date', $today)
+            ->where('area_id', $areaId)
+            ->where('status', 'مستلم')
+            ->latest('id')
+            ->select([
+                'id','user_id','area_id','address_id',
+                'total_product_price','discount_fee','totalAfterDiscount',
+                'delivery_fee','total_price','date','time','status','payment_method',
+                'notes','created_at'
+            ])
+            ->paginate($perPage);
+    }
+
+    /**
+     * إحضار تفاصيل طلب للأدمن الفرعي مع تقييد المنطقة (إن وُجدت),
+     *
+     * @param  int      $orderId
+     * @param  int|null $areaId  لو محدد: نحصر الطلب بهذه المنطقة
+     * @return \App\Models\Order|null
+     */
+    public function findDetailsForSubAdmin(int $orderId, ?int $areaId = null): ?Order
+    {
+        $query = Order::query()
+            ->with([
+                'items' => function ($q) {
+                    $q->select([
+                        'id','order_id','product_id','store_id',
+                        'quantity','status',
+                        'unit_price','unit_price_after_discount',
+                        'discount_value','total_price','total_price_after_discount',
+                        'created_at','updated_at',
+                    ])->with([
+                        'product' => fn($p) => $p->withTrashed()->select('id','name'),
+                        'store:id,name',
+                    ])->orderBy('id');
+                },
+                'user:id,name,phone',
+                'area:id,name',
+                'address:id',
+            ]);
+
+        if ($areaId) {
+            $query->where('area_id', $areaId);
+        }
+        /** @var \App\Models\Order|null $order */
+        $order = $query->firstWhere('orders.id', $orderId);
+        return $order;    }
+
+
+
+
 }
+

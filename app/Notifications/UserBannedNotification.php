@@ -6,7 +6,7 @@ class UserBannedNotification extends BaseNotification
 {
     public function __construct(public ?string $reason = null) {}
 
-    public function toArray($notifiable): array
+    public function toArray($n): array
     {
         return [
             'type'   => 'user_banned',
@@ -16,7 +16,7 @@ class UserBannedNotification extends BaseNotification
         ];
     }
 
-    public function toFcm($notifiable): array
+    public function toFcm($n): array
     {
         return [
             'notification' => [

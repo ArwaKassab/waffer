@@ -48,7 +48,11 @@ return [
         'app_id'           => env('FIREBASE_WEB_APP_ID'),
         'vapid_public_key' => env('FIREBASE_WEB_VAPID_KEY'),
     ],
-
+    'fcm_v1' => [
+        'project_id'            => env('FCM_V1_PROJECT_ID'),
+        'service_account_file'  => env('FCM_V1_SERVICE_ACCOUNT_FILE'),
+        'service_account_json'  => env('FCM_V1_SERVICE_ACCOUNT_JSON'),
+    ],
 
 
 ];

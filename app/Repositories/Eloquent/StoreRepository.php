@@ -252,44 +252,43 @@ class StoreRepository implements StoreRepositoryInterface
 
     public function getStoreDetailsWithProductsAndDiscounts($storeId)
     {
-        $store = User::where('type', 'store')
-            ->where('id', $storeId)
-            ->with('products','categories')
+        $store = User::query()
+            ->where('type', 'store')
+            ->whereKey($storeId)
+            ->with(['products', 'categories'])
             ->first(['id', 'name', 'image', 'status', 'note', 'open_hour', 'close_hour']);
 
         if (!$store) {
             return null;
         }
 
-        $store->image = $store->image_url;
+        $store->append('image_url')->makeHidden(['image']);
 
-        $productsWithDiscountsFirst = $store->products->sortByDesc(function ($product) {
-            return $product->activeDiscountToday() ? 1 : 0;
-        })->values();
+        $productsWithDiscountsFirst = $store->products
+            ->sortByDesc(fn ($product) => $product->activeDiscountToday() ? 1 : 0)
+            ->values();
 
         return [
-            'store' => $store->only(['id', 'name', 'image', 'status', 'note', 'open_hour', 'close_hour']),
-            'categories' => $store->categories->map(function ($category) {
-                return [
-                    'id' => $category->id,
-                ];
-            }),
+            'store' => $store->only(['id', 'name', 'image_url', 'status', 'note', 'open_hour', 'close_hour']),
+            'categories' => $store->categories->map(fn ($category) => [
+                'id' => $category->id,
+            ]),
             'products' => $productsWithDiscountsFirst->map(function ($product) {
                 $discount = $product->activeDiscountToday();
-
                 return [
-                    'id' => $product->id,
-                    'name' => $product->name,
-                    'image' => $product->image_url,
-                    'status' => $product->status,
-                    'unit' => $product->unit,
+                    'id'             => $product->id,
+                    'name'           => $product->name,
+                    'image_url'      => $product->image_url, // توحيد الاسم
+                    'status'         => $product->status,
+                    'unit'           => $product->unit,
                     'original_price' => $product->price,
-                    'new_price' => $discount?->new_price,
+                    'new_price'      => $discount?->new_price,
                     'discount_title' => $discount?->title,
                 ];
-            })
+            }),
         ];
     }
+
 
     public function searchStoresAndProductsGrouped(
         int $areaId,

@@ -5,20 +5,25 @@ use Illuminate\Database\Schema\Blueprint;
 use Illuminate\Support\Facades\Schema;
 
 return new class extends Migration {
-    public function up() {
-        Schema::create('notifications', function (Blueprint $t) {
-            $t->id();
-            $t->foreignId('user_id')->constrained()->onDelete('cascade');
-            $t->string('title');
-            $t->string('body')->nullable();
-            $t->string('type')->nullable();        // مثال: order_status
-            $t->unsignedBigInteger('order_id')->nullable();
-            $t->json('data')->nullable();          // {status: on_way, ...}
-            $t->timestamp('read_at')->nullable();  // مقروء/غير مقروء
-            $t->timestamps();
+    public function up(): void
+    {
+        Schema::create('notifications', function (Blueprint $table) {
+            $table->uuid('id')->primary();
 
-            $t->index(['user_id','created_at']);
+            $table->string('type');
+
+            // علاقة بوليمورفيك: من هو المستلم؟ (عادةً App\Models\User + مفتاحه)
+            $table->morphs('notifiable'); // يضيف: notifiable_type (string), notifiable_id (unsignedBigInteger)
+
+            $table->text('data');
+            $table->timestamp('read_at')->nullable();
+            $table->timestamps();
+            $table->index(['notifiable_type', 'notifiable_id', 'created_at']);
         });
     }
-    public function down() { Schema::dropIfExists('notifications'); }
+
+    public function down(): void
+    {
+        Schema::dropIfExists('notifications');
+    }
 };
