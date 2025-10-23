@@ -416,12 +416,25 @@ class OrderRepository
                 },
                 'user:id,name,phone',
                 'area:id,name',
-                'address:id',
+
+                // ✅ هنا التعديل المهم
+                'address' => function ($q) {
+                    $q->withTrashed()->select([
+                        'id',
+                        'user_id',
+                        'area_id',
+                        'title',
+                        'address_details',
+                        'latitude',
+                        'longitude',
+                        'is_default',
+                        'created_at',
+                        'updated_at',
+                        'deleted_at',
+                    ])->with(['area:id,name']);
+                },
             ]);
 
-        if ($areaId) {
-            $query->where('area_id', $areaId);
-        }
         /** @var \App\Models\Order|null $order */
         $order = $query->firstWhere('orders.id', $orderId);
         return $order;    }

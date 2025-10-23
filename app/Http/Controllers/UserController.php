@@ -64,9 +64,6 @@ class UserController extends Controller
         return response()->json(['user' => $filteredUser]);
     }
 
-
-
-
     public function updateProfile(Request $request)
     {
         $user = auth('sanctum')->user();
@@ -75,66 +72,80 @@ class UserController extends Controller
             return response()->json(['message' => 'المستخدم غير مصرح له'], 403);
         }
 
+        // تطبيع أرقام الهاتف السورية: 0XXXXXXXXX -> 00963XXXXXXXXX
         if ($request->has('phone') && preg_match('/^0\d{9}$/', $request->phone)) {
             $request->merge(['phone' => '00963' . substr($request->phone, 1)]);
         }
-
         if ($request->has('whatsapp_phone') && preg_match('/^0\d{9}$/', $request->whatsapp_phone)) {
             $request->merge(['whatsapp_phone' => '00963' . substr($request->whatsapp_phone, 1)]);
         }
 
         $validator = Validator::make($request->all(), [
-            'name' => 'sometimes|string|max:255',
-            'phone' => 'sometimes|string|unique:users,phone,' . $user->id,
-            'whatsapp_phone' => 'sometimes|nullable|string',
-            'email' => 'sometimes|nullable|email|unique:users,email,' . $user->id,
-            'area_id' => 'sometimes|nullable|exists:areas,id',
-            'image' => 'sometimes|nullable|image|mimes:jpeg,png,jpg,gif,svg|max:2048',
-            'open_hour' => 'sometimes|nullable|date_format:H:i:s',
-            'close_hour' => 'sometimes|nullable|date_format:H:i:s',
-            'note' => 'sometimes|nullable|string',
+            'name'            => 'sometimes|string|max:255',
+            'phone'           => 'sometimes|string|unique:users,phone,' . $user->id,
+            'whatsapp_phone'  => 'sometimes|nullable|string',
+            'email'           => 'sometimes|nullable|email|unique:users,email,' . $user->id,
+            'area_id'         => 'sometimes|nullable|exists:areas,id',
+            'image'           => 'sometimes|nullable|image|mimes:jpeg,png,jpg,gif,svg|max:2048',
+            'open_hour'       => 'sometimes|nullable|date_format:H:i:s',
+            'close_hour'      => 'sometimes|nullable|date_format:H:i:s',
+            'note'            => 'sometimes|nullable|string',
             'current_password' => 'required_with:new_password|string',
-            'new_password' => 'nullable|string|min:6|confirmed:new_password_confirmation',
-
+            'new_password'     => 'nullable|string|min:6|confirmed',
         ]);
-
-        if ($request->has('phone') && preg_match('/^0\d{9}$/', $request->phone)) {
-            $request->merge(['phone' => '00963' . substr($request->phone, 1)]);
-        }
-
 
         if ($validator->fails()) {
             return response()->json([
                 'message' => 'البيانات غير صالحة',
-                'errors' => $validator->errors(),
+                'errors'  => $validator->errors(),
             ], 422);
         }
 
         $response = $this->userService->updateProfile($user, $request);
+        $userData = $response['user'] ?? [];
 
-        $userData = $response['user'];
+        if ($request->filled('new_password')) {
+            $user->tokens()->delete();
 
+            // إن أردتِ حذف جميع التوكنات ما عدا الحالي (أبقي المستخدم الحالي فقط مسجّلًا):
+            // $currentTokenId = optional($request->user()->currentAccessToken())->id;
+            // $user->tokens()->when($currentTokenId, fn($q) => $q->where('id', '!=', $currentTokenId))->delete();
+
+            // (اختياري) لو عندك جلسات ويب (guard:web) وتبغي تسجيل الخروج من كل الجلسات الأخرى:
+            // \Auth::logoutOtherDevices($request->input('current_password'));
+        }
+
+        // تحضير بيانات الإرجاع حسب نوع المستخدم
         if ($user->type === 'store') {
             $filteredUser = [
-                'name' => $userData['name'],
-                'open_hour' => $userData['open_hour'],
-                'close_hour' => $userData['close_hour'],
-                'status' => $userData['status'],
-                'image' => $userData['image'],
+                'name'       => $userData['name']       ?? $user->name,
+                'open_hour'  => $userData['open_hour']  ?? $user->open_hour,
+                'close_hour' => $userData['close_hour'] ?? $user->close_hour,
+                'status'     => $userData['status']     ?? $user->status,
+                'image'      => $userData['image']      ?? ($user->image_url ?? $user->image),
             ];
-        } elseif($user->type === 'customer') {
+        } elseif ($user->type === 'customer') {
             $filteredUser = [
-                'name' => $userData['name'],
+                'name' => $userData['name'] ?? $user->name,
+            ];
+        } else {
+            $filteredUser = [
+                'name' => $userData['name'] ?? $user->name,
             ];
         }
 
+        // رسالة خاصة إذا تغيّرت كلمة المرور
+        $message = $response['message'] ?? 'تم تحديث الملف الشخصي بنجاح.';
+        if ($request->filled('new_password')) {
+            $message = 'تم تحديث كلمة المرور وتم تسجيل خروجك من جميع الأجهزة.';
+        }
 
         return response()->json([
-            'message' => $response['message'],
-            'user' => $filteredUser,
-        ]);
-
+            'message' => $message,
+            'user'    => $filteredUser,
+        ], 200);
     }
+
     public function changeArea(Request $request)
     {
         $user = auth('sanctum')->user();
