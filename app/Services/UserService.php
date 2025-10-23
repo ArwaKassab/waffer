@@ -99,25 +99,19 @@ class UserService
             'note', 'current_password', 'new_password', 'new_password_confirmation',
         ]);
 
-
         if (!empty($data['new_password'])) {
             if (!isset($data['current_password']) || !Hash::check($data['current_password'], $user->password)) {
                 throw ValidationException::withMessages(['current_password' => 'كلمة المرور الحالية غير صحيحة']);
             }
 
-            $data['new_password'] = Hash::make($data['new_password']);
-        } else {
-            unset($data['new_password']);
+            $user->password = Hash::make($data['new_password']);
         }
-
-
         if (!empty($data['image']) && $data['image'] instanceof UploadedFile) {
             $path = Storage::disk('public')->put('user_images', $data['image']);
             $data['image'] = $path;
         }
 
-
-        unset($data['current_password'], $data['new_password_confirmation']);
+        unset($data['current_password'], $data['new_password'], $data['new_password_confirmation']);
 
         $user->fill($data);
         $user->save();
@@ -129,7 +123,6 @@ class UserService
                 ['image' => $user->image ? asset('storage/' . $user->image) : null]
             ),
         ];
-
     }
 
     public function changeArea(User $user, int $new_area_id): array
