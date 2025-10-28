@@ -53,7 +53,7 @@ class ProductRepository
      */
     public function getUnits(): array
     {
-        return array_map(fn($u) => ['value' => $u, 'label' => $u], Product::UNITS);
+        return array_map(fn($u) => ['value' => $u], Product::UNITS);
     }
 
 
