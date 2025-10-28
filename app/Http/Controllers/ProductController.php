@@ -116,5 +116,21 @@ class ProductController extends Controller
         ], 201);
     }
 
+    /**
+     * GET /api/products/units
+     * يعيد قائمة الوحدات المسموحة للمنتجات
+     */
+    public function Units(): JsonResponse
+    {
+        $units = $this->productService->listUnits();
+
+        return response()->json([
+            'success' => true,
+            'data'    => [
+                'units' => $units,
+            ],
+            'message' => 'قائمة الوحدات المتاحة.',
+        ]);
+    }
 }
 

@@ -4,6 +4,7 @@ namespace App\Http\Controllers;
 
 
 use App\Models\Address;
+use App\Models\DeviceToken;
 use App\Models\User;
 use App\Services\AddressService;
 
@@ -113,6 +114,8 @@ class UserController extends Controller
 
             // (اختياري) لو عندك جلسات ويب (guard:web) وتبغي تسجيل الخروج من كل الجلسات الأخرى:
             // \Auth::logoutOtherDevices($request->input('current_password'));
+            DeviceToken::where('user_id', $user->id)->delete();
+
         }
 
         // تحضير بيانات الإرجاع حسب نوع المستخدم
@@ -133,8 +136,6 @@ class UserController extends Controller
                 'name' => $userData['name'] ?? $user->name,
             ];
         }
-
-        // رسالة خاصة إذا تغيّرت كلمة المرور
         $message = $response['message'] ?? 'تم تحديث الملف الشخصي بنجاح.';
         if ($request->filled('new_password')) {
             $message = 'تم تحديث كلمة المرور وتم تسجيل خروجك من جميع الأجهزة.';

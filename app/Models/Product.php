@@ -21,6 +21,8 @@ class Product extends Model
         'details',
 
     ];
+
+    public const UNITS = ['غرام', 'كيلوغرام', 'قطعة', 'لتر'];
     protected $appends = ['image_url'];
     protected $hidden  = ['image'];
     public function getImageUrlAttribute(): ?string
