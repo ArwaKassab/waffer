@@ -70,7 +70,6 @@ class SubAdminOrderDetailsResource extends JsonResource
                     'product' => [
                         'id'        => data_get($product, 'id'),
                         'name'      => data_get($product, 'name'),
-                        'image_url' => data_get($product, 'image_url'),
                     ],
                     'store' => $store ? [
                         'id' => data_get($store, 'id'),
