@@ -125,11 +125,8 @@ class ProductController extends Controller
         $units = $this->productService->listUnits();
 
         return response()->json([
-            'success' => true,
-            'data'    => [
-                'units' => $units,
-            ],
-            'message' => 'قائمة الوحدات المتاحة.',
+            'units' => $units,
+            'message' => 'تم جلب الوحدات بنجاح',
         ]);
     }
 }
