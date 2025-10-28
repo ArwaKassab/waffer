@@ -10,13 +10,12 @@ class SubAdminOrderDetailsResource extends JsonResource
     {
         $items = $this->whenLoaded('items', $this->items, collect());
 
-        // احسب الإجمالي قبل التوصيل لو ما كان totalAfterDiscount متوفر لأي سبب
         $totalBeforeDelivery = is_null($this->totalAfterDiscount)
             ? (float) $this->total_product_price - (float) $this->discount_fee
             : (float) $this->totalAfterDiscount;
 
-        // احسب الإجمالي بعد التوصيل لو ما كان total_price متوفر لأي سبب
         $deliveryFee = (float) $this->delivery_fee;
+
         $totalAfterDelivery = is_null($this->total_price)
             ? $totalBeforeDelivery + $deliveryFee
             : (float) $this->total_price;
@@ -31,18 +30,10 @@ class SubAdminOrderDetailsResource extends JsonResource
                 'created_at'     => optional($this->created_at)->format('Y-m-d H:i'),
                 'notes'          => $this->notes,
 
-                // 👇 القيم المطلوبة
-                'delivery_fee'           => $deliveryFee,
-                'total_before_delivery'  => $totalBeforeDelivery,
-                'total_after_delivery'   => $totalAfterDelivery,
-
-                // (اختياري) لو بدك تعرض القيم الخام المخزنة أيضاً
-                'totals_raw' => [
-                    'total_product_price' => (float) $this->total_product_price,
-                    'discount_fee'        => (float) $this->discount_fee,
-                    'total_after_discount_column' => (float) $this->totalAfterDiscount,
-                    'total_price_column'          => (float) $this->total_price,
-                ],
+                // المطلوب فقط
+                'delivery_fee'          => $deliveryFee,
+                'total_before_delivery' => $totalBeforeDelivery,
+                'total_after_delivery'  => $totalAfterDelivery,
             ],
 
             'customer' => $this->whenLoaded('user', function () {
@@ -82,7 +73,7 @@ class SubAdminOrderDetailsResource extends JsonResource
                         'image_url' => data_get($product, 'image_url'),
                     ],
                     'store' => $store ? [
-                        'id'    => data_get($store, 'id'),
+                        'id' => data_get($store, 'id'),
                     ] : null,
                 ];
             }),
