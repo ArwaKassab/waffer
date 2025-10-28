@@ -48,6 +48,13 @@ class ProductRepository
         return $products;
     }
 
+    /**
+     * إرجاع قائمة الوحدات المتاحة للمنتجات.
+     */
+    public function getUnits(): array
+    {
+        return array_map(fn($u) => ['value' => $u, 'label' => $u], Product::UNITS);
+    }
 
 
 }

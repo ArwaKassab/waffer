@@ -2,12 +2,14 @@
 
 namespace App\Http\Controllers;
 
+use App\Models\DeviceToken;
 use App\Repositories\Contracts\UserRepositoryInterface;
 use App\Services\SmsChefOtpService;
 use Illuminate\Http\JsonResponse;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Cache;
 use Illuminate\Support\Facades\Crypt;
+use Illuminate\Support\Facades\DB;
 use Illuminate\Support\Facades\Hash;
 use Illuminate\Support\Facades\RateLimiter;
 use Illuminate\Validation\ValidationException;
@@ -144,8 +146,7 @@ class AuthResetController extends Controller
     {
         $data = $request->validate([
             'temp_id'  => ['required', 'string'],
-            'password' => ['required', 'string', 'min:8', 'max:100', 'confirmed'],
-            // أرسل password_confirmation أيضًا
+            'password' => ['required', 'string', 'min:8', 'max:100', 'confirmed'], // أرسل password_confirmation أيضًا
         ]);
 
         $tempId = $data['temp_id'];
@@ -165,16 +166,24 @@ class AuthResetController extends Controller
         if (!$user) {
             return response()->json(['message' => 'الحساب غير موجود.'], 404);
         }
-
         $user->password = Hash::make($data['password']);
-        $user->save();
+        $user->setRememberToken(Str::random(60));
 
+        $user->save();
         if (method_exists($user, 'tokens')) {
             $user->tokens()->delete();
         }
+
+
+        if (config('session.driver') === 'database') {
+            DB::table(config('session.table', 'sessions'))
+                ->where('user_id', $user->id)
+                ->delete();
+        }
+        DeviceToken::where('user_id', $user->id)->delete();
         Cache::forget($this->cacheKeyPassed($tempId));
 
-        return response()->json(['message' => 'تم تحديث كلمة المرور بنجاح.'], 200);
+        return response()->json(['message' => 'تم تحديث كلمة المرور وتم تسجيل خروجك من جميع الأجهزة.'], 200);
     }
     /**
      * إعادة إرسال رمز OTP لخطوة إعادة التعيين

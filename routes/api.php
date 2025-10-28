@@ -241,6 +241,8 @@ use App\Http\Controllers\SubAdmin\OrderController as SubAdminOrderController;
         Route::post('orders/{order}/reject', [OrderController::class, 'rejectOrder']);
 
         //المنتجات
+        Route::get('/products/units', [ProductController::class, 'Units']);
+
         Route::get('/products', [ProductController::class, 'myStoreProducts']);
         Route::get('/products/product-details/{productId}', [ProductController::class, 'productDetails']);
 

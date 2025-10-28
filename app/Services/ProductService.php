@@ -54,5 +54,13 @@ class ProductService
         return $this->productRepo->getStoreProducts($storeId, $perPage);
     }
 
+    /**
+     * الحصول على الوحدات المسموحة للمنتجات
+     */
+    public function listUnits(): array
+    {
+        return $this->productRepo->getUnits();
+    }
+
 }
 
