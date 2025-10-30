@@ -73,6 +73,7 @@ class SubAdminOrderDetailsResource extends JsonResource
                     ],
                     'store' => $store ? [
                         'id' => data_get($store, 'id'),
+                        'name' => data_get($store, 'name'),
                     ] : null,
                 ];
             }),
