@@ -95,7 +95,7 @@ class UserService
     {
         $data = $request->only([
             'name', 'phone', 'whatsapp_phone', 'email',
-            'area_id', 'image', 'open_hour', 'close_hour',
+            'area_id', 'image', 'open_hour', 'close_hour','status',
             'note', 'current_password', 'new_password', 'new_password_confirmation',
         ]);
 

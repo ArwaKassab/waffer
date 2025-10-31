@@ -82,15 +82,12 @@ class UserController extends Controller
         }
 
         $validator = Validator::make($request->all(), [
-            'name'            => 'sometimes|string|max:255',
             'phone'           => 'sometimes|string|unique:users,phone,' . $user->id,
-            'whatsapp_phone'  => 'sometimes|nullable|string',
-            'email'           => 'sometimes|nullable|email|unique:users,email,' . $user->id,
-            'area_id'         => 'sometimes|nullable|exists:areas,id',
             'image'           => 'sometimes|nullable|image|mimes:jpeg,png,jpg,gif,svg|max:2048',
             'open_hour'       => 'sometimes|nullable|date_format:H:i:s',
             'close_hour'      => 'sometimes|nullable|date_format:H:i:s',
             'note'            => 'sometimes|nullable|string',
+            'status'          => 'sometimes|nullable|boolean',
             'current_password' => 'required_with:new_password|string',
             'new_password'     => 'nullable|string|min:6|confirmed',
         ]);

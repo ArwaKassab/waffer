@@ -11,9 +11,7 @@ return new class extends Migration {
             $table->uuid('id')->primary();
 
             $table->string('type');
-
-            // علاقة بوليمورفيك: من هو المستلم؟ (عادةً App\Models\User + مفتاحه)
-            $table->morphs('notifiable'); // يضيف: notifiable_type (string), notifiable_id (unsignedBigInteger)
+            $table->morphs('notifiable');
 
             $table->text('data');
             $table->timestamp('read_at')->nullable();

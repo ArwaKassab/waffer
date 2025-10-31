@@ -2,40 +2,77 @@
 
 namespace App\Http\Controllers;
 
-use App\Models\Notification;
 use Illuminate\Http\Request;
+use Illuminate\Support\Carbon;
+use App\Models\AppUserNotification;
+use App\Services\NotificationService;
 
 class NotificationController extends Controller
 {
-    public function index(Request $r){
-        $perPage = (int) $r->query('per_page', 20);
+    public function __construct(
+        protected NotificationService $notificationService
+    ) {}
 
-        $rows = Notification::where('user_id', $r->user()->id)
+    // GET /api/notifications
+    // يرجع الإشعارات (paginated)
+    // ويعلمها مقروء إذا بدك هذا السلوك هنا
+    public function index(Request $request)
+    {
+        $user     = $request->user();
+        $perPage  = (int) $request->query('per_page', 20);
+
+        $rows = AppUserNotification::where('user_id', $user->id)
             ->latest('id')
             ->paginate($perPage);
 
-        $rows->getCollection()->transform(fn($n)=>[
-            'id'         => $n->id,
-            'title'      => $n->title,
-            'body'       => $n->body,
-            'type'       => $n->type,
-            'order_id'   => $n->order_id,
-            'data'       => $n->data,
-            'read_at'    => $n->read_at?->toIso8601String(),
-            'created_at' => $n->created_at->toIso8601String(),
-        ]);
+        // (اختياري): علم الكل كمقروء عند فتح صفحة الإشعارات
+        AppUserNotification::where('user_id', $user->id)
+            ->whereNull('read_at')
+            ->update(['read_at' => Carbon::now()]);
+
+        $rows->getCollection()->transform(function ($n) {
+            return [
+                'id'         => $n->id,
+                'title'      => $n->title,
+                'body'       => $n->body,
+                'type'       => $n->type,
+                'order_id'   => $n->order_id,
+                'data'       => $n->data,
+                'is_read'    => $n->read_at !== null,
+                'read_at'    => optional($n->read_at)->toIso8601String(),
+                'created_at' => $n->created_at->toIso8601String(),
+            ];
+        });
 
         return response()->json($rows);
     }
 
-    public function markRead(Request $r, int $id){
-        $n = Notification::where('user_id',$r->user()->id)->findOrFail($id);
-        $n->update(['read_at'=>now()]);
-        return response()->json(['message'=>'marked as read']);
+    // POST /api/notifications/{id}/mark-read
+    public function markRead(Request $request, int $id)
+    {
+        $user = $request->user();
+        $this->notificationService->markOneRead($user->id, $id);
+
+        return response()->json(['message' => 'marked as read']);
     }
 
-    public function markAllRead(Request $r){
-        Notification::where('user_id',$r->user()->id)->whereNull('read_at')->update(['read_at'=>now()]);
-        return response()->json(['message'=>'all marked as read']);
+    // POST /api/notifications/mark-all-read
+    public function markAllRead(Request $request)
+    {
+        $user = $request->user();
+        $this->notificationService->markAllReadForUser($user->id);
+
+        return response()->json(['message' => 'all marked as read']);
+    }
+
+    // GET /api/notifications/unread-count
+    public function unreadCount(Request $request)
+    {
+        $user = $request->user();
+        $count = $this->notificationService->unreadCountForUser($user->id);
+
+        return response()->json([
+            'unread_count' => $count,
+        ]);
     }
 }
