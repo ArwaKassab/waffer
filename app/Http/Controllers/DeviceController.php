@@ -7,31 +7,31 @@ use Illuminate\Http\Request;
 
 class DeviceController extends Controller
 {
-    public function register(Request $r){
-        $r->validate([
-            'token'       => 'required|string',
-            'platform'    => 'nullable|in:android,ios,web',
-            'device_name' => 'nullable|string|max:255',
+    // POST /api/device-tokens
+    public function store(Request $request)
+    {
+        $user = $request->user(); // sanctum user
+
+        $data = $request->validate([
+            'device_token' => 'required|string|max:500',
+            'device_type'  => 'nullable|string|max:50',
+            'app_version'  => 'nullable|string|max:50',
         ]);
 
-        $user = $r->user();
-
-        DeviceToken::updateOrCreate(
-            ['token' => $r->token],
+        // خزِّن أو حدّث
+        $row = DeviceToken::updateOrCreate(
+            ['token'   => $data['device_token']], // unique by token
             [
                 'user_id'     => $user->id,
-                'platform'    => $r->platform,
-                'device_name' => $r->device_name,
+                'device_type' => $data['device_type'] ?? null,
+                'app_version' => $data['app_version'] ?? null,
                 'last_used_at'=> now(),
             ]
         );
 
-        return response()->json(['message' => 'Token saved']);
-    }
-
-    public function unregister(Request $r){
-        $r->validate(['token'=>'required|string']);
-        DeviceToken::where('token',$r->token)->delete();
-        return response()->json(['message' => 'Token removed']);
+        return response()->json([
+            'success' => true,
+            'token_id' => $row->id,
+        ]);
     }
 }

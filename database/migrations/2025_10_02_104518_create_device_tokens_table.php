@@ -10,10 +10,11 @@ return new class extends Migration {
             $t->id();
             $t->foreignId('user_id')->nullable()->constrained()->onDelete('cascade');
             $t->string('token')->unique();
-            $t->enum('platform', ['android','ios','web'])->nullable();
-            $t->string('device_name')->nullable();
+            $t->string('device_type')->nullable();
+            $t->string('app_version')->nullable();
             $t->timestamp('last_used_at')->nullable();
             $t->uuid('visitor_id')->nullable()->index();
+
             $t->timestamps();
 
             $t->index(['user_id']);

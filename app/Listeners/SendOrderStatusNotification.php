@@ -15,6 +15,5 @@ class SendOrderStatusNotification
         if (!$user) return;
 
         $user->notify(new OrderStatusChanged($e->orderId, $e->status));
-        // إن حبيتي تفصلي الـPush لJob مستقل، تقدري هنا dispatch Job للـFCM فقط.
     }
 }

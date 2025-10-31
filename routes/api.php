@@ -322,49 +322,67 @@ use App\Http\Controllers\SubAdmin\OrderController as SubAdminOrderController;
 
     });
 
-
 Route::middleware('auth:sanctum')->group(function () {
-    Route::post('devices/register-token',   [DeviceController::class,'register'])->middleware('throttle:20,1');
-    Route::delete('devices/unregister-token',[DeviceController::class,'unregister'])->middleware('throttle:20,1');
 
-    Route::get('notifications',               [NotificationController::class,'index']);
-    Route::patch('notifications/{id}/read',   [NotificationController::class,'markRead']);
-    Route::patch('notifications/read-all',    [NotificationController::class,'markAllRead']);
+    // Flutter يسجل جهازه وتوكنه
+    Route::post('/device-tokens', [DeviceController::class, 'store']);
 
-    Route::middleware('auth:sanctum')->get('/feed', function () {
-        $uid = auth()->id();
-        return DB::table('app_user_notifications')
-            ->where('user_id', $uid)
-            ->orderByDesc('id')
-            ->paginate(15);
-    });
+    // لائحة الإشعارات
+    Route::get('/notifications', [NotificationController::class, 'index']);
 
-    Route::middleware('auth:sanctum')->post('/feed/{id}/read', function ($id) {
-        $uid = auth()->id();
+    // عدد الغير مقروء
+    Route::get('/notifications/unread-count', [NotificationController::class, 'unreadCount']);
 
-        // حدّث Projection
-        DB::table('app_user_notifications')
-            ->where('id', $id)
-            ->where('user_id', $uid)
-            ->update(['read_at' => now(), 'updated_at' => now()]);
+    // علّم واحد كمقروء
+    Route::post('/notifications/{id}/mark-read', [NotificationController::class, 'markRead']);
 
-        // (اختياري) حدّث القياسي أيضًا إن استطعتِ مطابقة السطر؛
-        // الأسهل: وفرّي أيضاً API مستقل يستخدم notifications() القياسي:
-        // auth()->user()->unreadNotifications()->find($nid)?->markAsRead();
-
-        return response()->json(['ok' => true]);
-    });
+    // علّم الكل كمقروء
+    Route::post('/notifications/mark-all-read', [NotificationController::class, 'markAllRead']);
 });
 
-Route::middleware('auth:sanctum')->
-post('test/push', function (Request $r, FcmV1Client $fcm) {
-    $data = $r->validate([
-        'token' => 'required|string',
-        'title' => 'required|string',
-        'body'  => 'nullable|string',
-        'data'  => 'array'
-    ]);
-
-    $fcm->sendToToken($data['token'], $data['title'], $data['body'] ?? '', $data['data'] ?? []);
-    return response()->json(['ok' => true]);
-});
+//
+//Route::middleware('auth:sanctum')->group(function () {
+//    Route::post('devices/register-token',   [DeviceController::class,'register'])->middleware('throttle:20,1');
+//    Route::delete('devices/unregister-token',[DeviceController::class,'unregister'])->middleware('throttle:20,1');
+//
+//    Route::get('notifications',               [NotificationController::class,'index']);
+//    Route::patch('notifications/{id}/read',   [NotificationController::class,'markRead']);
+//    Route::patch('notifications/read-all',    [NotificationController::class,'markAllRead']);
+//
+//    Route::middleware('auth:sanctum')->get('/feed', function () {
+//        $uid = auth()->id();
+//        return DB::table('app_user_notifications')
+//            ->where('user_id', $uid)
+//            ->orderByDesc('id')
+//            ->paginate(15);
+//    });
+//
+//    Route::middleware('auth:sanctum')->post('/feed/{id}/read', function ($id) {
+//        $uid = auth()->id();
+//
+//        // حدّث Projection
+//        DB::table('app_user_notifications')
+//            ->where('id', $id)
+//            ->where('user_id', $uid)
+//            ->update(['read_at' => now(), 'updated_at' => now()]);
+//
+//        // (اختياري) حدّث القياسي أيضًا إن استطعتِ مطابقة السطر؛
+//        // الأسهل: وفرّي أيضاً API مستقل يستخدم notifications() القياسي:
+//        // auth()->user()->unreadNotifications()->find($nid)?->markAsRead();
+//
+//        return response()->json(['ok' => true]);
+//    });
+//});
+//
+//Route::middleware('auth:sanctum')->
+//post('test/push', function (Request $r, FcmV1Client $fcm) {
+//    $data = $r->validate([
+//        'token' => 'required|string',
+//        'title' => 'required|string',
+//        'body'  => 'nullable|string',
+//        'data'  => 'array'
+//    ]);
+//
+//    $fcm->sendToToken($data['token'], $data['title'], $data['body'] ?? '', $data['data'] ?? []);
+//    return response()->json(['ok' => true]);
+//});
