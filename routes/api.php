@@ -323,23 +323,17 @@ use App\Http\Controllers\SubAdmin\OrderController as SubAdminOrderController;
     });
 
 Route::middleware('auth:sanctum')->group(function () {
-
-    // Flutter يسجل جهازه وتوكنه
+    // Flutter يسجّل توكن الجهاز
     Route::post('/device-tokens', [DeviceController::class, 'store']);
 
-    // لائحة الإشعارات
+    // عرض الإشعارات
     Route::get('/notifications', [NotificationController::class, 'index']);
-
-    // عدد الغير مقروء
     Route::get('/notifications/unread-count', [NotificationController::class, 'unreadCount']);
 
-    // علّم واحد كمقروء
+    // تعليم كمقروء
     Route::post('/notifications/{id}/mark-read', [NotificationController::class, 'markRead']);
-
-    // علّم الكل كمقروء
     Route::post('/notifications/mark-all-read', [NotificationController::class, 'markAllRead']);
 });
-
 //
 //Route::middleware('auth:sanctum')->group(function () {
 //    Route::post('devices/register-token',   [DeviceController::class,'register'])->middleware('throttle:20,1');

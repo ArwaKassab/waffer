@@ -86,8 +86,10 @@ class OrderService
             ];
         });
 
-        // إطلاق حدث بعد تأكيد الطلب، يمكن أن يستخدم لإرسال إشعار أو تنفيذ إجراءات أخرى
-        event(new OrderConfirmed($order));
+//        // إطلاق حدث بعد تأكيد الطلب، يمكن أن يستخدم لإرسال إشعار أو تنفيذ إجراءات أخرى
+//        event(new OrderConfirmed($order));
+//        // بعد ما تحفظي الطلب وتعرفي لأي متجر رايح
+//        event(new \App\Events\NewOrderCreated($order, $storeUserId));
 
         // تحويل استجابة الطلب إلى تنسيق API مناسب وإرجاعه
         return (new ConfirmedOrderResource($response))->resolve();
