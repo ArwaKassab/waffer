@@ -324,7 +324,7 @@ use App\Http\Controllers\SubAdmin\OrderController as SubAdminOrderController;
 
 Route::middleware('auth:sanctum')->group(function () {
     // Flutter يسجّل توكن الجهاز
-    Route::post('/device-tokens', [DeviceController::class, 'store']);
+    Route::post('devices/register-tokens', [DeviceController::class, 'store']);
 
     // عرض الإشعارات
     Route::get('/notifications', [NotificationController::class, 'index']);
