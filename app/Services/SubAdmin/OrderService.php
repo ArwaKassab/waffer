@@ -47,7 +47,9 @@ class OrderService
             ];
         }
         $order = $this->orderRepo->find($orderId);
-        event(new OrderStatusUpdated($order->user_id, $order->id, $newStatus));
+        $customerUserId=$order->user_id;
+        event(new OrderStatusUpdated($order,$customerUserId));
+
         return [
             'success' => true,
             'message' => "تم تغيير حالة الطلب إلى {$newStatus} بنجاح.",

@@ -16,6 +16,7 @@ class AppUserNotification extends Model
         'order_id',
         'data',
         'read_at',
+        'visitor_id'
     ];
 
     protected $casts = [

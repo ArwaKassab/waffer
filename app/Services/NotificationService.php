@@ -12,11 +12,6 @@ class NotificationService
         protected FcmV1Client $fcm
     ) {}
 
-    /**
-     * sendToUser:
-     * - يسجل الإشعار في قاعدة البيانات
-     * - يبعته Push لكل أجهزة المستخدم
-     */
     public function sendToUser(
         int $userId,
         string $type,
@@ -26,7 +21,7 @@ class NotificationService
         array $data = []
     ): AppUserNotification {
 
-        // 1) خزّن الإشعار
+        // 1) خزّن في DB
         $row = AppUserNotification::create([
             'user_id'  => $userId,
             'type'     => $type,
@@ -37,7 +32,7 @@ class NotificationService
             'read_at'  => null,
         ]);
 
-        // 2) جيب كل توكنات الأجهزة تبع هالمستخدم
+        // 2) جيب كل أجهزة هالمستخدم
         $tokens = DeviceToken::where('user_id', $userId)
             ->pluck('token')
             ->filter()
