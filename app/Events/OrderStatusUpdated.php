@@ -11,7 +11,7 @@ class OrderStatusUpdated
     use Dispatchable, SerializesModels;
 
     public function __construct(
-        public Order $order,
+        public \App\Models\Order $order,
         public int $customerUserId,
     ) {}
 }
