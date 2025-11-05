@@ -6,6 +6,7 @@ namespace App\Listeners;
 use App\Events\OrderStatusUpdated;
 use App\Services\NotificationService;
 use Illuminate\Contracts\Queue\ShouldQueue;
+use Illuminate\Support\Facades\Log;
 
 class SendOrderStatusNotification implements ShouldQueue
 {
@@ -17,6 +18,10 @@ class SendOrderStatusNotification implements ShouldQueue
 
     public function handle(OrderStatusUpdated $event): void
     {
+        Log::info('SendOrderStatusNotification: started', [
+            'order_id' => $event->order->id,
+            'user_id'  => $event->customerUserId,
+        ]);
         $order = $event->order;
 
         $this->notifications->sendToUser(
@@ -30,6 +35,9 @@ class SendOrderStatusNotification implements ShouldQueue
                 'store_name' => $order->store->name ?? '',
             ]
         );
+        Log::info('SendOrderStatusNotification: finished', [
+            'order_id' => $event->order->id,
+        ]);
     }
 }
 
