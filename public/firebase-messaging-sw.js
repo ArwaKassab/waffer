@@ -1,5 +1,5 @@
 // public/firebase-messaging-sw.js
-importScripts('/firebase-config.js');
+importScripts('/firebase-admin.json');
 importScripts('https://www.gstatic.com/firebasejs/9.23.0/firebase-app-compat.js');
 importScripts('https://www.gstatic.com/firebasejs/9.23.0/firebase-messaging-compat.js');
 
@@ -7,7 +7,7 @@ firebase.initializeApp(self._FIREBASE.config);
 const messaging = firebase.messaging();
 
 messaging.onBackgroundMessage((payload) => {
-    const title = payload.data?.title || payload.notification?.title || 'Waffer';
+    const title = payload.data?.title || payload.notification?.title || 'wafir';
     const options = {
         body: payload.data?.body || payload.notification?.body || '',
         data: payload.data || {},
