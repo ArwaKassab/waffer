@@ -11,6 +11,12 @@ class VerifyTempToken
 {
     public function handle(Request $request, Closure $next)
     {
+
+        if ($request->is('firebase-config.js') ||
+            $request->is('firebase-messaging-sw.js') ||
+            $request->is('fcm-test/*')) {
+            return $next($request);
+        }
         $phone = $request->phone;
 
         if (!$phone) {
