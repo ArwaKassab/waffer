@@ -47,8 +47,7 @@ class OrderService
             ];
         }
         $order = $this->orderRepo->find($orderId);
-        $customerUserId=$order->user_id;
-        event(new OrderStatusUpdated($order,$customerUserId));
+        event(new OrderStatusUpdated($order,$order->user_id));
 
         return [
             'success' => true,
