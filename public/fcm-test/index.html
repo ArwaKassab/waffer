@@ -1,81 +1,218 @@
 <!doctype html>
-<html lang="ar">
+<html lang="ar" dir="rtl">
 <head>
-    <meta charset="utf-8"/>
-    <title>اختبار FCM للويب</title>
-    <meta name="viewport" content="width=device-width, initial-scale=1"/>
+    <meta charset="utf-8" />
+    <title>اختبار إشعارات Firebase FCM</title>
+    <meta name="viewport" content="width=device-width, initial-scale=1" />
+
+    <!-- ملاحظة: هذه الصفحة تستخدم compat SDK لسهولة التجربة -->
+    <script src="https://www.gstatic.com/firebasejs/9.23.0/firebase-app-compat.js"></script>
+    <script src="https://www.gstatic.com/firebasejs/9.23.0/firebase-messaging-compat.js"></script>
+
     <style>
-        body { font-family: sans-serif; max-width:800px; margin:20px auto; }
-        textarea{ width:100%; height:120px; }
-        .error{color:#b00020}
+        body { font-family: system-ui, Tahoma, Arial; padding: 20px; line-height: 1.8; }
+        .card { border: 1px solid #ddd; border-radius: 12px; padding: 16px; max-width: 800px; }
+        button { padding: 10px 14px; border-radius: 10px; border: 1px solid #ccc; cursor: pointer; }
+        button + button { margin-inline-start: 8px; }
+        .row { display: flex; gap: 10px; flex-wrap: wrap; margin-top: 10px; }
+        #log { white-space: pre-wrap; background: #111; color: #0f0; padding: 10px; border-radius: 8px; min-height: 120px; }
+        input[type="text"] { width: 100%; padding: 8px; border-radius: 8px; border: 1px solid #ccc; }
+        label { display: block; margin-top: 12px; font-weight: 600; }
+        .muted { color: #666; font-size: 13px; }
+        .ok { color: #0a0; }
+        .err { color: #c00; }
     </style>
 </head>
 <body>
-<h1>اختبار إشعارات FCM للويب</h1>
 
-<p>
-    <button id="btnPerm">تفعيل الإشعارات</button>
-    <button id="btnCopy">نسخ التوكن</button>
-</p>
+<h1>🚀 اختبار إشعارات Firebase (Web Push)</h1>
 
-<h3><label for="tokenBox">FCM Token</label></h3>
-<textarea id="tokenBox" readonly aria-label="FCM Token"></textarea>
-<div id="err" class="error"></div>
+<div class="card">
+    <p>
+        هذه الصفحة تقوم بـ:
+        <br>1) تحميل إعدادات Firebase من <code>/firebase-config.js</code>.
+        <br>2) تسجيل Service Worker: <code>/firebase-messaging-sw.js</code>.
+        <br>3) طلب إذن الإشعارات من المتصفح.
+        <br>4) جلب FCM Token عبر VAPID وإظهاره وإرساله لـ API الخلفية.
+    </p>
 
-<h3>الرسائل (Foreground)</h3>
-<div id="messages" style="border:1px solid #ddd; padding:10px; min-height:100px;"></div>
+    <div class="row">
+        <button id="btn-register-sw">تسجيل Service Worker</button>
+        <button id="btn-permission">طلب الإذن</button>
+        <button id="btn-get-token">جلب التوكن</button>
+        <button id="btn-delete-token">حذف التوكن</button>
+    </div>
 
-<!-- 1) حمّلي الإعدادات من السيرفر -->
-<script src="../../storage/app/keys/firebase-admin.json"></script>
+    <label>FCM Token</label>
+    <label for="token"></label><input id="token" type="text" readonly placeholder="سيظهر هنا التوكن عند نجاح العملية">
 
-<!-- 2) مكتبات compat -->
-<script src="https://www.gstatic.com/firebasejs/9.23.0/firebase-app-compat.js"></script>
-<script src="https://www.gstatic.com/firebasejs/9.23.0/firebase-messaging-compat.js"></script>
+    <label>طلبات API (اختياري)</label>
+    <div class="row">
+        <button id="btn-send-token">إرسال التوكن إلى الـAPI</button>
+        <button id="btn-test-notify">تنبيه اختباري من السيرفر (اختياري)</button>
+    </div>
+    <p class="muted">
+        ملاحظة: زبّطي روابط الـAPI بما يناسب مشروعك (داخل الكود أدناه ستجدي نقاط التعويض).
+    </p>
+
+    <label>السجل</label>
+    <div id="log"></div>
+</div>
 
 <script>
-    const errBox = document.getElementById('err');
-    const showErr = (e) => { console.error(e); errBox.textContent = e?.message || String(e); };
+    const log = (...args) => {
+        const el = document.getElementById('log');
+        el.textContent += args.map(x => typeof x === 'string' ? x : JSON.stringify(x, null, 2)).join(' ') + '\n';
+    };
 
-    // تهيئة من الملف الديناميكي
-    firebase.initializeApp(window._FIREBASE.config);
-    const messaging = firebase.messaging();
-    const VAPID_PUBLIC_KEY = window._FIREBASE.vapidPublicKey;
-
-    async function enableNotifications() {
-        try {
-            if (!firebase.messaging.isSupported()) throw new Error('Firebase Messaging غير مدعوم في هذا المتصفح.');
-
-            const perm = await Notification.requestPermission();
-            if (perm !== 'granted') throw new Error('الإذن مرفوض. من Site settings → Notifications → Allow ثم Reload.');
-
-            // مهم: التسجيل من الجذر
-            const reg = await navigator.serviceWorker.register('/firebase-messaging-sw.js', { scope: '/' });
-
-            const token = await messaging.getToken({
-                vapidKey: VAPID_PUBLIC_KEY,
-                serviceWorkerRegistration: reg,
-            });
-            if (!token) throw new Error('getToken رجّع null. تحققي من VAPID وسENDER_ID.');
-
-            document.getElementById('tokenBox').value = token;
-            console.log('FCM token:', token);
-        } catch (e) { showErr(e); }
+    // 1) حمّلي إعدادات Firebase ديناميكيًا من الراوت
+    function loadFirebaseConfig() {
+        return new Promise((resolve, reject) => {
+            const s = document.createElement('script');
+            s.src = '/firebase-config.js';
+            s.onload = () => {
+                if (self._FIREBASE && self._FIREBASE.config) {
+                    resolve(self._FIREBASE);
+                } else {
+                    reject(new Error('لم يتم تحميل self._FIREBASE من /firebase-config.js'));
+                }
+            };
+            s.onerror = () => reject(new Error('فشل تحميل /firebase-config.js'));
+            document.head.appendChild(s);
+        });
     }
 
-    messaging.onMessage((payload) => {
-        const box = document.getElementById('messages');
-        const pre = document.createElement('pre');
-        pre.textContent = JSON.stringify(payload.data ?? payload, null, 2);
-        box.prepend(pre);
-    });
+    // 2) تسجيل الـService Worker
+    async function registerSW() {
+        if (!('serviceWorker' in navigator)) {
+            log('❌ هذا المتصفح لا يدعم Service Workers');
+            return null;
+        }
+        // نستخدم scope=/ حتى يشتغل الـSW على كامل الموقع
+        const reg = await navigator.serviceWorker.register('/firebase-messaging-sw.js', { scope: '/' });
+        log('✅ تم تسجيل Service Worker:', reg.scope);
+        return reg;
+    }
 
-    document.getElementById('btnPerm').addEventListener('click', enableNotifications);
-    document.getElementById('btnCopy').addEventListener('click', () => {
-        const t = document.getElementById('tokenBox'); t.select(); document.execCommand('copy');
-    });
+    // 3) طلب الإذن
+    async function requestPermission() {
+        const result = await Notification.requestPermission();
+        log('🔔 حالة الإذن:', result);
+        if (result !== 'granted') {
+            throw new Error('تم رفض الإذن أو لم يتم منحه بعد.');
+        }
+        return result;
+    }
 
-    // تحقّق دعم SW
-    if (!('serviceWorker' in navigator)) showErr('هذا المتصفح لا يدعم Service Workers');
+    // 4) تهيئة Firebase في الصفحة وجلب التوكن
+    let app, messaging, cfg;
+    async function initAndGetToken() {
+        // حمّل config
+        cfg = await loadFirebaseConfig();
+        log('⚙️ إعدادات Firebase:', cfg);
+
+        // تسجيل SW (لو مش مسجل)
+        const reg = await registerSW();
+
+        // تهيئة Firebase (compat)
+        if (!firebase.apps.length) {
+            firebase.initializeApp(cfg.config);
+            log('✅ Firebase تم تهيئته (compat)');
+        }
+        messaging = firebase.messaging();
+
+        // طلب إذن
+        await requestPermission();
+
+        // getToken مع VAPID + ربط الـSW
+        const token = await messaging.getToken({
+            vapidKey: cfg.vapidPublicKey,
+            serviceWorkerRegistration: reg
+        });
+
+        if (!token) {
+            throw new Error('لم يتم الحصول على Token. تأكدي من السماح للإشعارات ومن صحة VAPID.');
+        }
+
+        document.getElementById('token').value = token;
+        log('🎯 Token:', token);
+        return token;
+    }
+
+    // حذف التوكن
+    async function deleteCurrentToken() {
+        if (!messaging) {
+            cfg = await loadFirebaseConfig();
+            if (!firebase.apps.length) firebase.initializeApp(cfg.config);
+            messaging = firebase.messaging();
+        }
+        const currentToken = document.getElementById('token').value.trim();
+        if (!currentToken) {
+            log('ℹ️ لا يوجد توكن ظاهر للحذف.');
+            return;
+        }
+        await messaging.deleteToken(currentToken);
+        document.getElementById('token').value = '';
+        log('🗑️ تم حذف التوكن من المتصفح.');
+    }
+
+    // إرسال التوكن لـ API الخلفية (عدّلي المسار حسب مشروعك)
+    async function sendTokenToApi() {
+        const token = document.getElementById('token').value.trim();
+        if (!token) return log('⚠️ لا يوجد Token لإرساله.');
+
+        try {
+            // عدّلي هذا الرابط حسب API عندك
+            // مثال محتمل: POST /api/device-tokens  {token: "..."}
+            const res = await fetch('/api/device-tokens', {
+                method: 'POST',
+                headers: {
+                    'Content-Type': 'application/json',
+                    // لو عندك حماية CSRF على نفس الدومين: أضيفي X-CSRF-TOKEN من ميتا <meta name="csrf-token"> إن لزم
+                },
+                body: JSON.stringify({ token })
+            });
+            const j = await res.json().catch(() => ({}));
+            log('📨 استجابة API حفظ التوكن:', res.status, j);
+        } catch (e) {
+            log('❌ خطأ إرسال التوكن للـAPI:', e.message);
+        }
+    }
+
+    // استدعاء تنبيه اختباري من السيرفر (اختياري)
+    async function askServerToPushNow() {
+        const token = document.getElementById('token').value.trim();
+        if (!token) return log('⚠️ لا يوجد Token.');
+
+        try {
+            // عدّلي الرابط حسب مساراتك التجريبية:
+            // مثال: /api/test-push  {token, title, body}
+            const res = await fetch('/api/test-push', {
+                method: 'POST',
+                headers: { 'Content-Type': 'application/json' },
+                body: JSON.stringify({
+                    token,
+                    title: 'اختبار FCM',
+                    body: 'هذه رسالة اختبارية من الخادم.'
+                })
+            });
+            const j = await res.json().catch(() => ({}));
+            log('🧪 استجابة API test-push:', res.status, j);
+        } catch (e) {
+            log('❌ فشل طلب test-push:', e.message);
+        }
+    }
+
+    // ربط الأزرار
+    document.getElementById('btn-register-sw').addEventListener('click', registerSW);
+    document.getElementById('btn-permission').addEventListener('click', requestPermission);
+    document.getElementById('btn-get-token').addEventListener('click', initAndGetToken);
+    document.getElementById('btn-delete-token').addEventListener('click', deleteCurrentToken);
+    document.getElementById('btn-send-token').addEventListener('click', sendTokenToApi);
+    document.getElementById('btn-test-notify').addEventListener('click', askServerToPushNow);
+
+    // إن أردتِ بدءًا تلقائيًّا: (اختياري جدًا)
+    // (async () => { try { await initAndGetToken(); } catch(e){ log('Init error:', e.message); } })();
 </script>
 </body>
 </html>
