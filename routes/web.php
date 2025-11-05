@@ -17,7 +17,7 @@ Route::get('/', function () {
     return view('welcome');
 });
 
-Route::get('/firebase-config.js', function () {
+Route::get('/firebase-admin.json', function () {
     $cfg = [
         'config' => [
             'apiKey'            => config('services.firebase_web.api_key'),

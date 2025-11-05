@@ -17,6 +17,6 @@ yarn-error.log
 /.fleet
 /.idea
 /.vscode
-/public/firebase-config.js
+/storage/app/keys/firebase-admin.json
 /storage/app/keys/*.json
 
