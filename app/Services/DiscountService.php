@@ -3,6 +3,7 @@
 // app/Services/DiscountService.php
 namespace App\Services;
 
+use App\Models\Discount;
 use App\Models\Product;
 use App\Repositories\Eloquent\DiscountRepository;
 use Carbon\Carbon;
@@ -35,13 +36,43 @@ class DiscountService
             throw ValidationException::withMessages(['date_range' => 'هناك خصم آخر يتقاطع مع هذه الفترة.']);
         }
 
-//        // تحديد الحالة
-//        $now = now();
-//        $status = ($start->lte($now) && $end->gte($now)) ? 'active' : 'scheduled';
-
-        // إنشاء الخصم
         $discount = $this->repo->create($product->id, $newPrice, $start, $end );
 
         return [$product, $discount];
     }
+
+    /**
+     * يلغي الخصم النشط لمنتج معيّن يخص متجر معيّن.
+     *
+     * @return array [Product $product, Discount $discount]
+     */
+    public function removeByStore(int $storeId, int $productId): array
+    {
+
+        /** @var Product $product */
+        $product = Product::where('id', $productId)
+            ->where('store_id', $storeId)
+            ->first();
+
+        if (!$product) {
+            throw ValidationException::withMessages([
+                'product' => 'هذا المنتج غير موجود أو لا يتبع متجرك.',
+            ]);
+        }
+
+        /** @var Discount|null $discount */
+        $discount = $product->discounts()
+        ->where('status', 'active')
+            ->first();
+
+        if (!$discount) {
+            throw ValidationException::withMessages([
+                'discount' => 'لا يوجد خصم نشط لهذا المنتج.',
+            ]);
+        }
+        $discount->delete();
+
+        return [$product, $discount];
+    }
+
 }

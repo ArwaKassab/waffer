@@ -129,5 +129,34 @@ class ProductController extends Controller
             'message' => 'تم جلب الوحدات بنجاح',
         ]);
     }
+
+    /**
+     * DELETE /api/products/{productId}/discount
+     * حذف (إلغاء) الخصم النشط الخاص بمنتج يخص المتجر المسجل دخول.
+     */
+    public function deleteDiscount(Request $request, int $productId): JsonResponse
+    {
+        $storeId = (int) auth()->id();
+
+        [$product, $discount] = $this->discountService->removeByStore(
+            $storeId,
+            $productId
+        );
+
+        return response()->json([
+            'message'        => 'تم إلغاء الخصم بنجاح.',
+            'product_id'     => $product->id,
+            'original_price' => $product->price,
+            'discount'       => [
+                'id'          => $discount->id,
+                'old_status'  => $discount->getOriginal('status'),
+                'new_status'  => $discount->status,
+                'new_price'   => $discount->new_price,
+                'start_date'  => optional($discount->start_date)->toDateString(),
+                'end_date'    => optional($discount->end_date)->toDateString(),
+            ],
+        ], 200);
+    }
+
 }
 

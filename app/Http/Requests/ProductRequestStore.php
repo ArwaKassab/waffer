@@ -13,12 +13,12 @@ class ProductRequestStore extends FormRequest
     }
     public function rules(): array {
         return [
-            'name'      => ['required','string','max:255'],
-            'price'     => ['required','numeric','min:0'],
-            'status'    => ['required','in:available,not_available'],
-            'quantity'  => ['required','numeric','min:0'],
-            'unit'      => ['required','in:غرام,كيلوغرام,قطعة,لتر'],
-            'image'     => ['nullable','file','mimes:jpg,jpeg,png,webp','max:4096'],
+            'name'      => ['sometimes','string','max:255'],
+            'price'     => ['sometimes','numeric','min:0'],
+            'status'    => ['sometimes','in:available,not_available'],
+            'quantity'  => ['sometimes','numeric','min:0'],
+            'unit'      => ['sometimes','in:غرام,كيلوغرام,قطعة,لتر'],
+            'image'     => ['sometimes','file','mimes:jpg,jpeg,png,webp','max:4096'],
         ];
     }
 
