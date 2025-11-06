@@ -248,6 +248,7 @@ use App\Http\Controllers\SubAdmin\OrderController as SubAdminOrderController;
 
         //الخصومات
         Route::post('products/discounts/{productId}', [ProductController::class, 'addDiscount']);
+        Route::delete('products/discounts/delete/{productId}', [ProductController::class, 'deleteDiscount']);
 
 
         // البائع: إنشاء طلب تعديل
