@@ -10,7 +10,7 @@ class OfferDiscountRepository
 {
     public function getActiveDiscountsByArea($areaId, $perPage = 10)
     {
-        return Discount::with(['product:id,name,image,store_id', 'product.store:id,name,area_id,image'])
+        return Discount::with(['product:id,name,image,store_id,details', 'product.store:id,name,area_id,image'])
             ->where('status', 'active')
             ->whereDate('start_date', '<=', now())
             ->whereDate('end_date', '>=', now())

@@ -35,13 +35,15 @@ class OfferDiscountController extends Controller
         $paginator->getCollection()->transform(function ($d) {
             return [
                 'id'         => $d->id,
-                'new_price'  => (float) $d->new_price,
                 'start_date' => $d->start_date?->toDateString(), // بدون وقت
                 'end_date'   => $d->end_date?->toDateString(),   // بدون وقت
                 'product' => [
                     'id'    => $d->product?->id,
                     'name'  => $d->product?->name,
                     'image' => $d->product?->image_url ?? $d->product?->image,
+                    'details'=> $d->product?->details,
+                    'new_price'  => (float) $d->new_price,
+
                 ],
                 'store' => [
                     'id'      => $d->product?->store?->id,
