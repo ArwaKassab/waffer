@@ -116,7 +116,7 @@ class StoreRepository implements StoreRepositoryInterface
                 },
             ])
             ->whereHas('store', fn ($qs) => $qs->where('type','store')->where('area_id', $areaId))
-            ->select('products.id','products.name','products.price','products.store_id','products.image')
+            ->select('products.id','products.name','products.price','products.store_id','products.image','products.details')
             ->when($tokens->isNotEmpty(), function ($query) use ($tokens, $buildPatterns) {
                 foreach ($tokens as $t) {
                     [$p1, $p2] = $buildPatterns($t);
@@ -175,6 +175,7 @@ class StoreRepository implements StoreRepositoryInterface
                     'name'  => $p->name,
                     'price' => (float) $p->price,
                     'image' => $p->image_url,
+                    'details'=> $p->details,
                     '_matched' => true,
                 ];
                 if ($p->activeDiscount?->new_price !== null) {
@@ -200,7 +201,7 @@ class StoreRepository implements StoreRepositoryInterface
                     }
                 ])
                 ->whereIn('store_id', $storeNameMatchedIds)
-                ->select('id','name','price','store_id','image')
+                ->select('id','name','price','store_id','image','details')
                 ->orderBy('name')
                 ->get()
                 ->groupBy('store_id');
@@ -217,6 +218,7 @@ class StoreRepository implements StoreRepositoryInterface
                         'id'    => $p->id,
                         'name'  => $p->name,
                         'price' => (float) $p->price,
+                        'details'=> $p->details,
                         'image' => $p->image_url,
                     ];
                     if ($p->activeDiscount?->new_price !== null) {
@@ -353,7 +355,7 @@ class StoreRepository implements StoreRepositoryInterface
                     ->where('area_id', $areaId)
                     ->whereHas('categories', fn ($qc) => $qc->where('categories.id', $categoryId));
             })
-            ->select('products.id','products.name','products.price','products.store_id','products.image')
+            ->select('products.id','products.name','products.price','products.store_id','products.image','products.details')
             ->when($tokens->isNotEmpty(), function ($query) use ($tokens, $buildPatterns) {
                 foreach ($tokens as $t) {
                     [$p1, $p2] = $buildPatterns($t);
@@ -411,6 +413,7 @@ class StoreRepository implements StoreRepositoryInterface
                     'name'  => $p->name,
                     'price' => (float) $p->price,
                     'image' => $p->image_url,
+                    'details'=> $p->details,
                     '_matched' => true,
                 ];
                 if ($p->activeDiscount?->new_price !== null) {
@@ -436,7 +439,7 @@ class StoreRepository implements StoreRepositoryInterface
                     }
                 ])
                 ->whereIn('store_id', $storeNameMatchedIds)
-                ->select('id','name','price','store_id','image')
+                ->select('id','name','price','store_id','image','details')
                 ->orderBy('name')
                 ->get()
                 ->groupBy('store_id');
@@ -453,6 +456,7 @@ class StoreRepository implements StoreRepositoryInterface
                         'id'    => $p->id,
                         'name'  => $p->name,
                         'price' => (float) $p->price,
+                        'details'=> $p->details,
                         'image' => $p->image_url,
                     ];
                     if ($p->activeDiscount?->new_price !== null) {
@@ -587,7 +591,7 @@ class StoreRepository implements StoreRepositoryInterface
                     $qs->whereHas('categories', fn ($qc) => $qc->whereIn('categories.id', $categoryIds));
                 }
             })
-            ->select('products.id','products.name','products.price','products.store_id','products.image')
+            ->select('products.id','products.name','products.price','products.store_id','products.image','products.details')
             ->when($tokens->isNotEmpty(), function ($query) use ($tokens, $buildPatterns) {
                 foreach ($tokens as $t) {
                     [$p1, $p2] = $buildPatterns($t);
@@ -644,6 +648,7 @@ class StoreRepository implements StoreRepositoryInterface
                     'name'  => $p->name,
                     'price' => (float) $p->price,
                     'image' => $p->image_url,
+                    'details'=> $p->details,
                     '_matched' => true,
                 ];
                 if ($p->activeDiscount?->new_price !== null) {
@@ -659,7 +664,7 @@ class StoreRepository implements StoreRepositoryInterface
                     $q2->select('discounts.id','discounts.product_id','discounts.new_price','discounts.start_date','discounts.end_date','discounts.status');
                 }])
                 ->whereIn('store_id', $storeNameMatchedIds)
-                ->select('id','name','price','store_id','image')
+                ->select('id','name','price','store_id','image','details')
                 ->orderBy('name')
                 ->get()
                 ->groupBy('store_id');
@@ -677,6 +682,7 @@ class StoreRepository implements StoreRepositoryInterface
                         'name'  => $p->name,
                         'price' => (float) $p->price,
                         'image' => $p->image_url,
+                        'details'=> $p->details,
                     ];
                     if ($p->activeDiscount?->new_price !== null) {
                         $productArr['new_price'] = (float) $p->activeDiscount->new_price;
