@@ -56,6 +56,8 @@ class ProductRequestRepository
             'quantity'    => $data['quantity'] ?? null,
             'unit'        => $data['unit']     ?? null,
             'image'        => $data['image']     ?? null,
+            'details'     =>$data['details']     ?? null,
+
             'product_updated_at_snapshot' => $product->updated_at,
         ]);
     }
@@ -72,6 +74,7 @@ class ProductRequestRepository
             'quantity'    => $data['quantity'],
             'image'        => $data['image']     ?? null,
             'unit'        => $data['unit'],
+            'details'     =>$data['details']    ?? null,
         ]);
     }
 
@@ -125,7 +128,7 @@ class ProductRequestRepository
     public function updateRequestFields(ProductRequest $req, array $data): ProductRequest
     {
 
-        $allowed = ['name','price','status_value','quantity','unit','image'];
+        $allowed = ['name','price','status_value','quantity','unit','image','details'];
 
         $updates = [];
         foreach ($allowed as $field) {

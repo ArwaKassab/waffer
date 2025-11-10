@@ -117,6 +117,7 @@ class ProductRequestService
                     'quantity' => $req->quantity,
                     'unit'     => $req->unit,
                     'image'    => $req->image,
+                    'details' => $req->details,
                 ], fn($v) => !is_null($v));
 
                 if ($changes) {
@@ -140,6 +141,7 @@ class ProductRequestService
                     'quantity' => $req->quantity ?? 0,
                     'unit'     => $req->unit,
                     'image'    => $req->image,
+                    'details'  => $req->details,
                 ]);
                 $product->save();
 

@@ -18,6 +18,7 @@ class ProductRequestUpdatePending extends FormRequest
             'quantity' => ['sometimes','integer','min:0'],
             'unit'     => ['sometimes','string','max:50'],
             'image'    => ['sometimes','file','image','max:2048'],
+            'details'  => ['sometimes','string','max:255'],
         ];
     }
 
