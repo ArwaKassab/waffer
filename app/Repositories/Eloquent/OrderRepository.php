@@ -440,6 +440,49 @@ class OrderRepository
         return $order;    }
 
 
+    public function getStoreOrdersBetweenDates(
+        int    $storeId,
+        string $fromDate,
+        string $toDate
+    ): array
+    {
+        $rows = OrderItem::query()
+            ->join('orders', 'order_items.order_id', '=', 'orders.id')
+            ->where('order_items.store_id', $storeId)
+            // تجاهل الطلبات المحذوفة منطقيًا
+            ->whereNull('orders.deleted_at')
+            // بين تاريخين اعتمادًا على عمود date في orders
+            ->whereBetween('orders.date', [$fromDate, $toDate])
+            ->groupBy('order_items.order_id', 'orders.date', 'orders.time')
+            ->selectRaw('
+                order_items.order_id AS order_id,
+                COUNT(DISTINCT order_items.product_id) AS items_count,
+                orders.date,
+                orders.time,
+                SUM(order_items.total_price_after_discount) AS total_for_store
+            ')
+            ->orderBy('orders.date')
+            ->orderBy('orders.time')
+            ->get();
+
+        $orders = $rows->map(function ($row) {
+            return [
+                'order_id' => (int)$row->order_id,
+                'date' => $row->date,
+                'time' => $row->time,
+                'items_count' => (int)$row->items_count,          // عدد الأصناف
+                'total_amount' => (float)$row->total_for_store,    // مجموع أسعار أصناف المتجر في هذا الطلب (بعد الخصم)
+            ];
+        });
+
+        return [
+            'orders' => $orders,
+            'total_orders' => $orders->count(),
+            'total_amount' => (float)$orders->sum('total_amount'),
+        ];
+    }
+
+
 
 
 }

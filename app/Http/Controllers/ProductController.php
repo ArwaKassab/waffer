@@ -149,11 +149,6 @@ class ProductController extends Controller
             'original_price' => $product->price,
             'discount'       => [
                 'id'          => $discount->id,
-                'old_status'  => $discount->getOriginal('status'),
-                'new_status'  => $discount->status,
-                'new_price'   => $discount->new_price,
-                'start_date'  => optional($discount->start_date)->toDateString(),
-                'end_date'    => optional($discount->end_date)->toDateString(),
             ],
         ], 200);
     }

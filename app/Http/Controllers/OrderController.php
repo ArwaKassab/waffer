@@ -183,6 +183,37 @@ class OrderController extends Controller
     }
 
 
+    /**
+     * GET /api/store/orders/report?from_date=2025-11-01&to_date=2025-11-06
+     *
+     * تقرير الطلبات بين تاريخين للمتجر المسجّل دخول.
+     */
+    public function ordersBetweenDates(Request $request): JsonResponse
+    {
+        $storeId = (int) auth()->id();
+
+        $data = $request->validate([
+            'from_date' => ['required', 'date'],
+            'to_date'   => ['required', 'date', 'after_or_equal:from_date'],
+        ]);
+
+        $report = $this->orderService->getStoreOrdersReport(
+            $storeId,
+            $data['from_date'],
+            $data['to_date']
+        );
+
+        return response()->json([
+            'message'      => 'تقرير الطلبات بين التاريخين.',
+            'store_id'     => $storeId,
+            'from_date'    => $data['from_date'],
+            'to_date'      => $data['to_date'],
+            'total_orders' => $report['total_orders'],
+            'total_amount' => $report['total_amount'],
+            'orders'       => $report['orders'],
+        ], 200);
+    }
+
 
 }
 
