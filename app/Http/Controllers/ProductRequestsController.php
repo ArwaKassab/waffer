@@ -35,6 +35,7 @@ class ProductRequestsController extends Controller
         $status   = $req->status_value ?? ($product?->status ?? null);
         $quantity = $req->quantity     ?? ($product?->quantity ?? null);
         $unit     = $req->unit         ?? ($product?->unit   ?? null);
+        $details  = $req->details         ?? ($product?->details   ?? null);
 
         // الصورة: لو في صورة بالطلب نستخدمها، غير هيك نستخدم صورة المنتج
         if ($req->image) {
@@ -54,6 +55,7 @@ class ProductRequestsController extends Controller
             'quantity'   => $quantity,
             'unit'       => $unit,
             'image'      => $imageUrl,
+            'details'   => $details,
         ];
     }
 

@@ -13,7 +13,7 @@ class ProductRequest extends Model
     protected $fillable = [
         'action','product_id','store_id','status',
         'name','price','status_value','quantity','unit','image',
-        'product_updated_at_snapshot','review_note',
+        'product_updated_at_snapshot','review_note', 'details',
     ];
 
 

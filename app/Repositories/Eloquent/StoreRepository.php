@@ -278,12 +278,14 @@ class StoreRepository implements StoreRepositoryInterface
                 return [
                     'id'             => $product->id,
                     'name'           => $product->name,
-                    'image_url'      => $product->image_url, // توحيد الاسم
+                    'image_url'      => $product->image_url,
                     'status'         => $product->status,
                     'unit'           => $product->unit,
+                    'details'       => $product->details,
                     'original_price' => $product->price,
                     'new_price'      => $discount?->new_price,
                     'discount_title' => $discount?->title,
+
                 ];
             }),
         ];

@@ -24,6 +24,7 @@ return new class extends Migration {
 
             // الحقول المقترحة/المعدّلة
             $table->string('name')->nullable();
+            $table->text('details')->nullable();
             $table->decimal('price', 10, 2)->nullable();
             $table->enum('status_value', ['available','not_available'])->nullable();
             $table->unsignedInteger('quantity')->nullable();
