@@ -519,12 +519,24 @@ class OrderService
     /**
      * يجهّز تقرير الطلبات لمتجر معيّن بين تاريخين.
      */
-    public function getStoreOrdersReport(
+    public function getStoreDoneOrdersReport(
         int $storeId,
         string $fromDate,
         string $toDate
     ): array {
-        return $this->orderRepo->getStoreOrdersBetweenDates($storeId, $fromDate, $toDate);
+        return $this->orderRepo->getStoreDoneOrdersBetweenDates($storeId, $fromDate, $toDate);
+    }
+
+
+    /**
+     * يجهّز تقرير الطلبات لمتجر معيّن بين تاريخين.
+     */
+    public function getStoreRejectOrdersReport(
+        int $storeId,
+        string $fromDate,
+        string $toDate
+    ): array {
+        return $this->orderRepo->getStoreRejectOrdersBetweenDates($storeId, $fromDate, $toDate);
     }
 
 }
