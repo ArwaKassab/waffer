@@ -29,6 +29,7 @@ use App\Http\Controllers\StoreAuthController;
 use App\Http\Controllers\UserController;
 use App\Http\Controllers\SubAdmin\CustomerController as SubAdminCustomerController;
 use App\Http\Controllers\SubAdmin\OrderController as SubAdminOrderController;
+use App\Http\Controllers\SubAdmin\StoreController as SubAdminStoreController;
 
 //use App\Http\Controllers\AdminController;
 //use App\Http\Controllers\StoreController;
@@ -319,10 +320,12 @@ use App\Http\Controllers\SubAdmin\OrderController as SubAdminOrderController;
         Route::get('/orders/today/OnWay/ids',       [SubAdminOrderController::class, 'listTodayOnWay']);
         Route::get('/orders/today/Done/count', [SubAdminOrderController::class, 'countTodayDone']);
         Route::get('/orders/today/Done/ids',       [SubAdminOrderController::class, 'listTodayDone']);
-        Route::get('/orders/orderDitales/{orderId}',       [SubAdminOrderController::class, 'getOrderDetailsForSubAdmin']);
+        Route::get('/orders/orderDitales/{orderId}',[SubAdminOrderController::class, 'getOrderDetailsForSubAdmin']);
 
 
-
+        //المتاجر
+        Route::get('/stores/all-area', [SubAdminStoreController::class, 'allArea']);
+        Route::delete('stores/destroy/{storeId}', [SubAdminStoreController::class, 'destroy']);
     });
 
 Route::middleware('auth:sanctum')->group(function () {
