@@ -16,7 +16,7 @@ class StoreRepository implements StoreRepositoryInterface
     {
         $paginator = User::where('type', 'store')
             ->where('area_id', $areaId)
-            ->select('id','area_id','name','image','status','note','open_hour','close_hour')
+            ->select('id', 'area_id', 'name', 'image', 'status', 'note', 'open_hour', 'close_hour')
             ->with(['categories:id'])
             ->orderBy('name')
             ->paginate($perPage);
@@ -37,7 +37,7 @@ class StoreRepository implements StoreRepositoryInterface
         return User::where('type', 'store')
             ->where('area_id', $areaId)
             ->whereHas('categories', fn($q) => $q->where('categories.id', $categoryId))
-            ->select('id','area_id','name','image','status','note','open_hour','close_hour')
+            ->select('id', 'area_id', 'name', 'image', 'status', 'note', 'open_hour', 'close_hour')
             ->orderBy('name')
             ->paginate($perPage);
     }
@@ -50,7 +50,7 @@ class StoreRepository implements StoreRepositoryInterface
             ->whereHas('categories', function ($query) use ($categoryId) {
                 $query->where('categories.id', $categoryId);
             })
-            ->get(['id', 'area_id', 'name', 'image', 'status', 'note', 'open_hour', 'close_hour' ]);
+            ->get(['id', 'area_id', 'name', 'image', 'status', 'note', 'open_hour', 'close_hour']);
 
         $stores->transform(function ($store) {
             $store->image = $store->image_url;
@@ -62,17 +62,18 @@ class StoreRepository implements StoreRepositoryInterface
 
 
     public function searchStoresAndProductsGroupedInArea(
-        int $areaId,
+        int    $areaId,
         string $q,
-        ?int $productsPerStoreLimit = 10
-    ) {
+        ?int   $productsPerStoreLimit = 10
+    )
+    {
         // 1) تجهيز التوكنز وأنماط REGEXP
         $tokens = collect(preg_split('/\s+/u', $q, -1, PREG_SPLIT_NO_EMPTY))
-            ->map(fn ($t) => trim($t))
-            ->filter(fn ($t) => mb_strlen($t, 'UTF-8') >= 2)
+            ->map(fn($t) => trim($t))
+            ->filter(fn($t) => mb_strlen($t, 'UTF-8') >= 2)
             ->values();
 
-        $escape = fn (string $t): string => preg_quote($t, '/');
+        $escape = fn(string $t): string => preg_quote($t, '/');
         $buildPatterns = function (string $term) use ($escape) {
             $re = $escape($term);
             return [
@@ -85,7 +86,7 @@ class StoreRepository implements StoreRepositoryInterface
         $storesByName = User::query()
             ->where('type', 'store')
             ->where('area_id', $areaId)
-            ->select('id','area_id','name','image','status','note','open_hour','close_hour')
+            ->select('id', 'area_id', 'name', 'image', 'status', 'note', 'open_hour', 'close_hour')
             ->when($tokens->isNotEmpty(), function ($query) use ($tokens, $buildPatterns) {
                 foreach ($tokens as $t) {
                     [$p1, $p2] = $buildPatterns($t);
@@ -115,8 +116,8 @@ class StoreRepository implements StoreRepositoryInterface
                     );
                 },
             ])
-            ->whereHas('store', fn ($qs) => $qs->where('type','store')->where('area_id', $areaId))
-            ->select('products.id','products.name','products.price','products.store_id','products.image','products.details')
+            ->whereHas('store', fn($qs) => $qs->where('type', 'store')->where('area_id', $areaId))
+            ->select('products.id', 'products.name', 'products.price', 'products.store_id', 'products.image', 'products.details')
             ->when($tokens->isNotEmpty(), function ($query) use ($tokens, $buildPatterns) {
                 foreach ($tokens as $t) {
                     [$p1, $p2] = $buildPatterns($t);
@@ -136,15 +137,15 @@ class StoreRepository implements StoreRepositoryInterface
         // (أ) المتاجر التي طابقت بالاسم
         foreach ($storesByName as $s) {
             $result[$s->id] = [
-                'id'         => $s->id,
-                'name'       => $s->name,
-                'area_id'    => $s->area_id,
-                'status'     => $s->status,
-                'note'       => $s->note,
-                'open_hour'  => $s->open_hour,
+                'id' => $s->id,
+                'name' => $s->name,
+                'area_id' => $s->area_id,
+                'status' => $s->status,
+                'note' => $s->note,
+                'open_hour' => $s->open_hour,
                 'close_hour' => $s->close_hour,
-                'image'      => $s->image_url,
-                'products'   => [],
+                'image' => $s->image_url,
+                'products' => [],
                 '_matched_by_store_name' => true,
             ];
         }
@@ -156,30 +157,30 @@ class StoreRepository implements StoreRepositoryInterface
 
             if (!isset($result[$s->id])) {
                 $result[$s->id] = [
-                    'id'         => $s->id,
-                    'name'       => $s->name,
-                    'area_id'    => $s->area_id,
-                    'status'     => $s->status ?? null,
-                    'note'       => $s->note ?? null,
-                    'open_hour'  => $s->open_hour ?? null,
+                    'id' => $s->id,
+                    'name' => $s->name,
+                    'area_id' => $s->area_id,
+                    'status' => $s->status ?? null,
+                    'note' => $s->note ?? null,
+                    'open_hour' => $s->open_hour ?? null,
                     'close_hour' => $s->close_hour ?? null,
-                    'image'      => $s->image_url,
-                    'products'   => [],
+                    'image' => $s->image_url,
+                    'products' => [],
                 ];
             }
 
             $alreadyIds = array_column($result[$s->id]['products'], 'id');
             if (!in_array($p->id, $alreadyIds, true)) {
                 $productArr = [
-                    'id'    => $p->id,
-                    'name'  => $p->name,
-                    'price' => (float) $p->price,
+                    'id' => $p->id,
+                    'name' => $p->name,
+                    'price' => (float)$p->price,
                     'image' => $p->image_url,
-                    'details'=> $p->details,
+                    'details' => $p->details,
                     '_matched' => true,
                 ];
                 if ($p->activeDiscount?->new_price !== null) {
-                    $productArr['new_price'] = (float) $p->activeDiscount->new_price; // يظهر فقط عند وجود خصم
+                    $productArr['new_price'] = (float)$p->activeDiscount->new_price; // يظهر فقط عند وجود خصم
                 }
                 $result[$s->id]['products'][] = $productArr;
             }
@@ -201,7 +202,7 @@ class StoreRepository implements StoreRepositoryInterface
                     }
                 ])
                 ->whereIn('store_id', $storeNameMatchedIds)
-                ->select('id','name','price','store_id','image','details')
+                ->select('id', 'name', 'price', 'store_id', 'image', 'details')
                 ->orderBy('name')
                 ->get()
                 ->groupBy('store_id');
@@ -215,14 +216,14 @@ class StoreRepository implements StoreRepositoryInterface
                     if ($existing->has($p->id)) continue;
 
                     $productArr = [
-                        'id'    => $p->id,
-                        'name'  => $p->name,
-                        'price' => (float) $p->price,
-                        'details'=> $p->details,
+                        'id' => $p->id,
+                        'name' => $p->name,
+                        'price' => (float)$p->price,
+                        'details' => $p->details,
                         'image' => $p->image_url,
                     ];
                     if ($p->activeDiscount?->new_price !== null) {
-                        $productArr['new_price'] = (float) $p->activeDiscount->new_price;
+                        $productArr['new_price'] = (float)$p->activeDiscount->new_price;
                     }
 
                     $result[$sid]['products'][] = $productArr;
@@ -236,12 +237,14 @@ class StoreRepository implements StoreRepositoryInterface
                 if (!is_null($productsPerStoreLimit) &&
                     count($result[$sid]['products']) > $productsPerStoreLimit) {
                     $matched = array_values(array_filter($result[$sid]['products'], fn($x) => !empty($x['_matched'])));
-                    $others  = array_values(array_filter($result[$sid]['products'], fn($x) => empty($x['_matched'])));
+                    $others = array_values(array_filter($result[$sid]['products'], fn($x) => empty($x['_matched'])));
                     $result[$sid]['products'] = array_slice(array_merge($matched, $others), 0, $productsPerStoreLimit);
                 }
 
                 unset($result[$sid]['_matched_by_store_name']);
-                foreach ($result[$sid]['products'] as &$pp) { unset($pp['_matched']); }
+                foreach ($result[$sid]['products'] as &$pp) {
+                    unset($pp['_matched']);
+                }
             }
         }
 
@@ -267,25 +270,25 @@ class StoreRepository implements StoreRepositoryInterface
         $store->append('image_url')->makeHidden(['image']);
 
         $productsWithDiscountsFirst = $store->products
-            ->sortByDesc(fn ($product) => $product->activeDiscountToday() ? 1 : 0)
+            ->sortByDesc(fn($product) => $product->activeDiscountToday() ? 1 : 0)
             ->values();
 
         return [
             'store' => $store->only(['id', 'name', 'image_url', 'status', 'note', 'open_hour', 'close_hour']),
-            'categories' => $store->categories->map(fn ($category) => [
+            'categories' => $store->categories->map(fn($category) => [
                 'id' => $category->id,
             ]),
             'products' => $productsWithDiscountsFirst->map(function ($product) {
                 $discount = $product->activeDiscountToday();
                 return [
-                    'id'             => $product->id,
-                    'name'           => $product->name,
-                    'image_url'      => $product->image_url,
-                    'status'         => $product->status,
-                    'unit'           => $product->unit,
-                    'details'       => $product->details,
+                    'id' => $product->id,
+                    'name' => $product->name,
+                    'image_url' => $product->image_url,
+                    'status' => $product->status,
+                    'unit' => $product->unit,
+                    'details' => $product->details,
                     'original_price' => $product->price,
-                    'new_price'      => $discount?->new_price,
+                    'new_price' => $discount?->new_price,
                     'discount_title' => $discount?->title,
 
                 ];
@@ -295,18 +298,19 @@ class StoreRepository implements StoreRepositoryInterface
 
 
     public function searchStoresAndProductsGrouped(
-        int $areaId,
-        int $categoryId,
+        int    $areaId,
+        int    $categoryId,
         string $q,
-        ?int $productsPerStoreLimit = 10
-    ) {
+        ?int   $productsPerStoreLimit = 10
+    )
+    {
         // 1) تجهيز التوكنز وأنماط REGEXP
         $tokens = collect(preg_split('/\s+/u', $q, -1, PREG_SPLIT_NO_EMPTY))
-            ->map(fn ($t) => trim($t))
-            ->filter(fn ($t) => mb_strlen($t, 'UTF-8') >= 2)
+            ->map(fn($t) => trim($t))
+            ->filter(fn($t) => mb_strlen($t, 'UTF-8') >= 2)
             ->values();
 
-        $escape = fn (string $t): string => preg_quote($t, '/');
+        $escape = fn(string $t): string => preg_quote($t, '/');
         $buildPatterns = function (string $term) use ($escape) {
             $re = $escape($term);
             return [
@@ -319,8 +323,8 @@ class StoreRepository implements StoreRepositoryInterface
         $storesByName = User::query()
             ->where('type', 'store')
             ->where('area_id', $areaId)
-            ->whereHas('categories', fn ($q) => $q->where('categories.id', $categoryId))
-            ->select('id','area_id','name','image','status','note','open_hour','close_hour')
+            ->whereHas('categories', fn($q) => $q->where('categories.id', $categoryId))
+            ->select('id', 'area_id', 'name', 'image', 'status', 'note', 'open_hour', 'close_hour')
             ->when($tokens->isNotEmpty(), function ($query) use ($tokens, $buildPatterns) {
                 foreach ($tokens as $t) {
                     [$p1, $p2] = $buildPatterns($t);
@@ -351,11 +355,11 @@ class StoreRepository implements StoreRepositoryInterface
                 },
             ])
             ->whereHas('store', function ($qs) use ($areaId, $categoryId) {
-                $qs->where('type','store')
+                $qs->where('type', 'store')
                     ->where('area_id', $areaId)
-                    ->whereHas('categories', fn ($qc) => $qc->where('categories.id', $categoryId));
+                    ->whereHas('categories', fn($qc) => $qc->where('categories.id', $categoryId));
             })
-            ->select('products.id','products.name','products.price','products.store_id','products.image','products.details')
+            ->select('products.id', 'products.name', 'products.price', 'products.store_id', 'products.image', 'products.details')
             ->when($tokens->isNotEmpty(), function ($query) use ($tokens, $buildPatterns) {
                 foreach ($tokens as $t) {
                     [$p1, $p2] = $buildPatterns($t);
@@ -374,15 +378,15 @@ class StoreRepository implements StoreRepositoryInterface
         // أ) المتاجر المطابقة بالاسم
         foreach ($storesByName as $s) {
             $result[$s->id] = [
-                'id'         => $s->id,
-                'name'       => $s->name,
-                'area_id'    => $s->area_id,
-                'status'     => $s->status,
-                'note'       => $s->note,
-                'open_hour'  => $s->open_hour,
+                'id' => $s->id,
+                'name' => $s->name,
+                'area_id' => $s->area_id,
+                'status' => $s->status,
+                'note' => $s->note,
+                'open_hour' => $s->open_hour,
                 'close_hour' => $s->close_hour,
-                'image'       => $s->image_url,
-                'products'   => [],
+                'image' => $s->image_url,
+                'products' => [],
                 '_matched_by_store_name' => true,
             ];
         }
@@ -394,30 +398,30 @@ class StoreRepository implements StoreRepositoryInterface
 
             if (!isset($result[$s->id])) {
                 $result[$s->id] = [
-                    'id'         => $s->id,
-                    'name'       => $s->name,
-                    'area_id'    => $s->area_id,
-                    'status'     => $s->status ?? null,
-                    'note'       => $s->note ?? null,
-                    'open_hour'  => $s->open_hour ?? null,
+                    'id' => $s->id,
+                    'name' => $s->name,
+                    'area_id' => $s->area_id,
+                    'status' => $s->status ?? null,
+                    'note' => $s->note ?? null,
+                    'open_hour' => $s->open_hour ?? null,
                     'close_hour' => $s->close_hour ?? null,
-                    'image'      => $s->image_url,
-                    'products'   => [],
+                    'image' => $s->image_url,
+                    'products' => [],
                 ];
             }
 
             $alreadyIds = array_column($result[$s->id]['products'], 'id');
             if (!in_array($p->id, $alreadyIds, true)) {
                 $productArr = [
-                    'id'    => $p->id,
-                    'name'  => $p->name,
-                    'price' => (float) $p->price,
+                    'id' => $p->id,
+                    'name' => $p->name,
+                    'price' => (float)$p->price,
                     'image' => $p->image_url,
-                    'details'=> $p->details,
+                    'details' => $p->details,
                     '_matched' => true,
                 ];
                 if ($p->activeDiscount?->new_price !== null) {
-                    $productArr['new_price'] = (float) $p->activeDiscount->new_price;
+                    $productArr['new_price'] = (float)$p->activeDiscount->new_price;
                 }
                 $result[$s->id]['products'][] = $productArr;
             }
@@ -439,7 +443,7 @@ class StoreRepository implements StoreRepositoryInterface
                     }
                 ])
                 ->whereIn('store_id', $storeNameMatchedIds)
-                ->select('id','name','price','store_id','image','details')
+                ->select('id', 'name', 'price', 'store_id', 'image', 'details')
                 ->orderBy('name')
                 ->get()
                 ->groupBy('store_id');
@@ -453,14 +457,14 @@ class StoreRepository implements StoreRepositoryInterface
                     if ($existing->has($p->id)) continue;
 
                     $productArr = [
-                        'id'    => $p->id,
-                        'name'  => $p->name,
-                        'price' => (float) $p->price,
-                        'details'=> $p->details,
+                        'id' => $p->id,
+                        'name' => $p->name,
+                        'price' => (float)$p->price,
+                        'details' => $p->details,
                         'image' => $p->image_url,
                     ];
                     if ($p->activeDiscount?->new_price !== null) {
-                        $productArr['new_price'] = (float) $p->activeDiscount->new_price;
+                        $productArr['new_price'] = (float)$p->activeDiscount->new_price;
                     }
 
                     $result[$sid]['products'][] = $productArr;
@@ -474,12 +478,14 @@ class StoreRepository implements StoreRepositoryInterface
                 if (!is_null($productsPerStoreLimit) &&
                     count($result[$sid]['products']) > $productsPerStoreLimit) {
                     $matched = array_values(array_filter($result[$sid]['products'], fn($x) => !empty($x['_matched'])));
-                    $others  = array_values(array_filter($result[$sid]['products'], fn($x) => empty($x['_matched'])));
+                    $others = array_values(array_filter($result[$sid]['products'], fn($x) => empty($x['_matched'])));
                     $result[$sid]['products'] = array_slice(array_merge($matched, $others), 0, $productsPerStoreLimit);
                 }
 
                 unset($result[$sid]['_matched_by_store_name']);
-                foreach ($result[$sid]['products'] as &$pp) { unset($pp['_matched']); }
+                foreach ($result[$sid]['products'] as &$pp) {
+                    unset($pp['_matched']);
+                }
             }
         }
 
@@ -495,7 +501,7 @@ class StoreRepository implements StoreRepositoryInterface
         $q = User::where('type', 'store')
             ->where('area_id', $areaId)
             ->with(['categories:id'])
-            ->select('id','area_id','name','image','status','note','open_hour','close_hour');
+            ->select('id', 'area_id', 'name', 'image', 'status', 'note', 'open_hour', 'close_hour');
 
         if ($matchMode === 'all') { // الآن هذا هو الافتراضي
             $q->where(function ($qq) use ($categoryIds) {
@@ -519,19 +525,20 @@ class StoreRepository implements StoreRepositoryInterface
     }
 
     public function searchStoresAndProductsGroupedByCategories(
-        int $areaId,
-        array $categoryIds,
+        int    $areaId,
+        array  $categoryIds,
         string $q,
-        ?int $productsPerStoreLimit = 10,
+        ?int   $productsPerStoreLimit = 10,
         string $matchMode = 'all' // بدل any
-    ) {
+    )
+    {
         // تجهيز التوكنز وأنماط REGEXP (نفس كودك الحالي)
         $tokens = collect(preg_split('/\s+/u', $q, -1, PREG_SPLIT_NO_EMPTY))
-            ->map(fn ($t) => trim($t))
-            ->filter(fn ($t) => mb_strlen($t, 'UTF-8') >= 2)
+            ->map(fn($t) => trim($t))
+            ->filter(fn($t) => mb_strlen($t, 'UTF-8') >= 2)
             ->values();
 
-        $escape = fn (string $t): string => preg_quote($t, '/');
+        $escape = fn(string $t): string => preg_quote($t, '/');
         $buildPatterns = function (string $term) use ($escape) {
             $re = $escape($term);
             return [
@@ -555,7 +562,7 @@ class StoreRepository implements StoreRepositoryInterface
                     $q->whereHas('categories', fn($qq) => $qq->whereIn('categories.id', $categoryIds));
                 }
             })
-            ->select('id','area_id','name','image','status','note','open_hour','close_hour')
+            ->select('id', 'area_id', 'name', 'image', 'status', 'note', 'open_hour', 'close_hour')
             ->when($tokens->isNotEmpty(), function ($query) use ($tokens, $buildPatterns) {
                 foreach ($tokens as $t) {
                     [$p1, $p2] = $buildPatterns($t);
@@ -575,11 +582,11 @@ class StoreRepository implements StoreRepositoryInterface
             ->with([
                 'store:id,name,area_id,image,status,note,open_hour,close_hour',
                 'activeDiscount' => function ($q2) {
-                    $q2->select('discounts.id','discounts.product_id','discounts.new_price','discounts.start_date','discounts.end_date','discounts.status');
+                    $q2->select('discounts.id', 'discounts.product_id', 'discounts.new_price', 'discounts.start_date', 'discounts.end_date', 'discounts.status');
                 },
             ])
             ->whereHas('store', function ($qs) use ($areaId, $categoryIds, $matchMode) {
-                $qs->where('type','store')->where('area_id', $areaId);
+                $qs->where('type', 'store')->where('area_id', $areaId);
 
                 if ($matchMode === 'all') {
                     $qs->where(function ($qq) use ($categoryIds) {
@@ -588,10 +595,10 @@ class StoreRepository implements StoreRepositoryInterface
                         }
                     });
                 } else {
-                    $qs->whereHas('categories', fn ($qc) => $qc->whereIn('categories.id', $categoryIds));
+                    $qs->whereHas('categories', fn($qc) => $qc->whereIn('categories.id', $categoryIds));
                 }
             })
-            ->select('products.id','products.name','products.price','products.store_id','products.image','products.details')
+            ->select('products.id', 'products.name', 'products.price', 'products.store_id', 'products.image', 'products.details')
             ->when($tokens->isNotEmpty(), function ($query) use ($tokens, $buildPatterns) {
                 foreach ($tokens as $t) {
                     [$p1, $p2] = $buildPatterns($t);
@@ -610,15 +617,15 @@ class StoreRepository implements StoreRepositoryInterface
 
         foreach ($storesByName as $s) {
             $result[$s->id] = [
-                'id'         => $s->id,
-                'name'       => $s->name,
-                'area_id'    => $s->area_id,
-                'status'     => $s->status,
-                'note'       => $s->note,
-                'open_hour'  => $s->open_hour,
+                'id' => $s->id,
+                'name' => $s->name,
+                'area_id' => $s->area_id,
+                'status' => $s->status,
+                'note' => $s->note,
+                'open_hour' => $s->open_hour,
                 'close_hour' => $s->close_hour,
-                'image'      => $s->image_url,
-                'products'   => [],
+                'image' => $s->image_url,
+                'products' => [],
                 '_matched_by_store_name' => true,
             ];
         }
@@ -629,30 +636,30 @@ class StoreRepository implements StoreRepositoryInterface
 
             if (!isset($result[$s->id])) {
                 $result[$s->id] = [
-                    'id'         => $s->id,
-                    'name'       => $s->name,
-                    'area_id'    => $s->area_id,
-                    'status'     => $s->status ?? null,
-                    'note'       => $s->note ?? null,
-                    'open_hour'  => $s->open_hour ?? null,
+                    'id' => $s->id,
+                    'name' => $s->name,
+                    'area_id' => $s->area_id,
+                    'status' => $s->status ?? null,
+                    'note' => $s->note ?? null,
+                    'open_hour' => $s->open_hour ?? null,
                     'close_hour' => $s->close_hour ?? null,
-                    'image'      => $s->image_url,
-                    'products'   => [],
+                    'image' => $s->image_url,
+                    'products' => [],
                 ];
             }
 
             $alreadyIds = array_column($result[$s->id]['products'], 'id');
             if (!in_array($p->id, $alreadyIds, true)) {
                 $productArr = [
-                    'id'    => $p->id,
-                    'name'  => $p->name,
-                    'price' => (float) $p->price,
+                    'id' => $p->id,
+                    'name' => $p->name,
+                    'price' => (float)$p->price,
                     'image' => $p->image_url,
-                    'details'=> $p->details,
+                    'details' => $p->details,
                     '_matched' => true,
                 ];
                 if ($p->activeDiscount?->new_price !== null) {
-                    $productArr['new_price'] = (float) $p->activeDiscount->new_price;
+                    $productArr['new_price'] = (float)$p->activeDiscount->new_price;
                 }
                 $result[$s->id]['products'][] = $productArr;
             }
@@ -661,10 +668,10 @@ class StoreRepository implements StoreRepositoryInterface
         if (!empty($storeNameMatchedIds)) {
             $allProducts = Product::query()
                 ->with(['activeDiscount' => function ($q2) {
-                    $q2->select('discounts.id','discounts.product_id','discounts.new_price','discounts.start_date','discounts.end_date','discounts.status');
+                    $q2->select('discounts.id', 'discounts.product_id', 'discounts.new_price', 'discounts.start_date', 'discounts.end_date', 'discounts.status');
                 }])
                 ->whereIn('store_id', $storeNameMatchedIds)
-                ->select('id','name','price','store_id','image','details')
+                ->select('id', 'name', 'price', 'store_id', 'image', 'details')
                 ->orderBy('name')
                 ->get()
                 ->groupBy('store_id');
@@ -678,14 +685,14 @@ class StoreRepository implements StoreRepositoryInterface
                     if ($existing->has($p->id)) continue;
 
                     $productArr = [
-                        'id'    => $p->id,
-                        'name'  => $p->name,
-                        'price' => (float) $p->price,
+                        'id' => $p->id,
+                        'name' => $p->name,
+                        'price' => (float)$p->price,
                         'image' => $p->image_url,
-                        'details'=> $p->details,
+                        'details' => $p->details,
                     ];
                     if ($p->activeDiscount?->new_price !== null) {
-                        $productArr['new_price'] = (float) $p->activeDiscount->new_price;
+                        $productArr['new_price'] = (float)$p->activeDiscount->new_price;
                     }
 
                     $result[$sid]['products'][] = $productArr;
@@ -699,12 +706,14 @@ class StoreRepository implements StoreRepositoryInterface
                 if (!is_null($productsPerStoreLimit) &&
                     count($result[$sid]['products']) > $productsPerStoreLimit) {
                     $matched = array_values(array_filter($result[$sid]['products'], fn($x) => !empty($x['_matched'])));
-                    $others  = array_values(array_filter($result[$sid]['products'], fn($x) => empty($x['_matched'])));
+                    $others = array_values(array_filter($result[$sid]['products'], fn($x) => empty($x['_matched'])));
                     $result[$sid]['products'] = array_slice(array_merge($matched, $others), 0, $productsPerStoreLimit);
                 }
 
                 unset($result[$sid]['_matched_by_store_name']);
-                foreach ($result[$sid]['products'] as &$pp) { unset($pp['_matched']); }
+                foreach ($result[$sid]['products'] as &$pp) {
+                    unset($pp['_matched']);
+                }
             }
         }
 
@@ -713,6 +722,71 @@ class StoreRepository implements StoreRepositoryInterface
 
         return $result;
     }
+/////////////////////////////////////////subadmin////////////////////////////////
 
+    /**
+     * جلب المتاجر حسب رقم المنطقة للأدمن.
+     */
+    public function getStoresByAreaForAdmin(int $areaId, int $perPage = 20)
+    {
+        $paginator = User::where('type', 'store')
+            ->where('area_id', $areaId)
+            ->select(
+                'id',
+                'name',
+                'phone',
+                'status',
+                'open_hour',
+                'close_hour'
+            )
+            ->with(['categories:id,name']) // فقط id + name
+            ->orderBy('name')
+            ->paginate($perPage);
 
+        // هون أهم خطوة: نرجع "Array" نظيف بدل موديل
+        $paginator->getCollection()->transform(function ($store) {
+
+            $workHours = null;
+
+            if (!empty($store->open_hour) && !empty($store->close_hour)) {
+                $from = Carbon::parse($store->open_hour)->format('H:i');
+                $to = Carbon::parse($store->close_hour)->format('H:i');
+                $workHours = $from . '-' . $to;
+            }
+
+            return [
+                'id' => $store->id,
+                'name' => $store->name,
+                'phone' => $store->phone,
+                'status' => $store->status,
+                'work_hours' => $workHours,
+                'categories' => $store->categories->map(function ($category) {
+                    return [
+                        'id' => $category->id,
+                        'name' => $category->name,
+                    ];
+                })->values(),
+            ];
+        });
+
+        return $paginator;
+    }
+
+    /**
+     * حذف متجر (Soft Delete) ضمن منطقة معيّنة للأدمن.
+     */
+    public function deleteStoreByIdForAdmin(int $storeId, int $areaId): bool
+    {
+        $store = User::where('type', 'store')
+            ->where('area_id', $areaId)
+            ->where('id', $storeId)
+            ->first();
+
+        if (! $store) {
+            return false;
+        }
+        $store->delete();
+
+        return true;
+    }
 }

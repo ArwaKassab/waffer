@@ -8,5 +8,6 @@ interface StoreRepositoryInterface
     public function getStoreDetailsWithProductsAndDiscounts($storeId);
     public function getStoresByAreaAndCategoriesPaged(int $areaId, array $categoryIds, int $perPage = 20, string $matchMode = 'any');
     public function searchStoresAndProductsGroupedByCategories(int $areaId, array $categoryIds, string $q, ?int $productsPerStoreLimit = 10, string $matchMode = 'any');
-
+    public function getStoresByAreaForAdmin(int $areaId, int $perPage = 20);
+    public function deleteStoreByIdForAdmin(int $storeId, int $areaId): bool;
 }
