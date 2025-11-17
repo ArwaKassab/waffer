@@ -168,6 +168,19 @@ class OrderController extends Controller
     }
 
 
+    public function setAsReady(int $orderId)
+    {
+        $storeId = auth()->id();
+
+        $result = $this->orderService->setItemsStatusForStoreAsReady($orderId, $storeId);
+
+        return response()->json([
+            'message' => 'تم تجهيز الطلب من قبل المتجر',
+
+        ]);
+    }
+
+
 
     public function rejectOrder(Request $request, int $orderId)
     {

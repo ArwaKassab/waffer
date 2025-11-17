@@ -239,6 +239,7 @@ use App\Http\Controllers\SubAdmin\StoreController as SubAdminStoreController;
         Route::get('/orders/rejected-orders', [OrderController::class, 'rejectedOrders']);
         Route::get('/orders/showStoreOrderDetails/{order}', [OrderController::class, 'showStoreOrderDetails']);
         Route::post('orders/{order}/accept', [OrderController::class, 'acceptOrder']);
+        Route::post('orders/{order}/setAsReady', [OrderController::class, 'setAsReady']);
         Route::post('orders/{order}/reject', [OrderController::class, 'rejectOrder']);
         Route::get('orders/done-report', [OrderController::class, 'doneOrdersBetweenDates']);
         Route::get('orders/reject-report', [OrderController::class, 'rejectordersBetweenDates']);

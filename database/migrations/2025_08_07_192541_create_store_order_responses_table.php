@@ -22,7 +22,7 @@ return new class extends Migration
             $table->decimal('store_total_invoice', 10, 2);
             $table->timestamps();
 
-            $table->unique(['order_id', 'store_id']); // كل متجر يرد مرة واحدة فقط لكل طلب
+            $table->unique(['order_id', 'store_id']);
         });
 
     }
