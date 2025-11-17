@@ -455,7 +455,7 @@ class OrderService
     public function acceptStoreItems(int $orderId, int $storeId): array
     {
         return DB::transaction(function () use ($orderId, $storeId) {
-            $this->orderRepo->updateOrderItemsStatusForStore($orderId, $storeId, 'مقبول');
+            $this->orderRepo->updateOrderItemsStatusForStore($orderId, $storeId, 'يجهز');
 
             $this->orderRepo->saveStoreResponse($orderId, $storeId, 'مقبول');
 
@@ -465,6 +465,16 @@ class OrderService
         });
     }
 
+    public function setItemsStatusForStoreAsReady(int $orderId, int $storeId): array
+    {
+        return DB::transaction(function () use ($orderId, $storeId) {
+            $this->orderRepo->updateOrderItemsStatusForStore($orderId, $storeId, 'حضر');
+
+            return [
+                'message' => 'تم تجهيز منتجات المتجر بنجاح.',
+            ];
+        });
+    }
 
 
     /**

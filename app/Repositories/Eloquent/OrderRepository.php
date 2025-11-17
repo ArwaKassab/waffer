@@ -87,41 +87,47 @@ class OrderRepository
 
 
     /**
-     * الطلبات بانتظار — مقسّمة صفحات.
+     * الطلبات التي فيها منتجات قيد الانتظار لهذا المتجر — مقسّمة صفحات.
+     * هنا لا نهتم بحالة الطلب الكلية، فقط حالة الـ items الخاصة بالمتجر.
      */
     public function PendingOrdersForStore(int $storeId, int $perPage = 10): LengthAwarePaginator
     {
         return Order::query()
-            ->where('status', 'انتظار')
+
             ->whereHas('items', function ($q) use ($storeId) {
-                $q->where('store_id', $storeId);
+                $q->where('store_id', $storeId)
+                    ->where('status', 'انتظار');
             })
             ->select('orders.id', 'orders.date', 'orders.time', 'orders.created_at')
             ->withCount([
                 'items as items_count' => function ($q) use ($storeId) {
-                    $q->where('store_id', $storeId);
+                    $q->where('store_id', $storeId)
+                        ->where('status', 'انتظار');
                 }
             ])
-            // الأحدث بالتاريخ ثم الوقت
             ->orderByDesc('date')
             ->orderByDesc('time')
             ->paginate($perPage);
     }
 
     /**
-     * الطلبات قيد التجهيز — مقسّمة صفحات.
+     * الطلبات التي فيها منتجات قيد التجهيز لهذا المتجر — مقسّمة صفحات.
+     * هنا لا نهتم بحالة الطلب الكلية، فقط حالة الـ items الخاصة بالمتجر.
      */
     public function preparingOrdersForStore(int $storeId, int $perPage = 10): LengthAwarePaginator
     {
         return Order::query()
-            ->where('status', 'يجهز')
+
             ->whereHas('items', function ($q) use ($storeId) {
-                $q->where('store_id', $storeId);
+                $q->where('store_id', $storeId)
+                    ->where('status', 'يجهز');
             })
             ->select('orders.id', 'orders.date', 'orders.time', 'orders.created_at')
+            // نحسب عدد المنتجات من هذا المتجر وحالتها "يجهز"
             ->withCount([
                 'items as items_count' => function ($q) use ($storeId) {
-                    $q->where('store_id', $storeId);
+                    $q->where('store_id', $storeId)
+                        ->where('status', 'يجهز');
                 }
             ])
             ->orderByDesc('date')
@@ -130,19 +136,22 @@ class OrderRepository
     }
 
     /**
-     * الطلبات المُنجزة — مقسّمة صفحات.
+     * الطلبات التي فيها منتجات المُنجزة لهذا المتجر — مقسّمة صفحات.
+     * هنا لا نهتم بحالة الطلب الكلية، فقط حالة الـ items الخاصة بالمتجر.
      */
     public function DoneOrdersForStore(int $storeId, int $perPage = 10): LengthAwarePaginator
     {
         return Order::query()
-            ->where('status', 'حضر')
+
             ->whereHas('items', function ($q) use ($storeId) {
-                $q->where('store_id', $storeId);
+                $q->where('store_id', $storeId)
+                    ->where('status', 'حضر');
             })
             ->select('orders.id', 'orders.date', 'orders.time', 'orders.created_at')
             ->withCount([
                 'items as items_count' => function ($q) use ($storeId) {
-                    $q->where('store_id', $storeId);
+                    $q->where('store_id', $storeId)
+                        ->where('status', 'حضر');
                 }
             ])
             ->orderByDesc('date')
@@ -153,14 +162,16 @@ class OrderRepository
     public function getRejectedOrdersForStore(int $storeId, int $perPage = 10): LengthAwarePaginator
     {
         return Order::query()
-            ->whereHas('storeOrderResponses', function ($q) use ($storeId) {
+
+            ->whereHas('items', function ($q) use ($storeId) {
                 $q->where('store_id', $storeId)
                     ->where('status', 'مرفوض');
             })
             ->select('orders.id', 'orders.date', 'orders.time', 'orders.created_at')
             ->withCount([
                 'items as items_count' => function ($q) use ($storeId) {
-                    $q->where('store_id', $storeId);
+                    $q->where('store_id', $storeId)
+                        ->where('status', 'مرفوض');
                 }
             ])
             ->orderByDesc('date')
@@ -431,6 +442,7 @@ class OrderRepository
                 },
             ]);
 
+        //////////////////////////////for store////////////////////////////////////
         /** @var \App\Models\Order|null $order */
         $order = $query->firstWhere('orders.id', $orderId);
         return $order;    }
