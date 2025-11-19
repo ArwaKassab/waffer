@@ -456,15 +456,9 @@ class OrderRepository
         $rows = OrderItem::query()
             ->join('orders', 'order_items.order_id', '=', 'orders.id')
             ->where('order_items.store_id', $storeId)
-            // تجاهل الطلبات المحذوفة منطقيًا
             ->whereNull('orders.deleted_at')
-            // (اختياري لكن منطقي) تجاهل العناصر المحذوفة منطقيًا
             ->whereNull('order_items.deleted_at')
-            // ✅ فقط الطلبات التي حالتها مستلم
-            ->where('orders.status', 'مستلم')
-            // ✅ فقط العناصر الخاصة بالمتجر التي حالتها مستلم
-            ->where('order_items.status', 'مستلم')
-            // بين تاريخين اعتمادًا على عمود date في orders
+            ->where('order_items.status', 'تمت')
             ->whereBetween('orders.date', [$fromDate, $toDate])
             ->groupBy('order_items.order_id', 'orders.date', 'orders.time')
             ->selectRaw('
@@ -483,8 +477,8 @@ class OrderRepository
                 'order_id'     => (int) $row->order_id,
                 'date'         => $row->date,
                 'time'         => $row->time,
-                'items_count'  => (int) $row->items_count,       // عدد الأصناف (للمتجر، ومستلمة فقط)
-                'total_amount' => (float) $row->total_for_store, // مجموع أسعار أصناف المتجر المستلمة (بعد الخصم)
+                'items_count'  => (int) $row->items_count,
+                'total_amount' => (float) $row->total_for_store,
             ];
         });
 
@@ -494,6 +488,7 @@ class OrderRepository
             'total_amount' => (float) $orders->sum('total_amount'),
         ];
     }
+
 
 
     public function getStoreRejectOrdersBetweenDates(
@@ -535,6 +530,7 @@ class OrderRepository
             'total_orders' => $orders->count(),
         ];
     }
+
 
 
 
