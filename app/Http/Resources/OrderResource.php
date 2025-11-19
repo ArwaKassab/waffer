@@ -40,7 +40,7 @@ class OrderResource extends JsonResource
                 return [
                     'product_id' => $product->id,
                     'product_name' => $product->name,
-                    'store_id' => $store->id,
+                    'store_id' =>$store->id,
                     'store_name' => $store->name,
                     'quantity_with_unit' => $product->quantity.','.$product->unit,
                     'quantity' => $item->quantity,
@@ -49,7 +49,7 @@ class OrderResource extends JsonResource
                     'total_price' => (float)$item->total_price,
                     'total_price_after_discount' => (float)$item->total_price_after_discount,
                     'discount_value' => (float)$item->discount_value,
-                    'status' => $item->status,
+//                    'status' => $item->status,
                     'image_url' => $product ? $product->image_url : null,
                 ];
             }),

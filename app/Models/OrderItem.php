@@ -34,6 +34,6 @@ class OrderItem extends Model
 
     public function store()
     {
-        return $this->belongsTo(User::class, 'store_id');
+        return $this->belongsTo(User::class);
     }
 }
