@@ -189,10 +189,13 @@ use App\Http\Controllers\SubAdmin\StoreController as SubAdminStoreController;
 
         //الطلبات
         Route::post('/orders/confirmOrder', [OrderController::class, 'confirm']);
+        Route::post('/orders/reorder/{orderId}', [OrderController::class, 'reorder']);
         Route::post('/orders/changePaymentMethod/{order_id}', [OrderController::class, 'changePaymentMethod']);
         Route::get('/orders/my', [OrderController::class, 'myOrders']);
         Route::get('/orders/{orderId}', [OrderController::class, 'show']);
         Route::get('/orders/{orderId}/status', [OrderController::class, 'orderStatus']);
+
+
         // إدارة العناوين
         Route::get('addresses', [AddressController::class, 'index']);
         Route::post('addresses/new', [AddressController::class, 'add']);

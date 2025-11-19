@@ -524,6 +524,50 @@ class OrderService
         });
     }
 
+    /**
+     * إعادة طلب سابق بنفس المنتجات (نفس الكمية) مع تاريخ/وقت جديدين.
+
+     */
+    public function reorderOrder(int $userId, int $orderId): array
+    {
+        $oldOrder = Order::where('id', $orderId)
+            ->where('user_id', $userId)
+            ->with(['items'])
+            ->first();
+
+        if (! $oldOrder) {
+            throw ValidationException::withMessages([
+                'order' => 'الطلب المطلوب لإعادة الطلب غير موجود أو لا يتبع لك.',
+            ]);
+        }
+
+
+        $productsPayload = $oldOrder->items->map(function ($item) {
+            return [
+                'product_id' => $item->product_id,
+                'quantity'   => $item->quantity,
+            ];
+        })->values()->toArray();
+
+        if (empty($productsPayload)) {
+            throw ValidationException::withMessages([
+                'order' => 'لا يمكن إعادة الطلب لأنّه لا يحتوي على منتجات.',
+            ]);
+        }
+        $areaId        = (int) $oldOrder->area_id;
+        $addressId     = (int) $oldOrder->address_id;
+        $paymentMethod = $oldOrder->payment_method;
+        $notes         = $oldOrder->notes;
+        return $this->confirmOrder(
+            $userId,
+            $areaId,
+            $addressId,
+            $paymentMethod,
+            $notes,
+            $productsPayload
+        );
+    }
+
 
 
     /**
@@ -548,5 +592,7 @@ class OrderService
     ): array {
         return $this->orderRepo->getStoreRejectOrdersBetweenDates($storeId, $fromDate, $toDate);
     }
+
+
 
 }

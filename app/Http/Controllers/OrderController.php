@@ -45,6 +45,23 @@ class OrderController extends Controller
         return response()->json($data);
     }
 
+    // ...
+
+    /**
+     * إعادة طلب سابق بنفس المنتجات.
+     */
+    public function reorder(Request $request, int $orderId): JsonResponse
+    {
+        $userId = $request->user()->id;
+
+        $data = $this->orderService->reorderOrder(
+            $userId,
+            $orderId
+        );
+
+        return response()->json($data);
+    }
+
     // تغيير طريقة الدفع
     public function changePaymentMethod(int $orderId, Request $request): JsonResponse
     {
