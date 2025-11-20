@@ -2,6 +2,8 @@
 
 namespace App\Repositories\Contracts;
 
+use App\Models\User;
+
 interface StoreRepositoryInterface
 {
     public function getStoresByAreaAndCategory($areaId, $categoryId);
@@ -10,4 +12,6 @@ interface StoreRepositoryInterface
     public function searchStoresAndProductsGroupedByCategories(int $areaId, array $categoryIds, string $q, ?int $productsPerStoreLimit = 10, string $matchMode = 'any');
     public function getStoresByAreaForAdmin(int $areaId, int $perPage = 20);
     public function deleteStoreByIdForAdmin(int $storeId, int $areaId): bool;
+    public function createStore(array $data, array $categoryIds = []): User;
+    public function updateStore(User $store, array $data, ?array $categoryIds = null): User;
 }

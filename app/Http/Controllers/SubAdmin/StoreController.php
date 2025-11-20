@@ -3,8 +3,12 @@
 namespace App\Http\Controllers\SubAdmin;
 
 use App\Http\Controllers\Controller;
+use App\Http\Resources\StoreResource;
+use App\Models\User;
 use App\Services\SubAdmin\StoreService;
+use Illuminate\Http\JsonResponse;
 use Illuminate\Http\Request;
+use Illuminate\Validation\Rule;
 
 class StoreController extends Controller
 {
@@ -35,6 +39,88 @@ class StoreController extends Controller
                 'current_page' => $storesPaginator->currentPage(),
                 'data'         => $storesPaginator->items(), // العناصر فقط
             ],
+        ]);
+    }
+
+    /**
+     * إضافة متجر جديد.
+     */
+    public function addStore(Request $request): JsonResponse
+    {
+        $validated = $request->validate([
+            'name'        => ['required', 'string', 'max:255'],
+//            'user_name'   => ['required', 'string', 'max:255', Rule::unique('users', 'user_name')],
+            'phone' => ['required', 'regex:/^09\d{8}$/', 'unique:users,phone'],
+            'whatsapp_phone' => ['nullable', 'string', 'max:20'],
+            'area_id'     => ['required', 'exists:areas,id'],
+            'password'    => ['required', 'string', 'min:6'],
+            'status'      => ['required', 'boolean'],
+            'open_hour'   => ['required', 'date_format:H:i'],
+            'close_hour'  => ['required', 'date_format:H:i'],
+            'image'       => ['nullable', 'image', 'mimes:jpg,jpeg,png,webp', 'max:2048'],
+            'note'        => ['nullable', 'string'],
+            'category_ids'   => ['required', 'array', 'min:1'],
+            'category_ids.*' => ['integer', 'exists:categories,id'],
+        ]);
+
+
+        if ($request->hasFile('image')) {
+            $path = $request->file('image')->store('stores', 'public');
+            $validated['image'] = $path;
+        }
+
+        $store = $this->storeService->createStore($validated);
+
+        return response()->json([
+            'success' => true,
+            'message' => 'تم إنشاء المتجر بنجاح.',
+            'data'    => new StoreResource($store),
+        ], 201);
+    }
+
+
+
+    /**
+     * تعديل متجر موجود.
+     */
+    public function update(Request $request, int $storeId): JsonResponse
+    {
+        /** @var \App\Models\User $store */
+        $store = User::where('id', $storeId)
+            ->where('type', 'store')
+            ->firstOrFail();
+
+        $validated = $request->validate([
+            'name'        => ['sometimes', 'required', 'string', 'max:255'],
+            'user_name'   => [
+                'sometimes',
+                'nullable',
+                'string',
+                'max:255',
+                Rule::unique('users', 'user_name')->ignore($store->id),
+            ],
+            'phone'       => ['sometimes', 'required', 'regex:/^09\d{8}$/'],
+            'whatsapp_phone' => ['sometimes', 'nullable', 'regex:/^09\d{8}$/'],
+            'password'    => ['sometimes', 'nullable', 'string', 'min:6'],
+            'area_id'     => ['sometimes', 'nullable', 'exists:areas,id'],
+            'status'      => ['sometimes', 'boolean'],
+            'open_hour'   => ['sometimes', 'nullable', 'date_format:H:i'],
+            'close_hour'  => ['sometimes', 'nullable', 'date_format:H:i'],
+            'note'        => ['sometimes', 'nullable', 'string'],
+            'image'       => ['sometimes', 'nullable', 'image', 'mimes:jpg,jpeg,png,webp', 'max:2048'],
+            'category_ids'   => ['sometimes', 'array'],
+            'category_ids.*' => ['integer', 'exists:categories,id'],
+        ]);
+        if ($request->hasFile('image')) {
+            $path = $request->file('image')->store('stores', 'public');
+            $validated['image'] = $path;
+        }
+        $updated = $this->storeService->updateStore($store, $validated);
+
+        return response()->json([
+            'success' => true,
+            'message' => 'تم تعديل بيانات المتجر بنجاح.',
+            'data'    => new StoreResource($updated),
         ]);
     }
 
