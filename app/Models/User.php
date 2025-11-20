@@ -28,6 +28,7 @@ class User extends Authenticatable
         'note',
         'phone_shadow',
         'restorable_until',
+//        'user_name',
 
     ];
     protected $casts = [

@@ -773,6 +773,41 @@ class StoreRepository implements StoreRepositoryInterface
     }
 
     /**
+     * إنشاء متجر جديد وربطه بالتصنيفات.
+     */
+    public function createStore(array $data, array $categoryIds = []): User
+    {
+        /** @var \App\Models\User $store */
+        $store = User::create($data);
+
+        if (!empty($categoryIds)) {
+            $store->categories()->sync($categoryIds);
+        }
+
+        // تحميل التصنيفات للاستخدام في الـ Resource
+        $store->load(['categories:id,name', 'area:id,name']);
+
+        return $store;
+    }
+
+
+    /**
+     * تعديل متجر موجود مع إمكانية تحديث التصنيفات.
+     */
+    public function updateStore(User $store, array $data, ?array $categoryIds = null): User
+    {
+        $store->fill($data);
+        $store->save();
+
+        if (!is_null($categoryIds)) {
+            $store->categories()->sync($categoryIds);
+        }
+
+        // نرجّع نسخة جديدة من الداتا بعد الحفظ
+        return $store->fresh(['categories:id,name', 'area:id,name']);
+    }
+
+    /**
      * حذف متجر (Soft Delete) ضمن منطقة معيّنة للأدمن.
      */
     public function deleteStoreByIdForAdmin(int $storeId, int $areaId): bool

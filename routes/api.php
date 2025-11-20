@@ -84,7 +84,7 @@ use App\Http\Controllers\SubAdmin\StoreController as SubAdminStoreController;
 
     // ✅ Store Auth
     Route::prefix('store')->group(function () {
-        Route::post('/register', [StoreAuthController::class, 'register']);
+//        Route::post('/register', [StoreAuthController::class, 'register']);
         Route::post('/login', [StoreAuthController::class, 'login']);
     //    Route::middleware(['auth:sanctum', 'check.role:store'])->get('/dashboard', [StoreController::class, 'dashboard']);
         Route::middleware('auth:sanctum')->post('/logout', [StoreAuthController::class, 'logout']);
@@ -329,6 +329,8 @@ use App\Http\Controllers\SubAdmin\StoreController as SubAdminStoreController;
 
         //المتاجر
         Route::get('/stores/all-area', [SubAdminStoreController::class, 'allArea']);
+        Route::post('/stores/add', [SubAdminStoreController::class, 'addStore']);
+        Route::put('/stores/update/{storeId}', [SubAdminStoreController::class, 'update']);
         Route::delete('stores/destroy/{storeId}', [SubAdminStoreController::class, 'destroy']);
     });
 

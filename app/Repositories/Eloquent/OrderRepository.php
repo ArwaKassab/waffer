@@ -458,7 +458,7 @@ class OrderRepository
             ->where('order_items.store_id', $storeId)
             ->whereNull('orders.deleted_at')
             ->whereNull('order_items.deleted_at')
-            ->where('order_items.status', 'تمت')
+            ->where('order_items.status', 'حضر')
             ->whereBetween('orders.date', [$fromDate, $toDate])
             ->groupBy('order_items.order_id', 'orders.date', 'orders.time')
             ->selectRaw('
