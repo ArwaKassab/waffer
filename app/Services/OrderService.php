@@ -2,6 +2,7 @@
 
 namespace App\Services;
 
+use App\Events\NewOrderCreated;
 use App\Http\Resources\StoreOrderResource;
 use App\Models\Order;
 use App\Models\OrderDiscount;
@@ -91,8 +92,13 @@ class OrderService
 //        // بعد ما تحفظي الطلب وتعرفي لأي متجر رايح
 //        event(new \App\Events\NewOrderCreated($order, $storeUserId));
 
+
+        // 🔔 بعد ما يخلص الـ transaction بنجاح نطلق الإيفينت
+        event(new NewOrderCreated($order));
+
         // تحويل استجابة الطلب إلى تنسيق API مناسب وإرجاعه
         return (new ConfirmedOrderResource($response))->resolve();
+
     }
 
 
