@@ -262,7 +262,6 @@ use App\Http\Controllers\SubAdmin\StoreController as SubAdminStoreController;
         Route::post('/products/update-request/{product}', [ProductRequestsController::class, 'updateRequest']);
         Route::post('/products/create-request', [ProductRequestsController::class, 'createRequest']);
         Route::post('/products/delete-request/{product}', [ProductRequestsController::class, 'deleteRequest']);
-        Route::post('/products/approve/{req}', [ProductRequestsController::class, 'approve']);
         Route::post('/requests/update-pending-request/{requestId}', [ProductRequestsController::class, 'updatePending']);
         Route::get('/requests/pending', [ProductRequestsController::class, 'getPendingRequests']);
         Route::delete('requests/delete-pending-request/{id}',[ProductRequestsController::class, 'deleteCreateRequest']);
@@ -325,6 +324,9 @@ use App\Http\Controllers\SubAdmin\StoreController as SubAdminStoreController;
         Route::get('/orders/today/Done/count', [SubAdminOrderController::class, 'countTodayDone']);
         Route::get('/orders/today/Done/ids',       [SubAdminOrderController::class, 'listTodayDone']);
         Route::get('/orders/orderDitales/{orderId}',[SubAdminOrderController::class, 'getOrderDetailsForSubAdmin']);
+
+        Route::post('/products/approve/{req}', [ProductRequestsController::class, 'approve']);
+
 
 
         //المتاجر
