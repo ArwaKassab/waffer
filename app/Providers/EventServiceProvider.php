@@ -25,6 +25,7 @@ class EventServiceProvider extends ServiceProvider
         \App\Events\UserBanned::class        => [ \App\Listeners\SendUserBannedNotification::class ],
         \App\Events\UserUnbanned::class      => [ \App\Listeners\SendUserUnbannedNotification::class ],
         \App\Events\NewOrderCreated::class   => [\App\Listeners\SendNewOrderNotificationToStores::class],
+        \App\Events\ProductRequestReviewed::class => [\App\Listeners\SendProductRequestNotification::class,],
 
       ];
     /**
