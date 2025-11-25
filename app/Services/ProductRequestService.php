@@ -125,6 +125,8 @@ class ProductRequestService
                 }
 
                 $this->repo->markApproved($req, $note);
+                event(new \App\Events\ProductRequestReviewed($req, true, $note));
+
                 return $product;
             }
 
@@ -147,6 +149,8 @@ class ProductRequestService
 
                 $req->product_id = $product->id;
                 $this->repo->markApproved($req, $note);
+                event(new \App\Events\ProductRequestReviewed($req, true, $note));
+
                 return $product;
             }
 
@@ -161,6 +165,7 @@ class ProductRequestService
                 $product->delete();
 
                 $this->repo->markApproved($req, $note);
+                event(new \App\Events\ProductRequestReviewed($req, true, $note));
                 return $product;
             }
 
@@ -172,6 +177,7 @@ class ProductRequestService
     {
         if ($req->status === 'pending') {
             $this->repo->markRejected($req, $note);
+            event(new \App\Events\ProductRequestReviewed($req, false, $note));
         }
     }
 
