@@ -4,6 +4,7 @@ namespace App\Http\Controllers;
 
 use App\Http\Requests\ProductRequestStore;
 use App\Http\Requests\ProductRequestUpdatePending;
+use App\Http\Requests\UpdateProductRequest;
 use App\Models\Product;
 use App\Models\ProductRequest ;
 use App\Models\User;
@@ -239,4 +240,53 @@ class ProductRequestsController extends Controller
             'request_id' => $id,
         ], 200);
     }
+
+
+    /**
+     * تعديل منتج مباشر بدون موافقة أدمن.
+     */
+    public function directUpdateProduct(UpdateProductRequest $request, int $productId): JsonResponse
+    {
+        $storeId = (int) auth()->id();
+
+        /** @var \App\Models\Product $product */
+        $product = Product::where('id', $productId)
+            ->where('store_id', $storeId)
+            ->firstOrFail();
+
+        $data = $request->validated();
+
+        if ($request->hasFile('image')) {
+            $data['image'] = $request->file('image')->store('products', 'public');
+        } else {
+            unset($data['image']);
+        }
+
+        $updated = $this->service->directUpdateProduct($product, $data);
+
+        return response()->json([
+            'message' => 'تم تعديل المنتج بنجاح (بدون موافقة الأدمن).',
+            'product' => $updated,
+        ]);
+    }
+
+    /**
+     * حذف منتج مباشر بدون موافقة أدمن (Soft Delete).
+     */
+    public function directDeleteProduct(int $productId): JsonResponse
+    {
+        $storeId = (int) auth()->id();
+
+        /** @var \App\Models\Product $product */
+        $product = Product::where('id', $productId)
+            ->where('store_id', $storeId)
+            ->firstOrFail();
+
+        $this->service->directDeleteProduct($product);
+
+        return response()->json([
+            'message' => 'تم حذف المنتج بنجاح (بدون موافقة الأدمن).',
+        ]);
+    }
+
 }

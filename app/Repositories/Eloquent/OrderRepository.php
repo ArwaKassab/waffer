@@ -190,7 +190,10 @@ class OrderRepository
             ->with([
                 'items' => function ($query) use ($storeId) {
                     $query->where('store_id', $storeId)->with('product');
-                }
+                },
+                'storeResponses' => function ($q) use ($storeId) {
+                    $q->where('store_id', $storeId);
+                },
             ])
             ->first();
     }

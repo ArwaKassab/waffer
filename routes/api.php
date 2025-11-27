@@ -265,6 +265,9 @@ use App\Http\Controllers\SubAdmin\StoreController as SubAdminStoreController;
         Route::post('/requests/update-pending-request/{requestId}', [ProductRequestsController::class, 'updatePending']);
         Route::get('/requests/pending', [ProductRequestsController::class, 'getPendingRequests']);
         Route::delete('requests/delete-pending-request/{id}',[ProductRequestsController::class, 'deleteCreateRequest']);
+        Route::patch('/products/update/{productId}', [ProductRequestsController::class, 'directUpdateProduct']);
+        Route::delete('/products/delete/{productId}', [ProductRequestsController::class, 'directDeleteProduct']);
+
 
         // إدارة العناوين
         Route::get('addresses', [AddressController::class, 'index']);

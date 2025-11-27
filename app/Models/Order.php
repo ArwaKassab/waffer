@@ -60,4 +60,10 @@ class Order extends Model
         return $this->belongsTo(Address::class, 'address_id')->withTrashed();
     }
 
+    public function storeResponses()
+    {
+        return $this->hasMany(\App\Models\StoreOrderResponse::class);
+    }
+
+
 }

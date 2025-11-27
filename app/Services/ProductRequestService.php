@@ -1,6 +1,5 @@
 <?php
 
-// app/Services/ProductRequestService.php
 namespace App\Services;
 
 use App\Models\Product;
@@ -161,7 +160,6 @@ class ProductRequestService
                     throw ValidationException::withMessages(['concurrency' => 'تم تعديل المنتج بعد إنشاء الطلب.']);
                 }
 
-                // Soft delete (يدعم الاسترجاع لو لزم)
                 $product->delete();
 
                 $this->repo->markApproved($req, $note);
@@ -190,8 +188,20 @@ class ProductRequestService
                 'request' => 'لا يوجد طلب إضافة معلّق بهذا المعرف يخص متجرك.'
             ]);
         }
-
-        // لو حابة تمنعي حذف طلبات update/delete هنا، هذا محكوم بالـ finder أعلاه
         $this->repo->deleteRequest($req);
     }
+
+    /**
+     * تعديل منتج مباشرة بدون طلب موافقة.
+     */
+    public function directUpdateProduct(Product $product, array $data): Product
+    {
+        return $this->repo->updateProductDirect($product, $data);
+    }
+
+    public function directDeleteProduct(Product $product): void
+    {
+        $this->repo->deleteProductDirect($product);
+    }
+
 }

@@ -161,4 +161,28 @@ class ProductRequestRepository
     {
         return (bool) $req->delete();
     }
+
+    public function updateProductDirect(Product $product, array $data): Product
+    {
+        $allowed = ['name', 'price', 'status', 'quantity', 'unit', 'image', 'details'];
+
+        $updates = [];
+        foreach ($allowed as $field) {
+            if (array_key_exists($field, $data)) {
+                $updates[$field] = $data[$field];
+            }
+        }
+
+        if (!empty($updates)) {
+            $product->fill($updates);
+            $product->save();
+        }
+
+        return $product->refresh();
+    }
+
+    public function deleteProductDirect(Product $product): void
+    {
+        $product->delete();
+    }
 }
