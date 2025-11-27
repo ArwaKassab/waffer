@@ -487,8 +487,29 @@ class OrderService
      */
     public function getStoreOrderDetails(int $orderId, int $storeId)
     {
-        return $this->orderRepo->getStoreOrderDetails($orderId, $storeId);
+        $order = $this->orderRepo->getStoreOrderDetails($orderId, $storeId);
+
+        if (!$order) {
+            return null;
+        }
+        $hasRejectedItems = $order->items->contains(function ($item) {
+            return $item->status === 'مرفوض';
+        });
+
+        $order->has_rejected_items = $hasRejectedItems;
+        $order->store_reject_reason = null;
+
+        if ($hasRejectedItems) {
+            $response = $order->storeResponses
+                ->where('store_id', $storeId)
+                ->first();
+
+            $order->store_reject_reason = $response?->reason;
+        }
+
+        return $order;
     }
+
     /**
      * يقوم المتجر بقبول المنتجات الخاصة به في طلب معيّن.
      *
