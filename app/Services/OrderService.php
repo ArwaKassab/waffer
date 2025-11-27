@@ -76,7 +76,7 @@ class OrderService
                 $names = implode('، ', array_values($closedStores));
 
                 throw ValidationException::withMessages([
-                    'stores' => "لا يمكن إتمام الطلب لأن المتجر/المتاجر التالية مغلقة حالياً: {$names}",
+                    'stores' => "لا يمكن إتمام الطلب لأن المتاجر التالية مغلقة حالياً: {$names}",
                 ]);
             }
             // حساب السعر الكلي للمنتجات، الخصومات، رسوم التوصيل، والسعر النهائي
