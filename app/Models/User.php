@@ -2,6 +2,7 @@
 
 namespace App\Models;
 
+use Carbon\Carbon;
 use Illuminate\Foundation\Auth\User as Authenticatable;
 use Illuminate\Database\Eloquent\SoftDeletes;
 use Illuminate\Notifications\Notifiable;
@@ -35,7 +36,7 @@ class User extends Authenticatable
         'phone_verified_at' => 'datetime',
         'restorable_until'  => 'datetime',
     ];
-    protected $appends = ['image_url'];
+    protected $appends = ['image_url', 'is_open_now'];
     protected $hidden  = ['image'];
 
     public function setImageAttribute($value): void
@@ -103,4 +104,38 @@ class User extends Authenticatable
     {
         return $this->deviceTokens()->pluck('token')->all();
     }
+
+    /**
+     * هل المتجر مفتوح الآن حسب الحالة وساعات العمل؟
+     */
+    public function getIsOpenNowAttribute(): bool
+    {
+        // لو مش متجر أصلاً
+        if ($this->type !== 'store') {
+            return false;
+        }
+
+        // لو المتجر معطّل أو محظور نعتبره مغلق دائماً
+        if (!$this->status || $this->is_banned) {
+            return false;
+        }
+
+        // لو ما عنده ساعات عمل مضبوطة نرجّع status
+        if (!$this->open_hour || !$this->close_hour) {
+            return (bool) $this->status;
+        }
+
+        $now  = Carbon::now(config('app.timezone'))->format('H:i:s');
+        $from = $this->open_hour;
+        $to   = $this->close_hour;
+
+        // حالة طبيعية: 08:00 -> 22:00
+        if ($from <= $to) {
+            return $now >= $from && $now < $to;
+        }
+
+        // حالة تمتد بعد منتصف الليل: 20:00 -> 02:00
+        return $now >= $from || $now < $to;
+    }
+
 }

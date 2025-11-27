@@ -55,7 +55,30 @@ class OrderService
 
             // التحقق من صحة المنتجات المطلوبة وتحميل خصوماتها النشطة، وإقفال الصفوف لمنع تعارضات أثناء الطلب
             $productsData = $this->fetchAndValidateProducts($products);
+            $closedStores = [];
 
+            foreach ($productsData as $product) {
+                $store = $product->store;
+
+                // لو المنتج بدون متجر معرف → نعتبره مشكلة بيانات
+                if (!$store) {
+                    throw ValidationException::withMessages([
+                        'products' => 'أحد المنتجات لا يملك متجرًا مرتبطًا به.',
+                    ]);
+                }
+
+                if (!$store->is_open_now) {
+                    $closedStores[$store->id] = $store->name ?? 'متجر غير معروف';
+                }
+            }
+
+            if (!empty($closedStores)) {
+                $names = implode('، ', array_values($closedStores));
+
+                throw ValidationException::withMessages([
+                    'stores' => "لا يمكن إتمام الطلب لأن المتجر/المتاجر التالية مغلقة حالياً: {$names}",
+                ]);
+            }
             // حساب السعر الكلي للمنتجات، الخصومات، رسوم التوصيل، والسعر النهائي
             $calculation = $this->calculateOrderDetails($products, $productsData, $area);
 
@@ -170,14 +193,31 @@ class OrderService
     /**
      * تحميل وتحقق من صحة المنتجات وتطبيق الخصم النشط.
      */
+
+    /**
+     * تحميل وتحقق من صحة المنتجات وتطبيق الخصم النشط + تحميل المتجر.
+     */
     protected function fetchAndValidateProducts(array $products): \Illuminate\Support\Collection
     {
         $productIds = array_column($products, 'product_id');
+
         $productsData = Product::whereIn('id', $productIds)
             ->lockForUpdate()
-            ->with(['discounts' => function ($q) {
-                $q->whereDate('start_date', '<=', now())->whereDate('end_date', '>=', now());
-            }])
+            ->with([
+                'discounts' => function ($q) {
+                    $q->whereDate('start_date', '<=', now())
+                        ->whereDate('end_date', '>=', now());
+                },
+                'store' => function ($q) {
+                    $q->select(
+                        'id',
+                        'name',
+                        'status',
+                        'open_hour',
+                        'close_hour',
+                    );
+                },
+            ])
             ->get()
             ->keyBy('id');
 
@@ -189,6 +229,7 @@ class OrderService
 
         return $productsData;
     }
+
 
     /**
      * حساب السعر والخصوم ورسوم التوصيل.
