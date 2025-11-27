@@ -2,6 +2,7 @@
 
 namespace App\Services;
 
+use App\Events\StoreProductChanged;
 use App\Models\Product;
 use App\Models\ProductRequest;
 use App\Repositories\Eloquent\ProductRequestRepository;
@@ -196,12 +197,39 @@ class ProductRequestService
      */
     public function directUpdateProduct(Product $product, array $data): Product
     {
-        return $this->repo->updateProductDirect($product, $data);
+        $updated = $this->repo->updateProductDirect($product, $data);
+
+        $updated->loadMissing('store');
+
+        if ($updated->store) {
+            event(new StoreProductChanged(
+                product: $updated,
+                store: $updated->store,
+                action: 'direct_update',
+            ));
+        }
+
+        return $updated;
     }
 
     public function directDeleteProduct(Product $product): void
     {
+        $product->loadMissing('store');
+        $store = $product->store;
+
+        $productId = $product->id;
+
         $this->repo->deleteProductDirect($product);
+
+        if ($store) {
+            $product->id = $productId;
+
+            event(new StoreProductChanged(
+                product: $product,
+                store: $store,
+                action: 'direct_delete',
+            ));
+        }
     }
 
 }
