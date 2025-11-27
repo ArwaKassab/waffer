@@ -48,6 +48,7 @@ class UserController extends Controller
                 'open_hour'  => $user->open_hour,
                 'close_hour' => $user->close_hour,
                 'status'     => $user->status,
+                'is_open_now'     => (bool) $user->is_open_now,
                 'image'      => $user->image ? asset('storage/'.$user->image) : null,
                 'area_id'    => $user->area_id,
                 'area_name'  => optional($user->area)->name,

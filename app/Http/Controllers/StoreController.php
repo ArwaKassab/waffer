@@ -82,7 +82,6 @@ class StoreController extends Controller
             ], 200);
         }
 
-        // productsPerStoreLimit = null لو بدك كل منتجات المتجر عند تطابق اسم المتجر
         $stores = $this->storeService->searchStoresAndProductsGroupedInArea(
             areaId: $areaId,
             q: $q,

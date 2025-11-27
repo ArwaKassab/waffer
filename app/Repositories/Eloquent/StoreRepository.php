@@ -274,7 +274,8 @@ class StoreRepository implements StoreRepositoryInterface
             ->values();
 
         return [
-            'store' => $store->only(['id', 'name', 'image_url', 'status', 'note', 'open_hour', 'close_hour']),
+            'store' => $store->only(['id', 'name', 'image_url', 'is_open_now' => (bool) $store->is_open_now,
+                'status', 'note', 'open_hour', 'close_hour']),
             'categories' => $store->categories->map(fn($category) => [
                 'id' => $category->id,
             ]),
@@ -758,6 +759,7 @@ class StoreRepository implements StoreRepositoryInterface
                 'id' => $store->id,
                 'name' => $store->name,
                 'phone' => $store->phone,
+                'is_open_now' => (bool) $store->is_open_now,
                 'status' => $store->status,
                 'work_hours' => $workHours,
                 'categories' => $store->categories->map(function ($category) {
