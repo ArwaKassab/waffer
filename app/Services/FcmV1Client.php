@@ -48,9 +48,12 @@ class FcmV1Client
         if ($resp->failed()) {
             $j      = $resp->json() ?? [];
             $status = $j['error']['status'] ?? null;
+            $code   = $j['error']['code'] ?? null;
+
 
             if (
-                $resp->status() === 404 ||
+                $resp->status() === 404 ||              // HTTP 404
+                $code === 404 ||                        // FCM خطأ 404
                 in_array($status, [
                     'UNREGISTERED',
                     'INVALID_ARGUMENT',
@@ -63,10 +66,14 @@ class FcmV1Client
                 Log::warning('Deleted invalid FCM token', [
                     'token'      => $token,
                     'http_code'  => $resp->status(),
+                    'fcm_code'   => $code,
                     'fcm_status' => $status,
                 ]);
+
                 return;
             }
+
+        }
             if (in_array($resp->status(), [401, 403], true)) {
                 Log::error('FCM auth error - check credentials', [
                     'http_code' => $resp->status(),
@@ -77,6 +84,6 @@ class FcmV1Client
 
             $resp->throw();
         }
-    }
+
 
 }
