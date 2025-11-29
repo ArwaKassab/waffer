@@ -45,23 +45,54 @@ class FcmV1Client
         ]);
 
         if ($resp->failed()) {
-            $j = $resp->json() ?? [];
-            $status = $j['error']['status'] ?? null;
 
-            // لو التوكن صار invalid نظّفيه
-            if (in_array($status, ['UNREGISTERED', 'INVALID_ARGUMENT'], true)) {
+            $json = $resp->json() ?? [];
+            $status = $json['error']['status'] ?? null;
+            $code   = $json['error']['code'] ?? null;
+            $message = $json['error']['message'] ?? null;
+
+            // 🔥 حالات التوكن المنتهي / المحذوف / غير صالح
+            $invalidTokenErrors = [
+                'UNREGISTERED',
+                'INVALID_ARGUMENT',
+                'NOT_FOUND',
+                'INVALID_REGISTRATION',
+                'REGISTRATION_TOKEN_NOT_REGISTERED',
+            ];
+
+            if (
+                $resp->status() === 404 ||   // HTTP 404
+                $code === 404 ||             // FCM code 404
+                in_array($status, $invalidTokenErrors, true)
+            ) {
                 DeviceToken::where('token', $token)->delete();
-                Log::warning('Deleted invalid FCM token', ['status' => $status]);
+
+                Log::warning('Deleted invalid FCM token', [
+                    'token'      => $token,
+                    'http_code'  => $resp->status(),
+                    'fcm_code'   => $code,
+                    'fcm_status' => $status,
+                    'fcm_message'=> $message,
+                ]);
+
+                // 🔥 مهم: لا ترمي Exception → دع الـ job يعتبر ناجح
                 return;
             }
 
+            // 🔥 حالة credential error
             if (in_array($resp->status(), [401, 403], true)) {
-                Log::error('FCM auth error - check credentials');
+                Log::error('FCM auth error - check credentials', [
+                    'http_code'  => $resp->status(),
+                    'fcm_status' => $status,
+                    'fcm_message'=> $message,
+                ]);
                 throw new \RuntimeException('FCM authentication failed.');
             }
 
-            $resp->throw(); // 429/5xx → يخلي اللستنر يفشل وينعاد من الكيو
+            // غير ذلك → throw لكي يعيد المحاولة
+            $resp->throw();
         }
+
     }
 }
 
