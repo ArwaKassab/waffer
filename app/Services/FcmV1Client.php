@@ -45,53 +45,37 @@ class FcmV1Client
         ]);
 
         if ($resp->failed()) {
+            $j      = $resp->json() ?? [];
+            $error  = $j['error'] ?? [];
+            $status = $error['status'] ?? null;
+            $code   = $error['details'][0]['errorCode'] ?? null;
+            $msg    = $error['message'] ?? null;
 
-            $json = $resp->json() ?? [];
-            $status = $json['error']['status'] ?? null;
-            $code   = $json['error']['code'] ?? null;
-            $message = $json['error']['message'] ?? null;
-
-            // 🔥 حالات التوكن المنتهي / المحذوف / غير صالح
-            $invalidTokenErrors = [
-                'UNREGISTERED',
-                'INVALID_ARGUMENT',
-                'NOT_FOUND',
-                'INVALID_REGISTRATION',
-                'REGISTRATION_TOKEN_NOT_REGISTERED',
-            ];
-
+            // توكنات invalid / unregistered
             if (
-                $resp->status() === 404 ||   // HTTP 404
-                $code === 404 ||             // FCM code 404
-                in_array($status, $invalidTokenErrors, true)
+                in_array($status, ['UNREGISTERED', 'INVALID_ARGUMENT'], true) ||
+                in_array($code,   ['UNREGISTERED', 'INVALID_ARGUMENT'], true) ||
+                ($resp->status() === 404 && str_contains($msg ?? '', 'Requested entity was not found'))
             ) {
                 DeviceToken::where('token', $token)->delete();
-
                 Log::warning('Deleted invalid FCM token', [
-                    'token'      => $token,
-                    'http_code'  => $resp->status(),
-                    'fcm_code'   => $code,
-                    'fcm_status' => $status,
-                    'fcm_message'=> $message,
+                    'status' => $status,
+                    'code'   => $code,
+                    'msg'    => $msg,
                 ]);
-
-                // 🔥 مهم: لا ترمي Exception → دع الـ job يعتبر ناجح
                 return;
             }
 
-            // 🔥 حالة credential error
+            // مشاكل Auth
             if (in_array($resp->status(), [401, 403], true)) {
-                Log::error('FCM auth error - check credentials', [
-                    'http_code'  => $resp->status(),
-                    'fcm_status' => $status,
-                    'fcm_message'=> $message,
-                ]);
+                Log::error('FCM auth error - check credentials', ['error' => $error]);
                 throw new \RuntimeException('FCM authentication failed.');
             }
 
-            // غير ذلك → throw لكي يعيد المحاولة
+            // باقي الأخطاء (429/5xx) خليه يرمي عشان الكيو يعيد المحاولة
             $resp->throw();
         }
+
 
     }
 }
