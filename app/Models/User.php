@@ -110,32 +110,27 @@ class User extends Authenticatable
      */
     public function getIsOpenNowAttribute(): bool
     {
-        // لو مش متجر أصلاً
-        if ($this->type !== 'store') {
+
+
+        if (! $this->status ) {
             return false;
         }
 
-        // لو المتجر معطّل أو محظور نعتبره مغلق دائماً
-        if (!$this->status || $this->is_banned) {
-            return false;
-        }
-
-        // لو ما عنده ساعات عمل مضبوطة نرجّع status
-        if (!$this->open_hour || !$this->close_hour) {
+        if (! $this->open_hour || ! $this->close_hour) {
             return (bool) $this->status;
         }
 
-        $now  = Carbon::now(config('app.timezone'))->format('H:i:s');
-        $from = $this->open_hour;
-        $to   = $this->close_hour;
+        $tz  = config('app.timezone', 'Asia/Damascus');
+        $now = Carbon::now($tz);
 
-        // حالة طبيعية: 08:00 -> 22:00
-        if ($from <= $to) {
-            return $now >= $from && $now < $to;
+        $from = Carbon::createFromTimeString($this->open_hour, $tz);
+        $to   = Carbon::createFromTimeString($this->close_hour, $tz);
+
+        if ($from->lte($to)) {
+            return $now->between($from, $to);
         }
-
-        // حالة تمتد بعد منتصف الليل: 20:00 -> 02:00
-        return $now >= $from || $now < $to;
+        return $now->gte($from) || $now->lt($to);
     }
+
 
 }

@@ -14,8 +14,10 @@ use App\Models\Area;
 use App\Repositories\Eloquent\OrderRepository;
 use App\Services\WalletService;
 use App\Events\OrderConfirmed;
+use Carbon\Carbon;
 use Illuminate\Http\Resources\Json\AnonymousResourceCollection;
 use Illuminate\Support\Facades\DB;
+use Illuminate\Support\Facades\Log;
 use Illuminate\Support\Facades\Storage;
 use Illuminate\Support\Facades\Validator;
 use Illuminate\Validation\Rule;
@@ -60,15 +62,24 @@ class OrderService
             foreach ($productsData as $product) {
                 $store = $product->store;
 
-                // لو المنتج بدون متجر معرف → نعتبره مشكلة بيانات
-                if (!$store) {
-                    throw ValidationException::withMessages([
-                        'products' => 'أحد المنتجات لا يملك متجرًا مرتبطًا به.',
-                    ]);
+                if (! $store) {
+                    Log::warning('Product has no store', ['product_id' => $product->id]);
+                    continue;
                 }
 
-                if (!$store->is_open_now) {
-                    $closedStores[$store->id] = $store->name ?? 'متجر غير معروف';
+                Log::info('Store open check', [
+                    'store_id'      => $store->id,
+                    'store_name'    => $store->name,
+                    'status'        => $store->status,
+                    'is_banned'     => $store->is_banned,
+                    'open_hour'     => $store->open_hour,
+                    'close_hour'    => $store->close_hour,
+                    'now'           => Carbon::now(config('app.timezone'))->format('H:i:s'),
+                    'is_open_now'   => $store->is_open_now ? 1 : 0,
+                ]);
+
+                if (! $store->is_open_now) {
+                    $closedStores[$store->id] = $store->name;
                 }
             }
 

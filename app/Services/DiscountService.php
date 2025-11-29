@@ -38,6 +38,15 @@ class DiscountService
 
         $discount = $this->repo->create($product->id, $newPrice, $start, $end );
 
+        $product->loadMissing('store');
+
+        if ($product->store) {
+            event(new \App\Events\StoreProductDiscountAdded(
+                product: $product,
+                store: $product->store,
+                discount: $discount,
+            ));
+        }
         return [$product, $discount];
     }
 
