@@ -44,6 +44,7 @@ class UserController extends Controller
 
         if ($user->type === 'store') {
             $filteredUser = [
+                'stor_id'=>$user->id,
                 'name'       => $user->name,
                 'open_hour'  => $user->open_hour,
                 'close_hour' => $user->close_hour,
