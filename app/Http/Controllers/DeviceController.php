@@ -19,15 +19,36 @@ class DeviceController extends Controller
             'app_version' => 'nullable|string|max:50',
         ]);
 
-        $row = DeviceToken::updateOrCreate(
-            ['token' => $data['device_token']],
-            [
-                'user_id' => $user->id,
-                'device_type' => $data['device_type'] ?? null,
-                'app_version' => $data['app_version'] ?? null,
-                'last_used_at' => now(),
-            ]
-        );
+        $token = $data['device_token'];
+
+        $row = DeviceToken::where('token', $token)->first();
+
+        if ($row) {
+            // نفس التوكن موجود مسبقًا
+            if ($row->user_id != $user->id) {
+                // توكن مسروق/منسوخ/مكرر → نحذفه وننشئ واحد جديد صحيح
+                $row->delete();
+                $row = null;
+            } else {
+                // نفس المستخدم → فقط نعمل تحديث
+                $row->update([
+                    'device_type' => $data['device_type'] ?? $row->device_type,
+                    'app_version' => $data['app_version'] ?? $row->app_version,
+                    'last_used_at' => now(),
+                ]);
+
+                return response()->json(['success' => true, 'token_id' => $row->id]);
+            }
+        }
+
+        // إنشاء سجل جديد
+        $row = DeviceToken::create([
+            'user_id' => $user->id,
+            'token' => $token,
+            'device_type' => $data['device_type'] ?? null,
+            'app_version' => $data['app_version'] ?? null,
+            'last_used_at' => now(),
+        ]);
 
         return response()->json([
             'success' => true,
@@ -35,6 +56,7 @@ class DeviceController extends Controller
         ]);
     }
 }
+
 
 //
 //namespace App\Http\Controllers;
