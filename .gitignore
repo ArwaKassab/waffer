@@ -19,4 +19,5 @@ yarn-error.log
 /.vscode
 /storage/app/keys/firebase-admin.json
 /storage/app/keys/*.json
+public/public/firebase-messaging-sw.js
 
