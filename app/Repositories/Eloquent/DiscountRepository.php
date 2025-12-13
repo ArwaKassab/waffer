@@ -11,7 +11,6 @@ class DiscountRepository
     {
         return Discount::where('product_id', $productId)
             ->whereNull('deleted_at')
-            ->whereIn('status', ['active','scheduled'])
             ->where(function($q) use ($start, $end) {
                 $q->whereDate('start_date', '<=', $end)
                     ->whereDate('end_date', '>=', $start);

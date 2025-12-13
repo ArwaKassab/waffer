@@ -29,7 +29,7 @@ class ProductService
             'quantity'       => (int) round((float) $product->quantity),
             'unit'           => $product->unit,
             'details'        => $product->details,
-            'status'         => $product->status,
+            'isAvailable'    => (bool) $product->status,
             'original_price' => (int) round((float) $product->price),
             'store_id'       => $product->store_id,
             'store_name'     => $product->store?->name,

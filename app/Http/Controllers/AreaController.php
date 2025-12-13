@@ -3,6 +3,7 @@
 namespace App\Http\Controllers;
 
 use App\Http\Controllers\Controller;
+use App\Models\Area;
 use App\Services\VisitorService;
 use App\Services\AreaService;
 use Illuminate\Http\Request;
@@ -19,6 +20,7 @@ class AreaController extends Controller
     {
         $this->areaService = $areaService;
     }
+
 
 //    public function setArea(Request $request)
 //    {
@@ -112,6 +114,14 @@ class AreaController extends Controller
 
         return response()->json([
             'data' => $areas
+        ]);
+    }
+
+    public function showFee(Area $area)
+    {
+        $area->makeVisible(['delivery_fee', 'free_delivery_from']); // احتياط لو كانوا hidden
+        return response()->json([
+            'data' => $area->only(['id', 'name', 'delivery_fee', 'free_delivery_from'])
         ]);
     }
 }

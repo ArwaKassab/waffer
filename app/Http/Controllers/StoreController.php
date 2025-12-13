@@ -152,17 +152,18 @@ class StoreController extends Controller
             // إن ما كان عندك through، استخدم:
             $paginator->getCollection()->transform(function ($s) {
                 return [
-                    'id'         => $s->id,
-                    'name'       => $s->name,
-                    'area_id'    => $s->area_id,
-                    'status'     => $s->status,
-                    'note'       => $s->note,
-                    'open_hour'  => $s->open_hour,
-                    'close_hour' => $s->close_hour,
-                    'image'      => $s->image_url,
-                    'category_ids' => $s->category_ids ?? [], // أضفناها في الريبو
+                    'id'          => $s->id,
+                    'name'        => $s->name,
+                    'area_id'     => $s->area_id,
+                    'is_open_now' => (bool) $s->is_open_now,
+                    'note'        => $s->note,
+                    'open_hour'   => $s->open_hour,
+                    'close_hour'  => $s->close_hour,
+                    'image'       => $s->image_url,
+                    'category_ids'=> $s->category_ids ?? [],
                 ];
             });
+
 
             return response()->json([
                 'mode'         => 'browse_all',
@@ -183,7 +184,7 @@ class StoreController extends Controller
                     'id'           => $s->id,
                     'name'         => $s->name,
                     'area_id'      => $s->area_id,
-                    'status'       => $s->status,
+                    'is_open_now'  => (bool) $s->is_open_now,
                     'note'         => $s->note,
                     'open_hour'    => $s->open_hour,
                     'close_hour'   => $s->close_hour,
