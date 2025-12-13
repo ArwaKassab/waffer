@@ -6,6 +6,7 @@ use App\Models\Product;
 use App\Repositories\Eloquent\CartRepository;
 use App\Services\RedisCartService;
 use Illuminate\Support\Facades\DB;
+use Symfony\Component\HttpKernel\Exception\HttpException;
 
 class CartService
 {
@@ -89,9 +90,31 @@ class CartService
             throw new \InvalidArgumentException("User ID or Visitor ID is required.");
         }
 
+        $product = Product::query()
+            ->with(['store' => function ($q) {
+                $q->select('id', 'status', 'open_hour', 'close_hour');
+            }])
+            ->select('id', 'store_id', 'status')
+            ->findOrFail($productId);
+
+        $rawProductStatus = $product->status;
+
+        $isProductAvailable = is_bool($rawProductStatus) || is_numeric($rawProductStatus)
+            ? (bool) $rawProductStatus
+            : (strtolower((string) $rawProductStatus) !== 'not_available');
+
+        if (! $isProductAvailable) {
+            throw new HttpException(409, 'المنتج غير متاح حالياً ولا يمكن إضافته إلى السلة.');
+        }
+        $store = $product->store;
+
+        if (! $store || ! $store->is_open_now) {
+            throw new HttpException(409, 'المتجر مغلق، لا يمكنك إضافة منتجات منه إلى السلة حالياً.');
+        }
+
         if ($userId) {
             DB::transaction(function () use ($userId, $productId, $quantity) {
-                $cart = $this->cartRepo->getCartByUserId($userId) ;
+                $cart = $this->cartRepo->getCartByUserId($userId);
                 $this->cartRepo->addItem($cart->id, $productId, $quantity);
             });
             return;
