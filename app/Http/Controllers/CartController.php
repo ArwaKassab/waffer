@@ -5,6 +5,7 @@ namespace App\Http\Controllers;
 use App\Models\Product;
 use Illuminate\Http\Request;
 use App\Services\CartService;
+use Symfony\Component\HttpKernel\Exception\HttpExceptionInterface;
 
 class CartController extends Controller
 {
@@ -30,7 +31,7 @@ class CartController extends Controller
     {
         $validated = $request->validate([
             'product_id' => 'required|exists:products,id',
-            'quantity' => 'required|integer|min:1',
+            'quantity'   => 'required|integer|min:1',
         ]);
 
         try {
@@ -40,7 +41,10 @@ class CartController extends Controller
                 auth('sanctum')->id(),
                 $request->cookie('visitor_id')
             );
+
             return response()->json(['message' => 'تمت الإضافة بنجاح']);
+        } catch (HttpExceptionInterface $e) {
+            return response()->json(['error' => $e->getMessage()], $e->getStatusCode());
         } catch (\Exception $e) {
             return response()->json(['error' => $e->getMessage()], 500);
         }

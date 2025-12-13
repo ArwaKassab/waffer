@@ -15,6 +15,7 @@ use App\Repositories\Eloquent\OrderRepository;
 use App\Services\WalletService;
 use App\Events\OrderConfirmed;
 use Carbon\Carbon;
+use Illuminate\Http\Exceptions\HttpResponseException;
 use Illuminate\Http\Resources\Json\AnonymousResourceCollection;
 use Illuminate\Support\Facades\DB;
 use Illuminate\Support\Facades\Log;
@@ -57,39 +58,8 @@ class OrderService
 
             // التحقق من صحة المنتجات المطلوبة وتحميل خصوماتها النشطة، وإقفال الصفوف لمنع تعارضات أثناء الطلب
             $productsData = $this->fetchAndValidateProducts($products);
-            $closedStores = [];
 
-            foreach ($productsData as $product) {
-                $store = $product->store;
-
-                if (! $store) {
-                    Log::warning('Product has no store', ['product_id' => $product->id]);
-                    continue;
-                }
-
-                Log::info('Store open check', [
-                    'store_id'      => $store->id,
-                    'store_name'    => $store->name,
-                    'status'        => $store->status,
-                    'is_banned'     => $store->is_banned,
-                    'open_hour'     => $store->open_hour,
-                    'close_hour'    => $store->close_hour,
-                    'now'           => Carbon::now(config('app.timezone'))->format('H:i:s'),
-                    'is_open_now'   => $store->is_open_now ? 1 : 0,
-                ]);
-
-                if (! $store->is_open_now) {
-                    $closedStores[$store->id] = $store->name;
-                }
-            }
-
-            if (!empty($closedStores)) {
-                $names = implode('، ', array_values($closedStores));
-
-                throw ValidationException::withMessages([
-                    'stores' => "لا يمكن إتمام الطلب لأن المتاجر التالية مغلقة حالياً: {$names}",
-                ]);
-            }
+            $this->assertOrderIsValidBeforeCreate($products, $productsData);
             // حساب السعر الكلي للمنتجات، الخصومات، رسوم التوصيل، والسعر النهائي
             $calculation = $this->calculateOrderDetails($products, $productsData, $area);
 
@@ -212,7 +182,8 @@ class OrderService
     {
         $productIds = array_column($products, 'product_id');
 
-        $productsData = Product::whereIn('id', $productIds)
+        $productsData = Product::query()
+            ->whereIn('id', $productIds)
             ->lockForUpdate()
             ->with([
                 'discounts' => function ($q) {
@@ -220,26 +191,22 @@ class OrderService
                         ->whereDate('end_date', '>=', now());
                 },
                 'store' => function ($q) {
-                    $q->select(
-                        'id',
-                        'name',
-                        'status',
-                        'open_hour',
-                        'close_hour',
-                    );
+                    $q->select('id', 'name', 'status', 'open_hour', 'close_hour');
                 },
             ])
+            ->select('id', 'name', 'status', 'price', 'store_id', 'image', 'details')
             ->get()
             ->keyBy('id');
 
         if ($productsData->count() !== count($productIds)) {
             throw ValidationException::withMessages([
-                'products' => __('order.invalid_products')
+                'products' => ['يوجد منتجات غير صحيحة ضمن الطلب.'],
             ]);
         }
 
         return $productsData;
     }
+
 
 
     /**
@@ -672,6 +639,67 @@ class OrderService
         return $this->orderRepo->getStoreRejectOrdersBetweenDates($storeId, $fromDate, $toDate);
     }
 
+    protected function assertOrderIsValidBeforeCreate(
+        array $products,
+        \Illuminate\Support\Collection $productsData
+    ): void
+    {
+        $productIssues = [];
+        $storeIssues = [];
+        $closedStoresSeen = [];
 
+        foreach ($products as $row) {
+            $pid = (int)$row['product_id'];
+            $product = $productsData->get($pid);
 
+            if (!$product) {
+                $productIssues[] = [
+                    'product_id' => $pid,
+                    'reason' => 'not_found',
+                    'message' => "المنتج رقم {$pid} غير موجود.",
+                ];
+                continue;
+            }
+
+            $store = $product->store;
+
+            // 1) المنتج غير متوفر
+            if ((string)$product->status === 'not_available') {
+                $productIssues[] = [
+                    'product_id' => $product->id,
+                    'product_name' => $product->name,
+                    'store_id' => $store?->id,
+                    'store_name' => $store?->name,
+                    'reason' => 'not_available',
+                    'message' => "المنتج #{$product->id} ({$product->name}) غير متوفر حالياً.",
+                ];
+            }
+
+            // 2) المتجر مغلق (مرة واحدة لكل متجر)
+            if ($store && !$store->is_open_now) {
+                if (!isset($closedStoresSeen[$store->id])) {
+                    $closedStoresSeen[$store->id] = true;
+
+                    $storeIssues[] = [
+                        'store_id' => $store->id,
+                        'store_name' => $store->name,
+                        'reason' => 'store_closed',
+                        'message' => "المتجر #{$store->id} ({$store->name}) مغلق حالياً.",
+                    ];
+                }
+            }
+        }
+
+        if (!empty($productIssues) || !empty($storeIssues)) {
+            throw new HttpResponseException(
+                response()->json([
+                    'message' => 'لا يمكن إتمام الطلب.',
+                    'issues' => [
+                        'products' => $productIssues,
+                        'stores' => $storeIssues,
+                    ],
+                ], 422)
+            );
+        }
+    }
 }
