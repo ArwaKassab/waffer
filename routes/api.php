@@ -126,6 +126,7 @@ use App\Http\Controllers\SubAdmin\StoreController as SubAdminStoreController;
 
         Route::get('/areas', [AreaController::class, 'index']);
         Route::post('/set-area', [AreaController::class, 'setArea']);
+        Route::get('/showFee/{area}', [AreaController::class, 'showFee']);
 
     });
 

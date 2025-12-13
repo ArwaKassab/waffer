@@ -16,7 +16,7 @@ class StoreRepository implements StoreRepositoryInterface
     {
         $paginator = User::where('type', 'store')
             ->where('area_id', $areaId)
-            ->select('id', 'area_id', 'name', 'image', 'status', 'note', 'open_hour', 'close_hour')
+            ->select('id', 'area_id', 'name', 'image', 'note', 'open_hour', 'close_hour')
             ->with(['categories:id'])
             ->orderBy('name')
             ->paginate($perPage);
@@ -24,7 +24,6 @@ class StoreRepository implements StoreRepositoryInterface
         $paginator->getCollection()->transform(function ($store) {
             $store->category_ids = $store->categories->pluck('id')->values();
             unset($store->categories);
-
 
             return $store;
         });
@@ -34,12 +33,14 @@ class StoreRepository implements StoreRepositoryInterface
 
     public function getStoresByAreaAndCategoryPaged(int $areaId, int $categoryId, int $perPage = 20)
     {
-        return User::where('type', 'store')
+        $paginator = User::where('type', 'store')
             ->where('area_id', $areaId)
             ->whereHas('categories', fn($q) => $q->where('categories.id', $categoryId))
-            ->select('id', 'area_id', 'name', 'image', 'status', 'note', 'open_hour', 'close_hour')
+            ->select('id', 'area_id', 'name', 'image', 'note', 'open_hour', 'close_hour')
             ->orderBy('name')
             ->paginate($perPage);
+
+        return $paginator;
     }
 
 
@@ -50,7 +51,7 @@ class StoreRepository implements StoreRepositoryInterface
             ->whereHas('categories', function ($query) use ($categoryId) {
                 $query->where('categories.id', $categoryId);
             })
-            ->get(['id', 'area_id', 'name', 'image', 'status', 'note', 'open_hour', 'close_hour']);
+            ->get(['id', 'area_id', 'name', 'image', 'note', 'open_hour', 'close_hour']);
 
         $stores->transform(function ($store) {
             $store->image = $store->image_url;
@@ -104,7 +105,7 @@ class StoreRepository implements StoreRepositoryInterface
         // 3) منتجات تطابق الاسم داخل المنطقة + eager-load للخصم الفعّال
         $productsMatched = Product::query()
             ->with([
-                'store:id,name,area_id,image,status,note,open_hour,close_hour',
+                'store:id,name,area_id,image,note,open_hour,close_hour',
                 'activeDiscount' => function ($q2) {
                     $q2->select(
                         'discounts.id',
@@ -117,7 +118,7 @@ class StoreRepository implements StoreRepositoryInterface
                 },
             ])
             ->whereHas('store', fn($qs) => $qs->where('type', 'store')->where('area_id', $areaId))
-            ->select('products.id', 'products.name', 'products.price', 'products.store_id', 'products.image', 'products.details')
+            ->select('products.id', 'products.name', 'products.price', 'products.store_id', 'products.image', 'products.details','products.status')
             ->when($tokens->isNotEmpty(), function ($query) use ($tokens, $buildPatterns) {
                 foreach ($tokens as $t) {
                     [$p1, $p2] = $buildPatterns($t);
@@ -140,7 +141,7 @@ class StoreRepository implements StoreRepositoryInterface
                 'id' => $s->id,
                 'name' => $s->name,
                 'area_id' => $s->area_id,
-                'status' => $s->status,
+                'is_open_now' => (bool) $s->is_open_now,
                 'note' => $s->note,
                 'open_hour' => $s->open_hour,
                 'close_hour' => $s->close_hour,
@@ -160,7 +161,7 @@ class StoreRepository implements StoreRepositoryInterface
                     'id' => $s->id,
                     'name' => $s->name,
                     'area_id' => $s->area_id,
-                    'status' => $s->status ?? null,
+                    'is_open_now'=> (bool) $s->is_open_now,
                     'note' => $s->note ?? null,
                     'open_hour' => $s->open_hour ?? null,
                     'close_hour' => $s->close_hour ?? null,
@@ -175,6 +176,7 @@ class StoreRepository implements StoreRepositoryInterface
                     'id' => $p->id,
                     'name' => $p->name,
                     'price' => (float)$p->price,
+                    'isAvilable' => (bool) $p->status,
                     'image' => $p->image_url,
                     'details' => $p->details,
                     '_matched' => true,
@@ -202,7 +204,7 @@ class StoreRepository implements StoreRepositoryInterface
                     }
                 ])
                 ->whereIn('store_id', $storeNameMatchedIds)
-                ->select('id', 'name', 'price', 'store_id', 'image', 'details')
+                ->select('id', 'name', 'price', 'store_id', 'image', 'details','status')
                 ->orderBy('name')
                 ->get()
                 ->groupBy('store_id');
@@ -219,6 +221,7 @@ class StoreRepository implements StoreRepositoryInterface
                         'id' => $p->id,
                         'name' => $p->name,
                         'price' => (float)$p->price,
+                        'isAvilable' => (bool) $p->status,
                         'details' => $p->details,
                         'image' => $p->image_url,
                     ];
@@ -254,19 +257,19 @@ class StoreRepository implements StoreRepositoryInterface
 
         return $result;
     }
-
     public function getStoreDetailsWithProductsAndDiscounts($storeId)
     {
         $store = User::query()
             ->where('type', 'store')
             ->whereKey($storeId)
             ->with(['products', 'categories'])
-            ->first(['id', 'name', 'image', 'status', 'note', 'open_hour', 'close_hour']);
+            ->first(['id', 'name', 'image', 'note', 'open_hour', 'close_hour']); // removed status
 
         if (!$store) {
             return null;
         }
 
+        // image_url موجود في appends أصلاً، لكن لا مشكلة من append
         $store->append('image_url')->makeHidden(['image']);
 
         $productsWithDiscountsFirst = $store->products
@@ -274,29 +277,35 @@ class StoreRepository implements StoreRepositoryInterface
             ->values();
 
         return [
-            'store' => $store->only(['id', 'name', 'image_url', 'is_open_now' => (bool) $store->is_open_now,
-                'status', 'note', 'open_hour', 'close_hour']),
+            'store' => [
+                'id'         => $store->id,
+                'name'       => $store->name,
+                'image_url'  => $store->image_url,
+                'is_open_now'=> (bool) $store->is_open_now,
+                'note'       => $store->note,
+                'open_hour'  => $store->open_hour,
+                'close_hour' => $store->close_hour,
+            ],
             'categories' => $store->categories->map(fn($category) => [
                 'id' => $category->id,
             ]),
             'products' => $productsWithDiscountsFirst->map(function ($product) {
                 $discount = $product->activeDiscountToday();
-                return [
-                    'id' => $product->id,
-                    'name' => $product->name,
-                    'image_url' => $product->image_url,
-                    'status' => $product->status,
-                    'unit' => $product->unit,
-                    'details' => $product->details,
-                    'original_price' => $product->price,
-                    'new_price' => $discount?->new_price,
-                    'discount_title' => $discount?->title,
 
+                return [
+                    'id'             => $product->id,
+                    'name'           => $product->name,
+                    'image_url'      => $product->image_url,
+                    'isAvailable'    => (bool) $product->status,
+                    'unit'           => $product->unit,
+                    'details'        => $product->details,
+                    'original_price' => $product->price,
+                    'new_price'      => $discount?->new_price,
+                    'discount_title' => $discount?->title,
                 ];
             }),
         ];
     }
-
 
     public function searchStoresAndProductsGrouped(
         int    $areaId,
@@ -360,7 +369,7 @@ class StoreRepository implements StoreRepositoryInterface
                     ->where('area_id', $areaId)
                     ->whereHas('categories', fn($qc) => $qc->where('categories.id', $categoryId));
             })
-            ->select('products.id', 'products.name', 'products.price', 'products.store_id', 'products.image', 'products.details')
+            ->select('products.id', 'products.name', 'products.price', 'products.store_id', 'products.image', 'products.details','products.status')
             ->when($tokens->isNotEmpty(), function ($query) use ($tokens, $buildPatterns) {
                 foreach ($tokens as $t) {
                     [$p1, $p2] = $buildPatterns($t);
@@ -382,7 +391,7 @@ class StoreRepository implements StoreRepositoryInterface
                 'id' => $s->id,
                 'name' => $s->name,
                 'area_id' => $s->area_id,
-                'status' => $s->status,
+                'is_open_now' => (bool) $s->is_open_now,
                 'note' => $s->note,
                 'open_hour' => $s->open_hour,
                 'close_hour' => $s->close_hour,
@@ -402,7 +411,7 @@ class StoreRepository implements StoreRepositoryInterface
                     'id' => $s->id,
                     'name' => $s->name,
                     'area_id' => $s->area_id,
-                    'status' => $s->status ?? null,
+                    'is_open_now' => (bool) $s->is_open_now,
                     'note' => $s->note ?? null,
                     'open_hour' => $s->open_hour ?? null,
                     'close_hour' => $s->close_hour ?? null,
@@ -418,6 +427,7 @@ class StoreRepository implements StoreRepositoryInterface
                     'name' => $p->name,
                     'price' => (float)$p->price,
                     'image' => $p->image_url,
+                    'isAvilable' => (bool) $p->status,
                     'details' => $p->details,
                     '_matched' => true,
                 ];
@@ -444,7 +454,7 @@ class StoreRepository implements StoreRepositoryInterface
                     }
                 ])
                 ->whereIn('store_id', $storeNameMatchedIds)
-                ->select('id', 'name', 'price', 'store_id', 'image', 'details')
+                ->select('id', 'name', 'price', 'store_id', 'image', 'details','select')
                 ->orderBy('name')
                 ->get()
                 ->groupBy('store_id');
@@ -461,6 +471,7 @@ class StoreRepository implements StoreRepositoryInterface
                         'id' => $p->id,
                         'name' => $p->name,
                         'price' => (float)$p->price,
+                        'isAvilable' => (bool) $p->status,
                         'details' => $p->details,
                         'image' => $p->image_url,
                     ];
@@ -502,7 +513,7 @@ class StoreRepository implements StoreRepositoryInterface
         $q = User::where('type', 'store')
             ->where('area_id', $areaId)
             ->with(['categories:id'])
-            ->select('id', 'area_id', 'name', 'image', 'status', 'note', 'open_hour', 'close_hour');
+            ->select('id', 'area_id', 'name', 'image',  'note', 'open_hour', 'close_hour');
 
         if ($matchMode === 'all') { // الآن هذا هو الافتراضي
             $q->where(function ($qq) use ($categoryIds) {
@@ -599,7 +610,7 @@ class StoreRepository implements StoreRepositoryInterface
                     $qs->whereHas('categories', fn($qc) => $qc->whereIn('categories.id', $categoryIds));
                 }
             })
-            ->select('products.id', 'products.name', 'products.price', 'products.store_id', 'products.image', 'products.details')
+            ->select('products.id', 'products.name', 'products.price', 'products.store_id', 'products.image', 'products.details','products.status')
             ->when($tokens->isNotEmpty(), function ($query) use ($tokens, $buildPatterns) {
                 foreach ($tokens as $t) {
                     [$p1, $p2] = $buildPatterns($t);
@@ -621,7 +632,7 @@ class StoreRepository implements StoreRepositoryInterface
                 'id' => $s->id,
                 'name' => $s->name,
                 'area_id' => $s->area_id,
-                'status' => $s->status,
+                'is_open_now' => (bool) $s->is_open_now,
                 'note' => $s->note,
                 'open_hour' => $s->open_hour,
                 'close_hour' => $s->close_hour,
@@ -640,7 +651,7 @@ class StoreRepository implements StoreRepositoryInterface
                     'id' => $s->id,
                     'name' => $s->name,
                     'area_id' => $s->area_id,
-                    'status' => $s->status ?? null,
+                    'is_open_now' => (bool) $s->is_open_now,
                     'note' => $s->note ?? null,
                     'open_hour' => $s->open_hour ?? null,
                     'close_hour' => $s->close_hour ?? null,
@@ -655,6 +666,7 @@ class StoreRepository implements StoreRepositoryInterface
                     'id' => $p->id,
                     'name' => $p->name,
                     'price' => (float)$p->price,
+                    'isAvilable' => (bool) $p->status,
                     'image' => $p->image_url,
                     'details' => $p->details,
                     '_matched' => true,
@@ -689,6 +701,7 @@ class StoreRepository implements StoreRepositoryInterface
                         'id' => $p->id,
                         'name' => $p->name,
                         'price' => (float)$p->price,
+                        'isAvilable' => (bool) $p->status,
                         'image' => $p->image_url,
                         'details' => $p->details,
                     ];
@@ -736,7 +749,6 @@ class StoreRepository implements StoreRepositoryInterface
                 'id',
                 'name',
                 'phone',
-                'status',
                 'open_hour',
                 'close_hour'
             )
