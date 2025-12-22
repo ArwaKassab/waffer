@@ -35,7 +35,9 @@ class User extends Authenticatable
     protected $casts = [
         'phone_verified_at' => 'datetime',
         'restorable_until'  => 'datetime',
+        'status'            => 'boolean',
     ];
+
     protected $appends = ['image_url', 'is_open_now'];
     protected $hidden  = ['image'];
 
@@ -110,14 +112,12 @@ class User extends Authenticatable
      */
     public function getIsOpenNowAttribute(): bool
     {
-
-
-        if (! $this->status ) {
+        if (! $this->status) {
             return false;
         }
 
         if (! $this->open_hour || ! $this->close_hour) {
-            return (bool) $this->status;
+            return true;
         }
 
         $tz  = config('app.timezone', 'Asia/Damascus');
@@ -126,11 +126,15 @@ class User extends Authenticatable
         $from = Carbon::createFromTimeString($this->open_hour, $tz);
         $to   = Carbon::createFromTimeString($this->close_hour, $tz);
 
+        // الحالة العادية (يفتح ويغلق بنفس اليوم)
         if ($from->lte($to)) {
-            return $now->between($from, $to);
+            return $now->gte($from) && $now->lte($to);
         }
+
+        // حالة العمل بعد منتصف الليل (مثال 20:00 → 04:00)
         return $now->gte($from) || $now->lt($to);
     }
+
 
     public function getOpenHourFormattedAttribute(): ?string
     {
