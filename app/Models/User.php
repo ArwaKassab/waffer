@@ -132,5 +132,17 @@ class User extends Authenticatable
         return $now->gte($from) || $now->lt($to);
     }
 
+    public function getOpenHourFormattedAttribute(): ?string
+    {
+        return $this->open_hour
+            ? Carbon::parse($this->open_hour)->format('H:i')
+            : null;
+    }
 
+    public function getCloseHourFormattedAttribute(): ?string
+    {
+        return $this->close_hour
+            ? Carbon::parse($this->close_hour)->format('H:i')
+            : null;
+    }
 }

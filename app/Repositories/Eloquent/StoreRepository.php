@@ -263,7 +263,7 @@ class StoreRepository implements StoreRepositoryInterface
             ->where('type', 'store')
             ->whereKey($storeId)
             ->with(['products', 'categories'])
-            ->first(['id', 'name', 'image', 'note', 'open_hour', 'close_hour']); // removed status
+            ->first(['id', 'name', 'image', 'note','status', 'open_hour', 'close_hour']); // removed status
 
         if (!$store) {
             return null;
@@ -283,8 +283,9 @@ class StoreRepository implements StoreRepositoryInterface
                 'image_url'  => $store->image_url,
                 'is_open_now'=> (bool) $store->is_open_now,
                 'note'       => $store->note,
-                'open_hour'  => $store->open_hour,
-                'close_hour' => $store->close_hour,
+                'open_hour'  => $store->open_hour_formatted,
+                'close_hour' => $store->close_hour_formatted,
+
             ],
             'categories' => $store->categories->map(fn($category) => [
                 'id' => $category->id,
