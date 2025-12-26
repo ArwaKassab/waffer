@@ -8,9 +8,7 @@ use Illuminate\Support\Carbon;
 
 class NotificationService
 {
-    public function __construct(
-        protected FcmV1Client $fcm
-    ) {}
+    public function __construct(protected FcmV1Client $fcm) {}
 
     public function sendToUser(
         int $userId,
@@ -18,10 +16,9 @@ class NotificationService
         string $title,
         ?string $body = null,
         ?int $orderId = null,
-        array $data = []
+        array $data = [],
+        ?string $appKey = null // ← جديد
     ): AppUserNotification {
-
-        // 1) خزّن في DB
         $row = AppUserNotification::create([
             'user_id'  => $userId,
             'type'     => $type,
@@ -32,14 +29,14 @@ class NotificationService
             'read_at'  => null,
         ]);
 
-        // 2) جيب كل أجهزة هالمستخدم
-        $tokens = DeviceToken::where('user_id', $userId)
-            ->pluck('token')
-            ->filter()
-            ->unique()
-            ->all();
+        $tokensQuery = DeviceToken::where('user_id', $userId);
 
-        // 3) ابعث Push لكل جهاز
+        if ($appKey) {
+            $tokensQuery->where('app_key', $appKey);
+        }
+
+        $tokens = $tokensQuery->pluck('token')->filter()->unique()->all();
+
         foreach ($tokens as $token) {
             $this->fcm->sendToToken(
                 $token,
@@ -58,23 +55,18 @@ class NotificationService
 
     public function markAllReadForUser(int $userId): void
     {
-        AppUserNotification::where('user_id', $userId)
-            ->whereNull('read_at')
+        AppUserNotification::where('user_id', $userId)->whereNull('read_at')
             ->update(['read_at' => Carbon::now()]);
     }
 
     public function markOneRead(int $userId, int $notificationId): void
     {
-        AppUserNotification::where('user_id', $userId)
-            ->where('id', $notificationId)
-            ->whereNull('read_at')
+        AppUserNotification::where('user_id', $userId)->where('id', $notificationId)->whereNull('read_at')
             ->update(['read_at' => Carbon::now()]);
     }
 
     public function unreadCountForUser(int $userId): int
     {
-        return AppUserNotification::where('user_id', $userId)
-            ->whereNull('read_at')
-            ->count();
+        return AppUserNotification::where('user_id', $userId)->whereNull('read_at')->count();
     }
 }
