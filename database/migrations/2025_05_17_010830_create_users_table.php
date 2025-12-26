@@ -31,6 +31,7 @@ class CreateUsersTable extends Migration
             $table->boolean('is_banned')->default(false);
             $table->string('phone_shadow', 20)->nullable();
             $table->index('phone_shadow');
+            $table->string('firebase_uid', 128)->nullable()->unique();
             $table->timestamps();
             $table->softDeletes();
         });
