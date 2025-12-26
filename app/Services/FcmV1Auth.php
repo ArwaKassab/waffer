@@ -9,10 +9,12 @@ class FcmV1Auth
 {
     public function getAccessToken(): string
     {
-        return Cache::remember('fcm_v1_access_token', now()->addMinutes(50), function () {
+        $projectId = (string) config('services.fcm_v1.project_id');
+        $cacheKey = "fcm_v1_access_token:{$projectId}";
+
+        return Cache::remember($cacheKey, now()->addMinutes(50), function () {
             $scopes = ['https://www.googleapis.com/auth/firebase.messaging'];
 
-            // نقرأ من config/services.php
             $file = (string) config('services.fcm_v1.service_account_file');
             $json = config('services.fcm_v1.service_account_json');
 
@@ -28,7 +30,6 @@ class FcmV1Auth
                 throw new \RuntimeException('FCM: لم يتم ضبط بيانات الخدمة (لا JSON ولا FILE).');
             }
 
-            // ✅ الطريقة الصحيحة لجلب التوكن
             $token = $creds->fetchAuthToken();
             if (empty($token['access_token'])) {
                 throw new \RuntimeException('FCM: فشل جلب access_token.');
@@ -37,5 +38,3 @@ class FcmV1Auth
         });
     }
 }
-
-
