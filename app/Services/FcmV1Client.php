@@ -13,7 +13,7 @@ class FcmV1Client
     protected function endpoint(): string
     {
         $projectId = (string) config('services.fcm_v1.project_id');
-        if (!$projectId) {
+        if (! $projectId) {
             throw new \RuntimeException('FCM project_id is not set.');
         }
 
@@ -28,7 +28,7 @@ class FcmV1Client
             ->retry(2, 300)
             ->post($this->endpoint(), [
                 'message' => [
-                    'token'        => $token,
+                    'token' => $token,
                     'notification' => [
                         'title' => $title ?: 'إشعار جديد',
                         'body'  => $body ?: '',
@@ -37,59 +37,75 @@ class FcmV1Client
                 ],
             ]);
 
+        $http = $response->status();
+        $json = $response->json() ?? [];
+
+        Log::info('FCM response', [
+            'token'  => $token,
+            'http'   => $http,
+            'body'   => $json,
+        ]);
+
         if (! $response->failed()) {
-            Log::info('FCM success', [
-                'token'  => $token,
-                'status' => $response->status(),
-            ]);
             return;
         }
 
-        $json   = $response->json() ?? [];
-        $error  = $json['error'] ?? [];
-        $status = $error['status'] ?? null;
-        $msg    = $error['message'] ?? null;
+        $error   = $json['error'] ?? [];
+        $status  = $error['status'] ?? null;   // مثل: NOT_FOUND / UNAUTHENTICATED
+        $message = $error['message'] ?? null;  // مثل: NotRegistered
 
+        // Extract FCM errorCode from details (إن وجد)
         $detailCode = null;
-        $details = $error['details'] ?? [];
-        if (is_array($details)) {
-            foreach ($details as $item) {
-                if (isset($item['errorCode'])) {
-                    $detailCode = $item['errorCode'];
-                    break;
-                }
+        foreach (($error['details'] ?? []) as $d) {
+            if (is_array($d) && isset($d['errorCode'])) {
+                $detailCode = $d['errorCode'];
+                break;
             }
         }
 
-        Log::error('FCM error', [
+        Log::error('FCM error parsed', [
             'token'       => $token,
-            'http_status' => $response->status(),
+            'http'        => $http,
             'status'      => $status,
             'detail_code' => $detailCode,
-            'message'     => $msg,
-            'raw'         => $json,
+            'message'     => $message,
         ]);
 
-        // حالات توكن غير صالح (واضحة)
-        $invalidCodes = ['UNREGISTERED', 'INVALID_ARGUMENT'];
-        $isInvalidToken = in_array($detailCode, $invalidCodes, true) || in_array($status, $invalidCodes, true);
+        // ---------------------------
+        // ✅ Invalid / expired token
+        // ---------------------------
+        $invalidCodes = ['UNREGISTERED', 'INVALID_ARGUMENT', 'NOT_FOUND'];
+
+        $isInvalidToken =
+            in_array($detailCode, $invalidCodes, true) ||
+            in_array($status, $invalidCodes, true) ||
+            in_array($message, ['NotRegistered'], true) ||                 // مهم لحالتك
+            ($http === 404 && in_array($status, ['NOT_FOUND'], true));     // 404 غالبًا توكن/كيان غير موجود
 
         if ($isInvalidToken) {
             DeviceToken::where('token', $token)->delete();
+
             Log::warning('Deleted invalid FCM token', [
                 'token'       => $token,
+                'http'        => $http,
                 'status'      => $status,
                 'detail_code' => $detailCode,
+                'message'     => $message,
             ]);
-            return;
+
+            return; // لا نرمي exception حتى لا يفشل الـ Job
         }
 
-        // Auth / Credentials
-        if (in_array($response->status(), [401, 403], true) || $status === 'UNAUTHENTICATED') {
-            throw new \RuntimeException('FCM authentication failed.');
+        // ---------------------------
+        // 🟥 Auth / Permission errors
+        // ---------------------------
+        if (in_array($http, [401, 403], true) || in_array($status, ['UNAUTHENTICATED', 'PERMISSION_DENIED'], true)) {
+            throw new \RuntimeException('FCM authentication/permission failed.');
         }
 
-        // باقي الأخطاء → نخلي الـ queue يعيد المحاولة
+        // ---------------------------
+        // 🔁 Other errors (retryable)
+        // ---------------------------
         $response->throw();
     }
 }

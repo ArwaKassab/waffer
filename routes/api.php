@@ -115,6 +115,10 @@ use App\Http\Controllers\SubAdmin\StoreController as SubAdminStoreController;
 
     });
 
+Route::prefix('customer/firebase')->group(function () {
+    Route::post('/register', [CustomerFirebaseAuthController::class, 'register']);
+    Route::post('/reset-password', [CustomerFirebaseAuthController::class, 'resetPassword']);
+});
 
 /*
 |--------------------------------------------------------------------------

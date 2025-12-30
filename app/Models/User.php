@@ -29,6 +29,7 @@ class User extends Authenticatable
         'note',
         'phone_shadow',
         'restorable_until',
+        'firebase_uid',
 //        'user_name',
 
     ];

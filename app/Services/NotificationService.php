@@ -38,17 +38,29 @@ class NotificationService
         $tokens = $tokensQuery->pluck('token')->filter()->unique()->all();
 
         foreach ($tokens as $token) {
-            $this->fcm->sendToToken(
-                $token,
-                $title,
-                $body ?? '',
-                [
-                    'notification_id' => (string) $row->id,
-                    'type'            => $type,
-                    'order_id'        => $orderId ? (string) $orderId : '',
-                ] + $data
-            );
+            try {
+                $this->fcm->sendToToken(
+                    $token,
+                    $title,
+                    $body ?? '',
+                    [
+                        'notification_id' => (string) $row->id,
+                        'type'            => $type,
+                        'order_id'         => $orderId ? (string) $orderId : '',
+                    ] + $data
+                );
+            } catch (\RuntimeException $e) {
+                throw $e;
+            } catch (\Throwable $e) {
+
+                \Log::error('FCM send failed for token', [
+                    'token' => $token,
+                    'err'   => $e->getMessage(),
+                ]);
+                continue;
+            }
         }
+
 
         return $row;
     }
