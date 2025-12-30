@@ -79,9 +79,6 @@ class UserController extends Controller
         if ($request->has('phone') && preg_match('/^0\d{9}$/', $request->phone)) {
             $request->merge(['phone' => '00963' . substr($request->phone, 1)]);
         }
-        if ($request->has('whatsapp_phone') && preg_match('/^0\d{9}$/', $request->whatsapp_phone)) {
-            $request->merge(['whatsapp_phone' => '00963' . substr($request->whatsapp_phone, 1)]);
-        }
 
         $validator = Validator::make($request->all(), [
             'phone'           => 'sometimes|string|unique:users,phone,' . $user->id,

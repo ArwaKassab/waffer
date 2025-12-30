@@ -7,6 +7,7 @@ use App\Http\Controllers\CartController;
 use App\Http\Controllers\CategoryController;
 use App\Http\Controllers\ComplaintController;
 use App\Http\Controllers\CustomerAuthController;
+use App\Http\Controllers\CustomerFirebaseAuthController;
 use App\Http\Controllers\DeviceController;
 use App\Http\Controllers\LinkController;
 use App\Http\Controllers\NotificationController;

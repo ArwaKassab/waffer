@@ -20,14 +20,16 @@ class StoreAuthController extends Controller
     }
     public function login(LoginStoreRequest  $request)
     {
-        $user = $this->userRepo->findByPhoneAndType($request->phone);
+        $user = $this->userRepo->findByUserNameAndType($request->user_name, 'store');
 
         if (!$user || !Hash::check($request->password, $user->password)) {
             return response()->json(['message' => 'بيانات الدخول غير صحيحة'], 401);
         }
-        $token = $user->createToken('customer-token', ['store'])->plainTextToken;
+
+        $token = $user->createToken('store-token', ['store'])->plainTextToken;
 
         return response()->json(['token' => $token]);
+
     }
 
     public function logout(Request $request)

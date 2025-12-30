@@ -57,9 +57,10 @@ class CustomerAuthController extends Controller
         }
         RateLimiter::hit($key, 60);
 
-        if (User::where('phone', $data['phone'])->exists()) {
+        if (User::where('phone', $data['phone'])->where('type', 'customer')->exists()) {
             return response()->json(['message' => 'الرقم مستخدم مسبقًا.'], 422);
         }
+
 
         [$tempId, $sendMeta] = $this->customerService->startRegistration($data, $visitorId);
 
@@ -181,7 +182,7 @@ class CustomerAuthController extends Controller
     public function login(LoginCustomerRequest $request)
     {
 
-        $user = $this->userRepo->findByPhoneAndType($request->phone);
+        $user  = $this->userRepo->findByPhoneAndType($request->phone, 'customer');
 
         if (!$user || !Hash::check($request->password, $user->password)) {
             return response()->json(['message' => 'بيانات الدخول غير صحيحة'], 401);

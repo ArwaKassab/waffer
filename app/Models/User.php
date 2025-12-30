@@ -16,7 +16,6 @@ class User extends Authenticatable
     protected $fillable = [
         'name',
         'phone',
-        'whatsapp_phone',
         'password',
         'area_id',
         'email',
@@ -30,7 +29,7 @@ class User extends Authenticatable
         'phone_shadow',
         'restorable_until',
         'firebase_uid',
-//        'user_name',
+        'user_name',
 
     ];
     protected $casts = [

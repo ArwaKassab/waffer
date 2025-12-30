@@ -19,7 +19,6 @@ class StoreResource extends JsonResource
             'name'          => $this->name,
 //            'user_name'     => $this->user_name,
             'phone'         => $this->phone,
-            'whatsapp_phone'=> $this->whatsapp_phone,
             'status'        => (bool)$this->status,
 
             'open_hour'     => $this->open_hour,

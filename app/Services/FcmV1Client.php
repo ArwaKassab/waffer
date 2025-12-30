@@ -2,7 +2,7 @@
 
 namespace App\Services;
 
-use App\Models\DeviceToken;
+use App\Services\Exceptions\InvalidFcmTokenException;
 use Illuminate\Support\Facades\Http;
 use Illuminate\Support\Facades\Log;
 
@@ -13,6 +13,7 @@ class FcmV1Client
     protected function endpoint(): string
     {
         $projectId = (string) config('services.fcm_v1.project_id');
+
         if (! $projectId) {
             throw new \RuntimeException('FCM project_id is not set.');
         }
@@ -20,8 +21,28 @@ class FcmV1Client
         return "https://fcm.googleapis.com/v1/projects/{$projectId}/messages:send";
     }
 
+    private function maskToken(string $token): string
+    {
+        $token = (string) preg_replace('/\s+/', '', $token);
+        $token = trim($token);
+
+        if ($token === '') {
+            return '[empty]';
+        }
+
+        // اعرض أول 6 وآخر 4 أحرف فقط
+        $start = substr($token, 0, 6);
+        $end   = substr($token, -4);
+
+        return $start . '…' . $end;
+    }
+
     public function sendToToken(string $token, string $title, string $body, array $data = []): void
     {
+        // ✅ تطبيع التوكن (مهم جدًا لتفادي duplicate بسبب \n)
+        $token = (string) preg_replace('/\s+/', '', $token);
+        $token = trim($token);
+
         $response = Http::withToken($this->auth->getAccessToken())
             ->acceptJson()
             ->timeout(15)
@@ -40,10 +61,11 @@ class FcmV1Client
         $http = $response->status();
         $json = $response->json() ?? [];
 
-        Log::info('FCM response', [
-            'token'  => $token,
-            'http'   => $http,
-            'body'   => $json,
+        // ✅ في الإنتاج: لا نسجّل body كامل لكل نجاح عادة (اختياري)
+        Log::info('FCM send result', [
+            'http'  => $http,
+            'ok'    => ! $response->failed(),
+            'token' => $this->maskToken($token),
         ]);
 
         if (! $response->failed()) {
@@ -51,10 +73,10 @@ class FcmV1Client
         }
 
         $error   = $json['error'] ?? [];
-        $status  = $error['status'] ?? null;   // مثل: NOT_FOUND / UNAUTHENTICATED
-        $message = $error['message'] ?? null;  // مثل: NotRegistered
+        $status  = $error['status'] ?? null;     // NOT_FOUND / UNAUTHENTICATED ...
+        $message = $error['message'] ?? null;    // NotRegistered ...
 
-        // Extract FCM errorCode from details (إن وجد)
+        // Extract errorCode من details إن وجد
         $detailCode = null;
         foreach (($error['details'] ?? []) as $d) {
             if (is_array($d) && isset($d['errorCode'])) {
@@ -63,9 +85,10 @@ class FcmV1Client
             }
         }
 
-        Log::error('FCM error parsed', [
-            'token'       => $token,
+        // ✅ لا تسجّل raw بالكامل في الإنتاج إلا عند الحاجة (أو اجعله debug)
+        Log::warning('FCM send failed (parsed)', [
             'http'        => $http,
+            'token'       => $this->maskToken($token),
             'status'      => $status,
             'detail_code' => $detailCode,
             'message'     => $message,
@@ -79,27 +102,23 @@ class FcmV1Client
         $isInvalidToken =
             in_array($detailCode, $invalidCodes, true) ||
             in_array($status, $invalidCodes, true) ||
-            in_array($message, ['NotRegistered'], true) ||                 // مهم لحالتك
-            ($http === 404 && in_array($status, ['NOT_FOUND'], true));     // 404 غالبًا توكن/كيان غير موجود
+            in_array($message, ['NotRegistered'], true) ||
+            ($http === 404 && $status === 'NOT_FOUND');
 
         if ($isInvalidToken) {
-            DeviceToken::where('token', $token)->delete();
-
-            Log::warning('Deleted invalid FCM token', [
-                'token'       => $token,
-                'http'        => $http,
-                'status'      => $status,
-                'detail_code' => $detailCode,
-                'message'     => $message,
-            ]);
-
-            return; // لا نرمي exception حتى لا يفشل الـ Job
+            // لا تضع التوكن كاملًا داخل رسالة الاستثناء
+            throw new InvalidFcmTokenException(
+                "Invalid/expired token. http={$http} status={$status} detail={$detailCode} message={$message}"
+            );
         }
 
         // ---------------------------
         // 🟥 Auth / Permission errors
         // ---------------------------
-        if (in_array($http, [401, 403], true) || in_array($status, ['UNAUTHENTICATED', 'PERMISSION_DENIED'], true)) {
+        if (
+            in_array($http, [401, 403], true) ||
+            in_array($status, ['UNAUTHENTICATED', 'PERMISSION_DENIED'], true)
+        ) {
             throw new \RuntimeException('FCM authentication/permission failed.');
         }
 

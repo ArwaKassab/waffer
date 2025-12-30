@@ -94,7 +94,7 @@ class UserService
     public function updateProfile(User $user, Request $request): array
     {
         $data = $request->only([
-            'name', 'phone', 'whatsapp_phone', 'email',
+            'name', 'phone', 'email',
             'area_id', 'image', 'open_hour', 'close_hour','status',
             'note', 'current_password', 'new_password', 'new_password_confirmation',
         ]);
@@ -142,28 +142,18 @@ class UserService
     public function softDeleteAccount(User $user, int $graceDays = 30): void
     {
         DB::transaction(function () use ($user, $graceDays) {
-            // ألغِ جميع توكنات الدخول (Sanctum)
             $user->tokens()->delete();
-
-            // خزّن الرقم الحقيقي في shadow وحرّر phone بقيمة فريدة قصيرة <= 20 حرف
             $user->phone_shadow = $user->phone;
-
-            // قيمة هاتف "ميتة" قصيرة وآمنة (16 حرف تقريبًا)
-            $deadPhone = 'del_'.Str::lower(Str::random(12)); // مثال: del_ab12c3d4e5f6
+            $deadPhone = 'del_'.Str::lower(Str::random(12));
             $user->phone = $deadPhone;
 
-            // عطّل الحساب ونظّف بيانات حساسة لكن اترك الروابط (الأوامر ستبقى)
             $user->status = false;
-            $user->whatsapp_phone = null;
             $user->image = null;
-            $user->email = null; // إن أردتِ تحرير الإيميل أيضًا
-            // $user->area_id = null; // (اختياري) حسب سياستك
-            // $user->note = null;     // (اختياري)
+            $user->email = null;
+
 
 
             $user->save();
-
-            // Soft delete (لن يحذف السجلات المرتبطة مثل الطلبات)
             $user->delete();
         });
     }

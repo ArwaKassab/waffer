@@ -10,23 +10,22 @@ class CreateUsersTable extends Migration
     {
         Schema::create('users', function (Blueprint $table) {
             $table->id();
+
             $table->string('name');
+            $table->enum('type', ['admin', 'sub_admin', 'customer', 'store']);
             $table->string('user_name')->nullable()->unique();
-            $table->string('phone', 20)->unique();
+            $table->string('phone', 20);
+            $table->unique(['phone', 'type'], 'users_phone_type_unique');
             $table->string('store_contact_phone')->nullable();
             $table->timestamp('phone_verified_at')->nullable();
-            $table->string('whatsapp_phone')->nullable();
             $table->string('password');
-            $table->foreignId('area_id')
-                ->nullable()
-                ->constrained('areas');
-            $table->string('email')->unique()->nullable();
+            $table->foreignId('area_id')->nullable()->constrained('areas');
+            $table->string('email')->nullable()->unique();
             $table->string('image')->nullable();
             $table->time('open_hour')->nullable();
             $table->time('close_hour')->nullable();
             $table->boolean('status')->default(true);
             $table->decimal('wallet_balance', 10, 2)->default(0);
-            $table->enum('type', ['admin', 'sub_admin', 'customer', 'store']);
             $table->text('note')->nullable();
             $table->boolean('is_banned')->default(false);
             $table->string('phone_shadow', 20)->nullable();
@@ -39,10 +38,6 @@ class CreateUsersTable extends Migration
 
     public function down(): void
     {
-        Schema::table('users', function (Blueprint $table) {
-            $table->dropIndex(['phone_shadow']);
-            $table->dropColumn(['phone_shadow', 'restorable_until']);
-        });
+        Schema::dropIfExists('users');
     }
-
-};
+}

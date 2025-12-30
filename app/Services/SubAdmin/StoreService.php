@@ -42,10 +42,6 @@ class StoreService
                 ]);
             }
 
-            $canonicalWhatsapp = null;
-            if (!empty($payload['whatsapp_phone'])) {
-                $canonicalWhatsapp = $this->normalizeCanonical00963($payload['whatsapp_phone']);
-            }
 
             $categoryIds = $payload['category_ids'] ?? [];
             unset($payload['category_ids']);
@@ -54,7 +50,6 @@ class StoreService
                 'name'           => $payload['name'],
                 'user_name'      => $payload['user_name'] ?? null,
                 'phone'          => $canonicalPhone,
-                'whatsapp_phone' => $canonicalWhatsapp,
                 'area_id'        => $payload['area_id'] ?? null,
                 'open_hour'      => $payload['open_hour'] ?? null,
                 'close_hour'     => $payload['close_hour'] ?? null,
@@ -107,15 +102,6 @@ class StoreService
                     $updateData['phone_shadow'] = $canonicalPhone;
                 } else {
                     unset($updateData['phone']);
-                }
-            }
-
-            /** ========= رقم الواتساب ========= */
-            if (array_key_exists('whatsapp_phone', $payload)) {
-                if ($payload['whatsapp_phone']) {
-                    $updateData['whatsapp_phone'] = $this->normalizeCanonical00963($payload['whatsapp_phone']);
-                } else {
-                    $updateData['whatsapp_phone'] = null;
                 }
             }
 

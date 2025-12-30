@@ -49,9 +49,13 @@ class StoreController extends Controller
     {
         $validated = $request->validate([
             'name'        => ['required', 'string', 'max:255'],
-//            'user_name'   => ['required', 'string', 'max:255', Rule::unique('users', 'user_name')],
-            'phone' => ['required', 'regex:/^09\d{8}$/', 'unique:users,phone'],
-            'whatsapp_phone' => ['nullable', 'string', 'max:20'],
+            'user_name'   => ['required', 'string', 'max:255', Rule::unique('users', 'user_name')],
+            'phone' => [
+                'required',
+                'regex:/^09\d{8}$/',
+                Rule::unique('users', 'phone')->where(fn ($q) => $q->where('type', 'store')),
+            ],
+
             'area_id'     => ['required', 'exists:areas,id'],
             'password'    => ['required', 'string', 'min:6'],
             'status'      => ['required', 'boolean'],
@@ -99,8 +103,15 @@ class StoreController extends Controller
                 'max:255',
                 Rule::unique('users', 'user_name')->ignore($store->id),
             ],
-            'phone'       => ['sometimes', 'required', 'regex:/^09\d{8}$/'],
-            'whatsapp_phone' => ['sometimes', 'nullable', 'regex:/^09\d{8}$/'],
+            'phone' => [
+                'sometimes',
+                'required',
+                'regex:/^09\d{8}$/',
+                Rule::unique('users', 'phone')
+                    ->where(fn ($q) => $q->where('type', 'store'))
+                    ->ignore($store->id),
+            ],
+
             'password'    => ['sometimes', 'nullable', 'string', 'min:6'],
             'area_id'     => ['sometimes', 'nullable', 'exists:areas,id'],
             'status'      => ['sometimes', 'boolean'],

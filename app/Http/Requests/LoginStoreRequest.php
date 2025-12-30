@@ -6,19 +6,19 @@ use Illuminate\Foundation\Http\FormRequest;
 
 class LoginStoreRequest extends FormRequest
 {
-    public function rules()
+
+    public function rules(): array
     {
         return [
-            'phone'    => ['required', 'regex:/^0\d{9}$/'], // تحقق من رقم الهاتف
-            'password' => ['required', 'string'],
+            'user_name' => ['required', 'string', 'max:255'],
+            'password'  => ['required', 'string'],
         ];
     }
 
     public function messages()
     {
         return [
-            'phone.required'    => 'رقم الهاتف مطلوب.',
-            'phone.regex'       => 'يجب أن يبدأ رقم الهاتف بـ 0 ويتكون من 10 خانات.',
+            'user_name.required'    => 'اسم المستخدم مطلوب.',
             'password.required' => 'كلمة المرور مطلوبة.',
         ];
     }
