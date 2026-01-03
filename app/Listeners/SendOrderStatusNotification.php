@@ -27,7 +27,7 @@ class SendOrderStatusNotification implements ShouldQueue
         $this->notifications->sendToUser(
             userId: $event->customerUserId,
             type: 'order_status_changed',
-            title: "تحديث على طلبك #{$order->id}",
+            title: "تم التحديث على حالة طلبك",
             body: "حالة الطلب الآن: {$order->status}",
             orderId: $order->id,
             data: [
