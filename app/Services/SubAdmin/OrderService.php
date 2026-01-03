@@ -2,6 +2,7 @@
 
 namespace App\Services\SubAdmin;
 
+use App\Events\NewOrderCreated;
 use App\Events\OrderStatusUpdated;
 use App\Models\Order;
 use App\Models\OrderItem;
@@ -113,7 +114,7 @@ class OrderService
             }
 
             event(new OrderStatusUpdated($order, $order->user_id));
-
+            event(new NewOrderCreated($order));
             return [
                 'success' => true,
                 'message' => 'تم قبول الطلب بنجاح.',
