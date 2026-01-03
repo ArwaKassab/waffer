@@ -2,8 +2,8 @@
 
 namespace App\Http\Controllers;
 
-use App\Http\Requests\FirebaseRegisterCustomerRequest;
-use App\Http\Requests\FirebaseResetPasswordRequest;
+use App\Http\Requests\FirebaseCustomerRegisterRequest;
+use App\Http\Requests\FirebaseCustomerResetPasswordRequest;
 use App\Http\Resources\CustomerResource;
 use App\Services\CustomerFirebaseAuthService;
 use App\Services\FirebaseIdTokenVerifier;
@@ -14,19 +14,15 @@ class CustomerFirebaseAuthController extends Controller
 {
     public function __construct(
         private FirebaseIdTokenVerifier $verifier,
-        private CustomerFirebaseAuthService $firebaseAuthService
+        private CustomerFirebaseAuthService $service
     ) {}
 
-    /**
-     * Register (OTP على الفرونت عبر Firebase) ثم الباك يعمل verify للتوكن وينشئ الحساب
-     */
-    public function register(FirebaseRegisterCustomerRequest $request): JsonResponse
+    public function register(FirebaseCustomerRegisterRequest $request): JsonResponse
     {
         $data = $request->validated();
         $visitorId = $request->cookie('visitor_id');
 
-        // Rate limit على endpoint واحد
-        $key = 'firebase-register:' . sha1(($request->ip() ?? 'ip') . '|' . substr($data['firebase_id_token'], 0, 20));
+        $key = 'firebase-register:' . sha1(($request->ip() ?? 'ip') . '|' . substr($data['firebase_id_token'], 0, 25));
         if (RateLimiter::tooManyAttempts($key, 10)) {
             return response()->json([
                 'message' => 'محاولات كثيرة. حاول لاحقًا.',
@@ -35,33 +31,27 @@ class CustomerFirebaseAuthController extends Controller
         }
         RateLimiter::hit($key, 60);
 
+        // أهم سطر: Verify التوكن واستخراج رقم الهاتف الحقيقي من Firebase
         $claims = $this->verifier->verifyAndGetUidAndPhone($data['firebase_id_token']);
 
-        $user = $this->firebaseAuthService->registerCustomer(
-            $data,
-            $claims['uid'],
-            $claims['phone_e164'],
-            $visitorId
-        );
+        // تجاهل phone القادم من الفرونت حتى لو أرسله
+        $user = $this->service->register($data, $claims['uid'], $claims['phone_e164'], $visitorId);
 
-        // (اختياري) إصدار توكن نظامك مباشرة
+        // الفرونت يتوقع token في response.data['token']
         $token = $user->createToken('customer-token', ['customer'])->plainTextToken;
 
         return response()->json([
-            'message' => 'تم إنشاء حسابك وتفعيل رقم الهاتف بنجاح عبر Firebase.',
+            'message' => 'تم إنشاء حسابك وتفعيل رقم الهاتف بنجاح.',
             'token'   => $token,
             'user'    => new CustomerResource($user),
         ], 201);
     }
 
-    /**
-     * Reset Password (OTP على الفرونت عبر Firebase) ثم verify token ثم تغيير كلمة المرور
-     */
-    public function resetPassword(FirebaseResetPasswordRequest $request): JsonResponse
+    public function resetPassword(FirebaseCustomerResetPasswordRequest $request): JsonResponse
     {
         $data = $request->validated();
 
-        $key = 'firebase-reset:' . sha1(($request->ip() ?? 'ip') . '|' . substr($data['firebase_id_token'], 0, 20));
+        $key = 'firebase-reset:' . sha1(($request->ip() ?? 'ip') . '|' . substr($data['firebase_id_token'], 0, 25));
         if (RateLimiter::tooManyAttempts($key, 5)) {
             return response()->json([
                 'message' => 'محاولات كثيرة. حاول لاحقًا.',
@@ -72,14 +62,13 @@ class CustomerFirebaseAuthController extends Controller
 
         $claims = $this->verifier->verifyAndGetUidAndPhone($data['firebase_id_token']);
 
-        $this->firebaseAuthService->resetPassword(
-            $claims['phone_e164'],
-            $data['new_password']
-        );
+        // الفرونت يرسل الحقل باسم password
+        $this->service->resetPassword($claims['phone_e164'], $data['password']);
 
+        // الفرونت يتحقق من success == true
         return response()->json([
-            'message' => 'تم تغيير كلمة المرور بنجاح.',
             'success' => true,
+            'message' => 'تم تحديث كلمة المرور بنجاح.',
         ], 200);
     }
 }

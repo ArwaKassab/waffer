@@ -13,15 +13,12 @@ class FirebaseIdTokenVerifier
      */
     public function verifyAndGetUidAndPhone(string $idToken): array
     {
-        // يتحقق من صحة/توقيع/انتهاء التوكن ويُرجع claims عند النجاح
-        $verifiedToken = $this->auth->verifyIdToken($idToken); // :contentReference[oaicite:2]{index=2}
+        $verifiedToken = $this->auth->verifyIdToken($idToken);
 
         $uid = (string) $verifiedToken->claims()->get('sub');
 
-        // أحياناً تكون موجودة في claims
         $phone = $verifiedToken->claims()->get('phone_number', null);
 
-        // fallback: اجلب user record من Firebase
         if (!$phone) {
             $user = $this->auth->getUser($uid);
             $phone = $user->phoneNumber; // غالباً +9639xxxxxxx
