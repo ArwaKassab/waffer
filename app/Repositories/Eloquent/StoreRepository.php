@@ -16,19 +16,24 @@ class StoreRepository implements StoreRepositoryInterface
     {
         $paginator = User::where('type', 'store')
             ->where('area_id', $areaId)
-            ->select('id', 'area_id', 'name', 'image', 'note', 'open_hour', 'close_hour', 'status')            ->with(['categories:id'])
+            ->select('id', 'area_id', 'name', 'image', 'note', 'open_hour', 'close_hour', 'status')
+            ->with(['categories:id'])
             ->orderBy('name')
             ->paginate($perPage);
 
         $paginator->getCollection()->transform(function ($store) {
             $store->category_ids = $store->categories->pluck('id')->values();
             unset($store->categories);
+            $store->image = $store->image_url;
+            $store->open_hour  = $store->open_hour_formatted;
+            $store->close_hour = $store->close_hour_formatted;
 
             return $store;
         });
 
         return $paginator;
     }
+
 
     public function getStoresByAreaAndCategoryPaged(int $areaId, int $categoryId, int $perPage = 20)
     {
@@ -54,11 +59,15 @@ class StoreRepository implements StoreRepositoryInterface
 
         $stores->transform(function ($store) {
             $store->image = $store->image_url;
+            $store->open_hour  = $store->open_hour_formatted;   // "08:00"
+            $store->close_hour = $store->close_hour_formatted;  // "22:00"
+
             return $store;
         });
 
         return $stores;
     }
+
 
 
     public function searchStoresAndProductsGroupedInArea(
