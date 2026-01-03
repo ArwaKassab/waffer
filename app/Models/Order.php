@@ -23,6 +23,10 @@ class Order extends Model
         'payment_method',
         'notes',
         'store_total_invoice',
+        'wallet_deducted_at',
+    ];
+    protected $casts = [
+        'wallet_deducted_at' => 'datetime',
     ];
     public function user()
     {

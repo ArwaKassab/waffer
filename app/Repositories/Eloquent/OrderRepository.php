@@ -64,6 +64,32 @@ class OrderRepository
         return $order;
     }
 
+    public function findForUpdate(int $id): ?Order
+    {
+        return Order::lockForUpdate()->find($id);
+    }
+
+    public function setStatusWithItems(int $orderId, string $newStatus): bool
+    {
+        $order = Order::find($orderId);
+        if (! $order) return false;
+
+        $order->status = $newStatus;
+        $saved = (bool) $order->save();
+
+        if (! $saved) return false;
+
+        OrderItem::query()
+            ->where('order_id', $orderId)
+            ->where('status', '!=', 'مرفوض')
+            ->update([
+                'status'     => $newStatus,
+                'updated_at' => now(),
+            ]);
+
+        return true;
+    }
+
     /**
      * إرجاع طلبات المستخدم مع باجينيشن.
      */

@@ -3,15 +3,29 @@
 namespace App\Services\SubAdmin;
 
 use App\Events\OrderStatusUpdated;
+use App\Models\Order;
+use App\Models\OrderItem;
+use App\Models\User;
 use App\Repositories\Eloquent\OrderRepository;
+use App\Services\WalletService;
 use Illuminate\Support\Facades\Auth;
+use Illuminate\Support\Facades\DB;
 use Illuminate\Support\Facades\Validator;
 use Illuminate\Validation\Rule;
+use Illuminate\Validation\ValidationException;
 
 class OrderService
 {
-    public function __construct(private OrderRepository $orderRepo) {}
+    public function __construct(private OrderRepository $orderRepo , WalletService $walletService)
+    {
+        $this->walletService = $walletService;
+    }
 
+
+    public const STATUS_PENDING  = 'انتظار';
+    public const STATUS_ACCEPTED = 'مقبول';
+
+    public const PAYMENT_WALLET = 'محفظة';
     /**
       * تحديث حالة الطلب
     */
@@ -54,6 +68,64 @@ class OrderService
             'message' => "تم تغيير حالة الطلب إلى {$newStatus} بنجاح.",
             'order'   => $this->orderRepo->find($orderId),
         ];
+    }
+    //قبول طلب
+    public function acceptOrder(int $orderId): array
+    {
+        try {
+            $order = DB::transaction(function () use ($orderId) {
+
+                $order = $this->orderRepo->findForUpdate($orderId);
+
+                if (! $order) {
+                    return null;
+                }
+                if ($order->status !== self::STATUS_PENDING) {
+                    throw ValidationException::withMessages([
+                        'status' => "لا يمكن قبول الطلب لأن حالته الحالية هي: {$order->status}"
+                    ]);
+                }
+                if (
+                    $order->payment_method === self::PAYMENT_WALLET &&
+                    $order->wallet_deducted_at === null
+                ) {
+
+                    $user = User::where('id', $order->user_id)->lockForUpdate()->first();
+                    $this->walletService->deductLocked($user, (float) $order->total_price);
+
+                    $order->wallet_deducted_at = now();
+                    $order->save();
+                }
+
+                $ok = $this->orderRepo->setStatusWithItems($order->id, self::STATUS_ACCEPTED);
+
+                if (! $ok) {
+                    throw ValidationException::withMessages([
+                        'order' => 'تعذر تحديث حالة الطلب.'
+                    ]);
+                }
+
+                return $order->fresh();
+            });
+
+            if (! $order) {
+                return ['success' => false, 'message' => 'الطلب غير موجود.'];
+            }
+
+            event(new OrderStatusUpdated($order, $order->user_id));
+
+            return [
+                'success' => true,
+                'message' => 'تم قبول الطلب بنجاح.',
+                'order'   => $order,
+            ];
+
+        } catch (ValidationException $e) {
+            $first = collect($e->errors())->flatten()->first() ?? 'خطأ تحقق';
+            return ['success' => false, 'message' => $first, 'errors' => $e->errors()];
+        } catch (\Throwable $e) {
+            return ['success' => false, 'message' => 'حدث خطأ غير متوقع أثناء قبول الطلب.'];
+        }
     }
 
 

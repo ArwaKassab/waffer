@@ -22,6 +22,7 @@ class CreateOrdersTable extends Migration
             $table->time('time');
             $table->enum('status', ['انتظار', 'مقبول', 'يجهز', 'حضر', 'في الطريق' ,'مستلم', 'مرفوض'])->default('انتظار');
             $table->enum('payment_method', ['نقدي', 'محفظة'])->default('نقدي');
+            $table-> timestamp('wallet_deducted_at')->nullable();
             $table->text('notes')->nullable();
             $table->timestamps();
             $table->softDeletes();

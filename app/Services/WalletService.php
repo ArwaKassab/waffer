@@ -19,17 +19,17 @@ class WalletService
     /**
      * التحقق والخصم من المحفظة داخل معاملة
      */
-    public function deduct(User $user, float $amount): void
+    public function deductLocked(User $user, float $amount): void
     {
-        $lockedUser = User::where('id', $user->id)->lockForUpdate()->first();
-
-        if ($lockedUser->wallet_balance < $amount) {
+        if ($user->wallet_balance < $amount) {
             throw ValidationException::withMessages(['wallet' => 'الرصيد غير كافٍ.']);
         }
 
-        $lockedUser->wallet_balance -= $amount;
-        $lockedUser->save();
+        $user->wallet_balance -= $amount;
+        $user->save();
     }
+
+
 
     /**
      * التحقق فقط من كفاية الرصيد دون خصم

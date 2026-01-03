@@ -325,6 +325,7 @@ Route::prefix('customer/firebase')->group(function () {
         Route::get('/customers/banned', [SubAdminCustomerController::class, 'banned']);
         Route::put('/customers/ban/{user}', [SubAdminCustomerController::class, 'setOrToggleBan']);
         //الطلبات
+        Route::post('/orders/{orderId}/accept', [SubAdminOrderController::class, 'accept']);
         Route::patch('/orders/{orderId}/status', [SubAdminOrderController::class, 'changeStatus']);
         Route::get('/orders/today/pending/count', [SubAdminOrderController::class, 'countTodayPending']);
         Route::get('/orders/today/pending/ids',       [SubAdminOrderController::class, 'listTodayPending']);

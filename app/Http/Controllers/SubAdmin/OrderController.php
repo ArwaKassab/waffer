@@ -30,6 +30,17 @@ class OrderController extends Controller
         return response()->json($response, $statusCode);
     }
 
+    public function accept(Request $request, $orderId)
+    {
+        $response = $this->orderService->acceptOrder((int) $orderId);
+
+        return response()->json(
+            $response,
+            $response['success'] ? 200 : 400
+        );
+    }
+
+
 
 
     /**
