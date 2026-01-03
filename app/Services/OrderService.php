@@ -72,6 +72,19 @@ class OrderService
             // حفظ المنتجات المرتبطة بالطلب وكذلك الخصومات التي تم تطبيقها
             $this->storeOrderItemsAndDiscounts($order, $calculation);
 
+
+            $orderedProductIds = collect($products)
+                ->pluck('product_id')
+                ->map(fn ($id) => (int) $id)
+                ->unique()
+                ->values()
+                ->all();
+
+            $this->orderRepo->deleteCartItemsThatWereOrdered(
+                $userId,
+                $orderedProductIds
+            );
+
             //  تجهيز بيانات الطلب لإرجاعها في الاستجابة
             return [
                 $order,

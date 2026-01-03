@@ -560,6 +560,19 @@ class OrderRepository
         ];
     }
 
+    public function deleteCartItemsThatWereOrdered(
+        int $userId,
+        array $orderedProductIds
+    ): void {
+        DB::table('cart_items')
+            ->whereIn('product_id', $orderedProductIds)
+            ->whereIn('cart_id', function ($q) use ($userId) {
+                $q->select('id')
+                    ->from('carts')
+                    ->where('user_id', $userId);
+            })
+            ->delete();
+    }
 
 
 
