@@ -16,8 +16,7 @@ class StoreRepository implements StoreRepositoryInterface
     {
         $paginator = User::where('type', 'store')
             ->where('area_id', $areaId)
-            ->select('id', 'area_id', 'name', 'image', 'note', 'open_hour', 'close_hour')
-            ->with(['categories:id'])
+            ->select('id', 'area_id', 'name', 'image', 'note', 'open_hour', 'close_hour', 'status')            ->with(['categories:id'])
             ->orderBy('name')
             ->paginate($perPage);
 
@@ -36,7 +35,7 @@ class StoreRepository implements StoreRepositoryInterface
         $paginator = User::where('type', 'store')
             ->where('area_id', $areaId)
             ->whereHas('categories', fn($q) => $q->where('categories.id', $categoryId))
-            ->select('id', 'area_id', 'name', 'image', 'note', 'open_hour', 'close_hour')
+            ->select('id', 'area_id', 'name', 'image','status',  'note', 'open_hour', 'close_hour')
             ->orderBy('name')
             ->paginate($perPage);
 
@@ -51,7 +50,7 @@ class StoreRepository implements StoreRepositoryInterface
             ->whereHas('categories', function ($query) use ($categoryId) {
                 $query->where('categories.id', $categoryId);
             })
-            ->get(['id', 'area_id', 'name', 'image', 'note', 'open_hour', 'close_hour']);
+            ->get(['id', 'area_id', 'name', 'image', 'note', 'status', 'open_hour', 'close_hour']);
 
         $stores->transform(function ($store) {
             $store->image = $store->image_url;
@@ -263,13 +262,12 @@ class StoreRepository implements StoreRepositoryInterface
             ->where('type', 'store')
             ->whereKey($storeId)
             ->with(['products', 'categories'])
-            ->first(['id', 'name', 'image', 'note','status', 'open_hour', 'close_hour']); // removed status
+            ->first(['id', 'name', 'image', 'note','status', 'open_hour', 'close_hour']);
 
         if (!$store) {
             return null;
         }
 
-        // image_url موجود في appends أصلاً، لكن لا مشكلة من append
         $store->append('image_url')->makeHidden(['image']);
 
         $productsWithDiscountsFirst = $store->products
