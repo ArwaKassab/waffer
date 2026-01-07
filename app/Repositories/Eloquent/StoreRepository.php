@@ -113,7 +113,7 @@ class StoreRepository implements StoreRepositoryInterface
         // 3) منتجات تطابق الاسم داخل المنطقة + eager-load للخصم الفعّال
         $productsMatched = Product::query()
             ->with([
-                'store:id,name,area_id,image,note,open_hour,close_hour',
+                'store:id,name,area_id,image,status,note,open_hour,close_hour',
                 'activeDiscount' => function ($q2) {
                     $q2->select(
                         'discounts.id',
@@ -184,7 +184,7 @@ class StoreRepository implements StoreRepositoryInterface
                     'id' => $p->id,
                     'name' => $p->name,
                     'price' => (float)$p->price,
-                    'isAvilable' => (bool) $p->status,
+                    'isAvailable' => $p->status === 'available',
                     'image' => $p->image_url,
                     'details' => $p->details,
                     '_matched' => true,
@@ -229,7 +229,7 @@ class StoreRepository implements StoreRepositoryInterface
                         'id' => $p->id,
                         'name' => $p->name,
                         'price' => (float)$p->price,
-                        'isAvilable' => (bool) $p->status,
+                        'isAvailable' => $p->status === 'available',
                         'details' => $p->details,
                         'image' => $p->image_url,
                     ];
@@ -441,7 +441,7 @@ class StoreRepository implements StoreRepositoryInterface
                     'name' => $p->name,
                     'price' => (float)$p->price,
                     'image' => $p->image_url,
-                    'isAvilable' => (bool) $p->status,
+                    'isAvailable' => $p->status === 'available',
                     'details' => $p->details,
                     '_matched' => true,
                 ];
@@ -485,7 +485,7 @@ class StoreRepository implements StoreRepositoryInterface
                         'id' => $p->id,
                         'name' => $p->name,
                         'price' => (float)$p->price,
-                        'isAvilable' => (bool) $p->status,
+                        'isAvailable' => $p->status === 'available',
                         'details' => $p->details,
                         'image' => $p->image_url,
                     ];
@@ -527,7 +527,7 @@ class StoreRepository implements StoreRepositoryInterface
         $q = User::where('type', 'store')
             ->where('area_id', $areaId)
             ->with(['categories:id'])
-            ->select('id', 'area_id', 'name', 'image',  'note', 'open_hour', 'close_hour');
+            ->select('id', 'area_id', 'name', 'image', 'status', 'note', 'open_hour', 'close_hour');
 
         if ($matchMode === 'all') { // الآن هذا هو الافتراضي
             $q->where(function ($qq) use ($categoryIds) {
@@ -680,7 +680,7 @@ class StoreRepository implements StoreRepositoryInterface
                     'id' => $p->id,
                     'name' => $p->name,
                     'price' => (float)$p->price,
-                    'isAvilable' => (bool) $p->status,
+                    'isAvailable' => $p->status === 'available',
                     'image' => $p->image_url,
                     'details' => $p->details,
                     '_matched' => true,
@@ -715,7 +715,7 @@ class StoreRepository implements StoreRepositoryInterface
                         'id' => $p->id,
                         'name' => $p->name,
                         'price' => (float)$p->price,
-                        'isAvilable' => (bool) $p->status,
+                        'isAvailable' => $p->status === 'available',
                         'image' => $p->image_url,
                         'details' => $p->details,
                     ];

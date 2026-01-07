@@ -18,6 +18,7 @@ class DiscountResource extends JsonResource
                 'name'     => $this->product?->name,
                 'image'    => $this->product?->image_url ?? $this->product?->image,
                 'details'  => $this->product?->details,
+                'isAvailable' =>  $this->product->status === 'available',
                 'old_price'=> $this->product?->price,
                 'new_price'=> (float) $this->new_price,
             ],
