@@ -67,13 +67,15 @@ class Product extends Model
 
     public function activeDiscount(): HasOne
     {
-        $now = Carbon::now(config('app.timezone'));
+        $today = Carbon::now(config('app.timezone'))->toDateString();
 
         return $this->hasOne(Discount::class)
-            ->select('discounts.*')
             ->where('discounts.status', 'active')
-            ->where('discounts.start_date', '<=', $now)
-            ->where('discounts.end_date', '>=', $now)
+            ->whereDate('discounts.start_date', '<=', $today)
+            ->where(function ($q) use ($today) {
+                $q->whereDate('discounts.end_date', '>=', $today)
+                    ->orWhereNull('discounts.end_date');
+            })
             ->latestOfMany('start_date');
     }
 
@@ -87,11 +89,16 @@ class Product extends Model
         $today = Carbon::now(config('app.timezone'))->toDateString();
 
         return $this->discounts()
+            ->where('status', 'active')
             ->whereDate('start_date', '<=', $today)
-            ->whereDate('end_date', '>=', $today)
+            ->where(function ($q) use ($today) {
+                $q->whereDate('end_date', '>=', $today)
+                    ->orWhereNull('end_date');
+            })
             ->orderByDesc('start_date')
             ->first();
     }
+
 
     public function changeRequests()
     {

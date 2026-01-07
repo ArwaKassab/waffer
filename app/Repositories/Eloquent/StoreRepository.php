@@ -15,16 +15,15 @@ class StoreRepository implements StoreRepositoryInterface
      * - is_open_now محسوب من accessor في User
      * - category_ids موجود دائماً (قد يكون [] إذا لم تُحمّل التصنيفات بعد)
      */
-    private function storePayload(User $s, array $extra = [], ?array $categoryIdsOverride = null): array
+    /**
+     * @param \App\Models\User $s
+     */
+    private function storePayload(User $s, array $extra = []): array
     {
-        $categoryIds = $categoryIdsOverride
-            ?? ($s->relationLoaded('categories') ? $s->categories->pluck('id')->values()->all() : []);
-
         return array_merge([
             'id'          => $s->id,
             'name'        => $s->name,
             'area_id'     => $s->area_id,
-
             'status'      => (bool) $s->status,
             'is_open_now' => (bool) $s->is_open_now,
 
@@ -32,9 +31,10 @@ class StoreRepository implements StoreRepositoryInterface
             'close_hour'  => $s->close_hour_formatted,
 
             'note'        => $s->note,
-            'image'       => $s->image_url,
 
-            'category_ids'=> $categoryIds,
+            // دعم المفتاحين دائمًا
+            'image'       => $s->image_url,
+            'image_url'   => $s->image_url,
         ], $extra);
     }
 
@@ -317,16 +317,31 @@ class StoreRepository implements StoreRepositoryInterface
         return $final;
     }
 
+
     public function getStoreDetailsWithProductsAndDiscounts($storeId)
     {
+        /** @var \App\Models\User|null $store */
         $store = User::query()
             ->where('type', 'store')
             ->whereKey($storeId)
             ->with([
                 'categories:id',
                 'products' => function ($q) {
-                    $q->with(['activeDiscount'])
-                        ->select('id', 'store_id', 'name', 'price', 'status', 'unit', 'details', 'image');
+                    $q->with([
+                        'activeDiscount' => function ($q2) {
+                            $q2->select(
+                                'discounts.id',
+                                'discounts.product_id',
+                                'discounts.title',      // ✅ مهم
+                                'discounts.new_price',
+                                'discounts.start_date',
+                                'discounts.end_date',
+                                'discounts.status'
+                            );
+                        }
+                    ])
+                        ->select('id', 'store_id', 'name', 'price', 'status', 'unit', 'details', 'image')
+                        ->orderBy('name');
                 },
             ])
             ->first(['id', 'name', 'image', 'note', 'status', 'open_hour', 'close_hour', 'area_id']);
@@ -339,33 +354,24 @@ class StoreRepository implements StoreRepositoryInterface
             ->sortByDesc(fn ($product) => $product->activeDiscount ? 1 : 0)
             ->values();
 
-        $storeArr = $this->storePayload($store, [
-            // للواجهات التي تتوقع image_url أيضاً:
-            'image_url' => $store->image_url,
-        ]);
+        $storeArr = $this->storePayload($store);
 
         return [
             'store' => $storeArr,
-
-            // ids فقط
-            'categories' => $store->categories->map(fn ($c) => ['id' => $c->id])->values(),
+            'categories'   => $store->categories->map(fn ($c) => ['id' => $c->id])->values(),
             'category_ids' => $store->categories->pluck('id')->values(),
 
             'products' => $productsWithDiscountsFirst->map(function ($product) {
                 $discount = $product->activeDiscount;
 
                 return [
-                    'id'             => $product->id,
-                    'name'           => $product->name,
-
-                    // دعم المفتاحين لتجنب كسر الواجهة
-                    'image'          => $product->image_url,
-                    'image_url'      => $product->image_url,
-
-                    'isAvailable'    => $product->status === 'available',
-                    'unit'           => $product->unit,
-                    'details'        => $product->details,
-
+                    'id'          => $product->id,
+                    'name'        => $product->name,
+                    'image'       => $product->image_url,
+                    'image_url'   => $product->image_url,
+                    'isAvailable' => $product->status === 'available',
+                    'unit'        => $product->unit,
+                    'details'     => $product->details,
                     'original_price' => (float) $product->price,
                     'new_price'      => $discount?->new_price !== null ? (float) $discount->new_price : null,
                     'discount_title' => $discount?->title ?? null,
@@ -373,6 +379,8 @@ class StoreRepository implements StoreRepositoryInterface
             })->values(),
         ];
     }
+
+
 
     public function searchStoresAndProductsGrouped(
         int $areaId,
