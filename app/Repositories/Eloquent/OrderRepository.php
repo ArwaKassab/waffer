@@ -64,9 +64,20 @@ class OrderRepository
         return $order;
     }
 
+
+
     public function findForUpdate(int $id): ?Order
     {
         return Order::lockForUpdate()->find($id);
+    }
+
+    public function setOrderStatusOnly(int $orderId, string $newStatus): bool
+    {
+        $order = Order::find($orderId);
+        if (! $order) return false;
+
+        $order->status = $newStatus;
+        return (bool) $order->save();
     }
 
     public function setStatusWithItems(int $orderId, string $newStatus): bool
@@ -89,6 +100,7 @@ class OrderRepository
 
         return true;
     }
+
 
     /**
      * إرجاع طلبات المستخدم مع باجينيشن.
@@ -119,10 +131,10 @@ class OrderRepository
     public function PendingOrdersForStore(int $storeId, int $perPage = 10): LengthAwarePaginator
     {
         return Order::query()
-
+            ->where('orders.status', 'مقبول') // ✅ حالة الطلب
             ->whereHas('items', function ($q) use ($storeId) {
                 $q->where('store_id', $storeId)
-                    ->where('status', 'انتظار');
+                    ->where('status', 'انتظار'); // ✅ حالة items لهذا المتجر
             })
             ->select('orders.id', 'orders.date', 'orders.time', 'orders.created_at')
             ->withCount([
@@ -131,10 +143,11 @@ class OrderRepository
                         ->where('status', 'انتظار');
                 }
             ])
-            ->orderByDesc('date')
-            ->orderByDesc('time')
+            ->orderByDesc('orders.date')
+            ->orderByDesc('orders.time')
             ->paginate($perPage);
     }
+
 
     /**
      * الطلبات التي فيها منتجات قيد التجهيز لهذا المتجر — مقسّمة صفحات.

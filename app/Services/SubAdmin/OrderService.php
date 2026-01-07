@@ -98,13 +98,14 @@ class OrderService
                     $order->save();
                 }
 
-                $ok = $this->orderRepo->setStatusWithItems($order->id, self::STATUS_ACCEPTED);
+                $ok = $this->orderRepo->setOrderStatusOnly($order->id, self::STATUS_ACCEPTED);
 
                 if (! $ok) {
                     throw ValidationException::withMessages([
                         'order' => 'تعذر تحديث حالة الطلب.'
                     ]);
                 }
+
 
                 return $order->fresh();
             });
