@@ -332,7 +332,7 @@ class StoreRepository implements StoreRepositoryInterface
                             $q2->select(
                                 'discounts.id',
                                 'discounts.product_id',
-                                'discounts.title',      // ✅ مهم
+//                                'discounts.title',      // ✅ مهم
                                 'discounts.new_price',
                                 'discounts.start_date',
                                 'discounts.end_date',
