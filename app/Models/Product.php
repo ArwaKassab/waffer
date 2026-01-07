@@ -65,26 +65,16 @@ class Product extends Model
         return $this->hasMany(Discount::class);
     }
 
-
-
     public function activeDiscount(): HasOne
     {
         $now = Carbon::now(config('app.timezone'));
 
         return $this->hasOne(Discount::class)
+            ->select('discounts.*')
+            ->where('discounts.status', 'active')
             ->where('discounts.start_date', '<=', $now)
             ->where('discounts.end_date', '>=', $now)
-            ->latestOfMany(['start_date', 'id'])
-            ->select([
-                'discounts.id',
-                'discounts.product_id',
-                'discounts.new_price',
-                'discounts.start_date',
-                'discounts.end_date',
-                'discounts.status',
-                'discounts.created_at',
-                'discounts.updated_at',
-            ]);
+            ->latestOfMany('start_date');
     }
 
     public function offers()
