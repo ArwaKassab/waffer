@@ -3,6 +3,7 @@
 namespace App\Http\Controllers\SubAdmin;
 
 use App\Http\Controllers\Controller;
+use App\Http\Resources\StoreAdminShowResource;
 use App\Http\Resources\StoreResource;
 use App\Models\User;
 use App\Services\SubAdmin\StoreService;
@@ -155,5 +156,52 @@ class StoreController extends Controller
         ]);
     }
 
+    public function show(Request $request, int $storeId): JsonResponse
+    {
 
+        $store = $this->storeService->getStoreDetailsForAdmin(
+            storeId: $storeId,
+        );
+
+        if (!$store) {
+            return response()->json([
+                'success' => false,
+                'message' => 'المتجر غير موجود.',
+            ], 404);
+        }
+
+        return response()->json([
+            'success' => true,
+            'data' => new StoreAdminShowResource($store),
+        ]);
+    }
+
+    /**
+     * تعديل حالة المنتج (available / not_available) من قبل الأدمن.
+     */
+    public function updateStatus(Request $request, int $product): JsonResponse
+    {
+        $user = auth('sanctum')->user();
+
+
+        $validated = $request->validate([
+            'status' => ['required', Rule::in(['available', 'not_available'])],
+        ]);
+
+        $updated = $this->storeService->updateProductStatus(
+            productId: $product,
+            status: $validated['status'],
+        );
+
+        return response()->json([
+            'success' => true,
+            'message' => 'تم تعديل حالة المنتج بنجاح.',
+            'data' => [
+                'id' => $updated->id,
+                'status' => $updated->status,
+                'updated_at' => optional($updated->updated_at)->toDateTimeString(),
+            ],
+        ]);
+    }
 }
+

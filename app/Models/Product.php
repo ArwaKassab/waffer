@@ -1,6 +1,7 @@
 <?php
 
 namespace App\Models;
+use Illuminate\Database\Eloquent\Relations\HasOne;
 use Illuminate\Support\Facades\Storage;
 
 use Carbon\Carbon;
@@ -65,14 +66,25 @@ class Product extends Model
     }
 
 
-    public function activeDiscount()
+
+    public function activeDiscount(): HasOne
     {
         $now = Carbon::now(config('app.timezone'));
 
         return $this->hasOne(Discount::class)
-            ->where('start_date', '<=', $now)
-            ->where('end_date', '>=', $now)
-            ->latestOfMany('start_date'); // أو latestOfMany() بدون باراميتر
+            ->where('discounts.start_date', '<=', $now)
+            ->where('discounts.end_date', '>=', $now)
+            ->latestOfMany(['start_date', 'id'])
+            ->select([
+                'discounts.id',
+                'discounts.product_id',
+                'discounts.new_price',
+                'discounts.start_date',
+                'discounts.end_date',
+                'discounts.status',
+                'discounts.created_at',
+                'discounts.updated_at',
+            ]);
     }
 
     public function offers()

@@ -345,8 +345,11 @@ Route::prefix('customer')->group(function () {
         //المتاجر
         Route::get('/stores/all-area', [SubAdminStoreController::class, 'allArea']);
         Route::post('/stores/add', [SubAdminStoreController::class, 'addStore']);
-        Route::put('/stores/update/{storeId}', [SubAdminStoreController::class, 'update']);
+        Route::get('stores/{storeId}', [SubAdminStoreController::class, 'show']);
+        Route::PATCH('/stores/update/{storeId}', [SubAdminStoreController::class, 'update']);
         Route::delete('stores/destroy/{storeId}', [SubAdminStoreController::class, 'destroy']);
+//المنتجات
+        Route::PATCH('products/status/{product}', [SubAdminStoreController::class, 'updateStatus']);
     });
 
 Route::middleware('auth:sanctum')->group(function () {

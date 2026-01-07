@@ -304,7 +304,7 @@ class StoreRepository implements StoreRepositoryInterface
                     'id'             => $product->id,
                     'name'           => $product->name,
                     'image_url'      => $product->image_url,
-                    'isAvailable'    => (bool) $product->status,
+                    'isAvailable'    => $product->status === 'available',
                     'unit'           => $product->unit,
                     'details'        => $product->details,
                     'original_price' => $product->price,
@@ -758,7 +758,8 @@ class StoreRepository implements StoreRepositoryInterface
                 'name',
                 'phone',
                 'open_hour',
-                'close_hour'
+                'close_hour',
+                'status'
             )
             ->with(['categories:id,name']) // فقط id + name
             ->orderBy('name')
@@ -825,7 +826,6 @@ class StoreRepository implements StoreRepositoryInterface
             $store->categories()->sync($categoryIds);
         }
 
-        // نرجّع نسخة جديدة من الداتا بعد الحفظ
         return $store->fresh(['categories:id,name', 'area:id,name']);
     }
 
@@ -845,5 +845,86 @@ class StoreRepository implements StoreRepositoryInterface
         $store->delete();
 
         return true;
+    }
+
+    public function findStoreDetailsForAdmin(int $storeId, ?int $adminAreaId = null): User
+    {
+        $query = User::query()
+            ->where('type', 'store')
+            ->whereKey($storeId)
+            ->select([
+                'id',
+                'name',
+                'user_name',
+                'phone',
+                'status',
+                'open_hour',
+                'close_hour',
+                'image',
+                'area_id',
+                'note',
+            ])
+            ->with([
+                'area' => fn ($q) => $q->withTrashed()->select('id', 'name'),
+                'categories' => fn ($q) => $q->select('categories.id', 'categories.name'),
+
+                // ✅ منتجات المتجر + الخصم النشط
+                'products' => function ($q) {
+                    $q->select([
+                        'id',
+                        'store_id',
+                        'name',
+                        'price',
+                        'status',
+                        'quantity',
+                        'unit',
+                        'details',
+                        'image',
+                    ])
+                        ->with([
+                            'activeDiscount' => function ($q) {
+                                $q->select([
+                                    'discounts.id',
+                                    'discounts.product_id',
+                                    'discounts.new_price',
+                                    'discounts.start_date',
+                                    'discounts.end_date',
+                                    'discounts.status',
+                                    'discounts.created_at',
+                                    'discounts.updated_at',
+                                ]);
+                            }
+                        ])
+                        ->orderByRaw("CASE WHEN status = 'available' THEN 0 WHEN status = 'not_available' THEN 1 ELSE 2 END")
+                        ->orderByDesc('created_at');
+                },
+            ]);
+
+        if (!is_null($adminAreaId)) {
+            $query->where('area_id', $adminAreaId);
+        }
+
+        /** @var \App\Models\User $store */
+        $store = $query->firstOrFail();
+
+        $store->append('image_url')->makeHidden(['image']);
+
+        return $store;
+    }
+
+    public function findForUpdate(int $id): ?Product
+    {
+        /** @var Product|null $product */
+        $product = Product::query()
+            ->whereKey($id)
+            ->lockForUpdate()
+            ->first();
+
+        return $product;
+    }
+    public function updateStatus(Product $product, string $status): bool
+    {
+        $product->status = $status;
+        return (bool) $product->save();
     }
 }

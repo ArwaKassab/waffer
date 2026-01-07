@@ -2,6 +2,7 @@
 
 namespace App\Services\SubAdmin;
 
+use App\Models\Product;
 use App\Models\User;
 use App\Repositories\Contracts\StoreRepositoryInterface;
 use Illuminate\Http\Request;
@@ -165,6 +166,35 @@ class StoreService
         throw new \InvalidArgumentException('صيغة رقم غير مسموح بها.');
     }
 
+    public function getStoreDetailsForAdmin(int $storeId, ?int $adminAreaId = null): ?User
+    {
+        return $this->storeRepository->findStoreDetailsForAdmin($storeId, $adminAreaId);
+    }
 
+    public function updateProductStatus(int $productId, string $status): Product
+    {
+        if (!in_array($status, ['available', 'not_available'], true)) {
+            throw ValidationException::withMessages([
+                'status' => 'قيمة الحالة غير صحيحة.',
+            ]);
+        }
+
+        return DB::transaction(function () use ($productId, $status) {
+
+            $product = $this->storeRepository->findForUpdate($productId);
+
+            if (!$product) {
+                throw ValidationException::withMessages([
+                    'product' => 'المنتج غير موجود.',
+                ]);
+            }
+
+            $this->storeRepository->updateStatus($product, $status);
+
+            $product->refresh();
+
+            return $product;
+        });
+    }
 
 }
