@@ -37,8 +37,7 @@ class User extends Authenticatable
         'restorable_until'  => 'datetime',
         'status'            => 'boolean',
     ];
-
-    protected $appends = ['image_url', 'is_open_now'];
+    protected $appends = ['image_url', 'is_open_now', 'open_hour_formatted', 'close_hour_formatted'];
     protected $hidden  = ['image'];
 
     public function setImageAttribute($value): void
@@ -107,9 +106,6 @@ class User extends Authenticatable
         return $this->deviceTokens()->pluck('token')->all();
     }
 
-    /**
-     * هل المتجر مفتوح الآن حسب الحالة وساعات العمل؟
-     */
     public function getIsOpenNowAttribute(): bool
     {
         if (! $this->status) {
@@ -123,17 +119,17 @@ class User extends Authenticatable
         $tz  = config('app.timezone', 'Asia/Damascus');
         $now = Carbon::now($tz);
 
-        $from = Carbon::createFromTimeString($this->open_hour, $tz);
-        $to   = Carbon::createFromTimeString($this->close_hour, $tz);
+        $from = Carbon::parse($this->open_hour, $tz)->setDate($now->year, $now->month, $now->day);
+        $to   = Carbon::parse($this->close_hour, $tz)->setDate($now->year, $now->month, $now->day);
 
-        // الحالة العادية (يفتح ويغلق بنفس اليوم)
         if ($from->lte($to)) {
-            return $now->gte($from) && $now->lte($to);
+            return $now->between($from, $to, true); // inclusive
         }
 
-        // حالة العمل بعد منتصف الليل (مثال 20:00 → 04:00)
         return $now->gte($from) || $now->lt($to);
     }
+
+
 
 
     public function getOpenHourFormattedAttribute(): ?string
