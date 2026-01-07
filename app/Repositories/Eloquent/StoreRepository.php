@@ -270,13 +270,7 @@ class StoreRepository implements StoreRepositoryInterface
         $store = User::query()
             ->where('type', 'store')
             ->whereKey($storeId)
-            ->with([
-                'categories:id',
-                'products' => function ($q) {
-                    $q->with(['activeDiscount'])
-                        ->select('id','store_id','name','price','status','unit','details','image');
-                },
-            ])
+            ->with(['products', 'categories'])
             ->first(['id', 'name', 'image', 'note','status', 'open_hour', 'close_hour']);
 
         if (!$store) {
@@ -286,7 +280,7 @@ class StoreRepository implements StoreRepositoryInterface
         $store->append('image_url')->makeHidden(['image']);
 
         $productsWithDiscountsFirst = $store->products
-            ->sortByDesc(fn($product) => $product->activeDiscount ? 1 : 0)
+            ->sortByDesc(fn($product) => $product->activeDiscountToday() ? 1 : 0)
             ->values();
 
         return [
@@ -298,12 +292,13 @@ class StoreRepository implements StoreRepositoryInterface
                 'note'       => $store->note,
                 'open_hour'  => $store->open_hour_formatted,
                 'close_hour' => $store->close_hour_formatted,
+
             ],
             'categories' => $store->categories->map(fn($category) => [
                 'id' => $category->id,
             ]),
             'products' => $productsWithDiscountsFirst->map(function ($product) {
-                $discount = $product->activeDiscount;
+                $discount = $product->activeDiscountToday();
 
                 return [
                     'id'             => $product->id,
@@ -312,14 +307,13 @@ class StoreRepository implements StoreRepositoryInterface
                     'isAvailable'    => $product->status === 'available',
                     'unit'           => $product->unit,
                     'details'        => $product->details,
-                    'original_price' => (float) $product->price,
-                    'new_price'      => $discount?->new_price ? (float) $discount->new_price : null,
+                    'original_price' => $product->price,
+                    'new_price'      => $discount?->new_price,
                     'discount_title' => $discount?->title,
                 ];
             }),
         ];
     }
-
 
     public function searchStoresAndProductsGrouped(
         int    $areaId,

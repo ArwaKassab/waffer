@@ -6,6 +6,7 @@ use App\Models\User;
 use App\Repositories\Eloquent\CartRepository;
 use Illuminate\Support\Facades\DB;
 use Illuminate\Support\Facades\Hash;
+use Illuminate\Support\Facades\Schema;
 
 class CustomerFirebaseAuthService
 {
@@ -35,7 +36,7 @@ class CustomerFirebaseAuthService
             ];
 
             // إذا عندك firebase_uid في الجدول
-            if (\Schema::hasColumn('users', 'firebase_uid')) {
+            if (Schema::hasColumn('users', 'firebase_uid')){
                 $createData['firebase_uid'] = $firebaseUid;
             }
 

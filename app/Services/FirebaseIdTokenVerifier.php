@@ -2,7 +2,7 @@
 
 namespace App\Services;
 
-use Kreait\Firebase\Auth;
+use Kreait\Firebase\Contract\Auth;
 
 class FirebaseIdTokenVerifier
 {
