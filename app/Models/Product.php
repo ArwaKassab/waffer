@@ -65,25 +65,6 @@ class Product extends Model
         return $this->hasMany(Discount::class);
     }
 
-//    public function activeDiscount(): HasOne
-//    {
-//        $today = Carbon::now(config('app.timezone'))->toDateString();
-//
-//        return $this->hasOne(Discount::class)
-//            ->where('discounts.status', 'active')
-//            ->whereDate('discounts.start_date', '<=', $today)
-//            ->where(function ($q) use ($today) {
-//                $q->whereDate('discounts.end_date', '>=', $today)
-//                    ->orWhereNull('discounts.end_date');
-//            })
-//            ->latestOfMany('start_date');
-//    }
-
-    public function offers()
-    {
-        return $this->belongsToMany(Offer::class, 'offer_product', 'product_id', 'offer_id');
-    }
-
     public function activeDiscount(): HasOne
     {
         $today = Carbon::now(config('app.timezone'))->toDateString();
@@ -95,7 +76,25 @@ class Product extends Model
             ->latestOfMany('start_date');
     }
 
+    public function offers()
+    {
+        return $this->belongsToMany(Offer::class, 'offer_product', 'product_id', 'offer_id');
+    }
 
+    public function activeDiscountToday()
+    {
+        $today = Carbon::now(config('app.timezone'))->toDateString();
+
+        return $this->discounts()
+            ->where('status', 'active')
+            ->whereDate('start_date', '<=', $today)
+            ->where(function ($q) use ($today) {
+                $q->whereDate('end_date', '>=', $today)
+                    ->orWhereNull('end_date');
+            })
+            ->orderByDesc('start_date')
+            ->first();
+    }
 
 
     public function changeRequests()
