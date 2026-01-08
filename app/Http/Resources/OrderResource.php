@@ -14,6 +14,12 @@ class OrderResource extends JsonResource
         $total_after_discount = $product_total - $discount_fee;
         $final_total = $total_after_discount + (float)$this->delivery_fee;
 
+        $status = $this->status;
+
+        if ($status === 'يجهز') {
+            $status = 'مقبول';
+        }
+
         return [
             'order_id' => $this->id,
             'status' => $this->status,

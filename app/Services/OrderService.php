@@ -410,6 +410,7 @@ class OrderService
     public function getOrderStatusForUser(int $userId, int $orderId): ?array
     {
         $order = $this->orderRepo->getStatusForUser($userId, $orderId);
+        $status = $order->status === 'يجهز' ? 'مقبول' : $order->status;
         return $order ? [
             'order_id'   => $order->id,
             'status'     => $order->status,
