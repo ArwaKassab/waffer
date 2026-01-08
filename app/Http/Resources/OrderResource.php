@@ -22,7 +22,7 @@ class OrderResource extends JsonResource
 
         return [
             'order_id' => $this->id,
-            'status' => $this->status,
+            'status' => $status,
             'order_date' => optional($this->created_at)->format('Y-m-d'),
             'order_time' => optional($this->created_at)
                 ? $this->created_at->timezone(config('app.timezone'))->format('h:i A')
