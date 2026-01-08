@@ -84,6 +84,48 @@ class OrderController extends Controller
 
 
     /**
+     * إرجاع عدد طلبات "يجهز" الخاصة بالمنطقة (بدون تقييد اليوم).
+     */
+    public function countTodaypreparing(Request $request)
+    {
+        $count = $this->orderService->countTodayPreparingForLoggedArea($request->area_id);
+
+        return response()->json([
+            'area_id' => (int) $request->area_id,
+            'status'  => 'يجهز',
+            'count'   => $count,
+        ]);
+    }
+
+
+    /**
+     * إرجاع قائمة طلبات اليوم "يجهز" (مع باجينيشن) للمنطقة المسجّل دخول.
+     */
+    public function listTodaypreparing(Request $request)
+    {
+        $user = Auth::user();
+        if (!$user || !$request->area_id) {
+            return response()->json(['message' => 'لا يوجد منطقة للمستخدم الحالي'], 400);
+        }
+
+        $perPage = (int) $request->query('per_page', 15);
+        $orders  = $this->orderService->listTodayPreparingForLoggedArea($request->area_id,$perPage);
+
+        if (is_a($orders, Collection::class)) {
+            return response()->json([
+                'area_id' => (int) $request->area_id,
+                'date'    => now(config('app.timezone'))->toDateString(),
+                'status'  => 'يجهز',
+                'data'    => [],
+                'meta'    => ['total' => 0, 'per_page' => $perPage, 'current_page' => 1],
+            ]);
+        }
+
+        return response()->json($orders);
+    }
+
+
+    /**
      * إرجاع عدد طلبات اليوم "في الطريق" الخاصة بالمنطقة المسجّل دخول.
      */
     public function countTodayOnWay(Request $request)

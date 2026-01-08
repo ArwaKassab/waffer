@@ -124,29 +124,32 @@ class OrderRepository
 
 
 
-    /**
-     * الطلبات التي فيها منتجات قيد الانتظار لهذا المتجر — مقسّمة صفحات.
-     * هنا لا نهتم بحالة الطلب الكلية، فقط حالة الـ items الخاصة بالمتجر.
-     */
     public function PendingOrdersForStore(int $storeId, int $perPage = 10): LengthAwarePaginator
     {
         return Order::query()
-            ->where('orders.status', 'مقبول')
+            // ✅ استبعاد الطلبات التي حالتها الكلية "انتظار"
+            ->where('orders.status', '!=', 'انتظار')
+
+            // ✅ شرط وجود عناصر لهذا المتجر حالتها "انتظار"
             ->whereHas('items', function ($q) use ($storeId) {
                 $q->where('store_id', $storeId)
                     ->where('status', 'انتظار');
             })
-            ->select('orders.id', 'orders.date', 'orders.time', 'orders.created_at')
+
+            ->select('orders.id', 'orders.status', 'orders.date', 'orders.time', 'orders.created_at')
+
             ->withCount([
                 'items as items_count' => function ($q) use ($storeId) {
                     $q->where('store_id', $storeId)
                         ->where('status', 'انتظار');
                 }
             ])
+
             ->orderByDesc('orders.date')
             ->orderByDesc('orders.time')
             ->paginate($perPage);
     }
+
 
 
     /**
@@ -310,28 +313,21 @@ class OrderRepository
 
     public function updateStatus(int $orderId, string $newStatus): bool
     {
-        return DB::transaction(function () use ($orderId, $newStatus) {
+        return (bool) DB::transaction(function () use ($orderId, $newStatus) {
             $order = $this->find($orderId);
             if (!$order) {
                 return false;
             }
-            $order->status = $newStatus;
-            $saved = (bool) $order->save();
-
-            if (!$saved) {
-                return false;
+            if ($order->status === $newStatus) {
+                return true;
             }
-            OrderItem::query()
-                ->where('order_id', $orderId)
-                ->where('status', '!=', 'مرفوض')
-                ->update([
-                    'status'     => $newStatus,
-                    'updated_at' => now(),
-                ]);
 
-            return true;
+            $order->status = $newStatus;
+
+            return (bool) $order->save();
         });
     }
+
 
 
     //////////////////////////SUB ADMIN////////////////////////////
@@ -364,6 +360,37 @@ class OrderRepository
             ])
             ->paginate($perPage);
     }
+
+    /**
+     * عدّاد طلبات "يجهز" لمنطقة معيّنة (بدون تقييد اليوم).
+     */
+    public function countTodayPreparingByArea(int $areaId): int
+    {
+        return Order::query()
+            ->where('area_id', $areaId)
+            ->where('status', 'يجهز')
+            ->count();
+    }
+
+    /**
+     * إرجاع قائمة طلبات "يجهز" لمنطقة معيّنة (مع باجينيشن).
+     * (نفس الاسم، لكن بدون شرط اليوم)
+     */
+    public function listTodayPreparingByArea(int $areaId, int $perPage = 15)
+    {
+        return Order::query()
+            ->where('area_id', $areaId)
+            ->where('status', 'يجهز')
+            ->latest('id')
+            ->select([
+                'id','user_id','area_id','address_id',
+                'total_product_price','discount_fee','totalAfterDiscount',
+                'delivery_fee','total_price','date','time','status','payment_method',
+                'notes','created_at'
+            ])
+            ->paginate($perPage);
+    }
+
     /**
      * عدّاد طلبات "في الطريق" لمنطقة معيّنة.
      * (نفس الاسم، لكن بدون شرط اليوم)

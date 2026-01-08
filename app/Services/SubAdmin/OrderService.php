@@ -24,7 +24,7 @@ class OrderService
 
 
     public const STATUS_PENDING  = 'انتظار';
-    public const STATUS_ACCEPTED = 'مقبول';
+    public const STATUS_ACCEPTED = 'يجهز';
 
     public const PAYMENT_WALLET = 'محفظة';
     /**
@@ -147,6 +147,24 @@ class OrderService
     {
 
         return $this->orderRepo->listTodayPendingByArea((int) $areaId, $perPage);
+    }
+
+    /**
+     * يرجع عدد طلبات اليوم "يجهز" لمنطقة المستخدم المسجّل.
+     */
+    public function countTodayPreparingForLoggedArea($areaId): int
+    {
+        return $this->orderRepo->countTodayPreparingByArea((int) $areaId);
+    }
+
+
+    /**
+     * يرجع قائمة طلبات اليوم "يجهز" لمنطقة المستخدم المسجّل (مع باجينيشن).
+     */
+    public function listTodayPreparingForLoggedArea($areaId,int $perPage = 15)
+    {
+
+        return $this->orderRepo->listTodayPreparingByArea((int) $areaId, $perPage);
     }
 
     /**
