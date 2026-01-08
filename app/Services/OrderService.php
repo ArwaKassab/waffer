@@ -413,7 +413,7 @@ class OrderService
         $status = $order->status === 'يجهز' ? 'مقبول' : $order->status;
         return $order ? [
             'order_id'   => $order->id,
-            'status'     => $order->status,
+            'status'     => $status,
             'updated_at' => $order->updated_at,
         ] : null;
     }
