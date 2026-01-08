@@ -131,10 +131,10 @@ class OrderRepository
     public function PendingOrdersForStore(int $storeId, int $perPage = 10): LengthAwarePaginator
     {
         return Order::query()
-            ->where('orders.status', 'مقبول') // ✅ حالة الطلب
+            ->where('orders.status', 'مقبول')
             ->whereHas('items', function ($q) use ($storeId) {
                 $q->where('store_id', $storeId)
-                    ->where('status', 'انتظار'); // ✅ حالة items لهذا المتجر
+                    ->where('status', 'انتظار');
             })
             ->select('orders.id', 'orders.date', 'orders.time', 'orders.created_at')
             ->withCount([
@@ -336,28 +336,23 @@ class OrderRepository
 
     //////////////////////////SUB ADMIN////////////////////////////
     /**
-     * عدّاد طلبات اليوم بحالة "انتظار" لمنطقة معيّنة.
+     * عدّاد طلبات "انتظار" لمنطقة معيّنة (بدون تقييد اليوم).
      */
     public function countTodayPendingByArea(int $areaId): int
     {
-        $today = Carbon::today(config('app.timezone'))->toDateString();
-
         return Order::query()
-            ->whereDate('date', $today)
             ->where('area_id', $areaId)
             ->where('status', 'انتظار')
             ->count();
     }
 
     /**
-     * إرجاع قائمة طلبات اليوم بحالة "انتظار" لمنطقة معيّنة (مع باجينيشن).
+     * إرجاع قائمة طلبات "انتظار" لمنطقة معيّنة (مع باجينيشن).
+     * (نفس الاسم، لكن بدون شرط اليوم)
      */
     public function listTodayPendingByArea(int $areaId, int $perPage = 15)
     {
-        $today = Carbon::today(config('app.timezone'))->toDateString();
-
         return Order::query()
-            ->whereDate('date', $today)
             ->where('area_id', $areaId)
             ->where('status', 'انتظار')
             ->latest('id')
@@ -369,30 +364,24 @@ class OrderRepository
             ])
             ->paginate($perPage);
     }
-
     /**
-     * عدّاد طلبات اليوم بحالة "في الطريق" لمنطقة معيّنة.
+     * عدّاد طلبات "في الطريق" لمنطقة معيّنة.
+     * (نفس الاسم، لكن بدون شرط اليوم)
      */
     public function countTodayOnWayByArea(int $areaId): int
     {
-        $today = Carbon::today(config('app.timezone'))->toDateString();
-
         return Order::query()
-            ->whereDate('date', $today)
             ->where('area_id', $areaId)
             ->where('status', 'في الطريق')
             ->count();
     }
-
     /**
-     * إرجاع قائمة طلبات اليوم بحالة "في الطريق" لمنطقة معيّنة (مع باجينيشن).
+     * إرجاع قائمة طلبات "في الطريق" لمنطقة معيّنة (مع باجينيشن).
+     * (نفس الاسم، لكن بدون شرط اليوم)
      */
     public function listTodayOnWayByArea(int $areaId, int $perPage = 15)
     {
-        $today = Carbon::today(config('app.timezone'))->toDateString();
-
         return Order::query()
-            ->whereDate('date', $today)
             ->where('area_id', $areaId)
             ->where('status', 'في الطريق')
             ->latest('id')
@@ -404,6 +393,7 @@ class OrderRepository
             ])
             ->paginate($perPage);
     }
+
 
     /**
      * عدّاد طلبات اليوم بحالة "مستلم" لمنطقة معيّنة.

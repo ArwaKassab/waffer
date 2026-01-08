@@ -136,9 +136,9 @@ class OrderService
      */
     public function countTodayPendingForLoggedArea($areaId): int
     {
-        $user = Auth::user();
         return $this->orderRepo->countTodayPendingByArea((int) $areaId);
     }
+
 
     /**
      * يرجع قائمة طلبات اليوم "انتظار" لمنطقة المستخدم المسجّل (مع باجينيشن).

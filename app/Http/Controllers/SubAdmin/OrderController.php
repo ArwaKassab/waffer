@@ -41,10 +41,8 @@ class OrderController extends Controller
     }
 
 
-
-
     /**
-     * إرجاع عدد طلبات اليوم "انتظار" الخاصة بالمنطقة المسجّل دخول.
+     * إرجاع عدد طلبات "انتظار" الخاصة بالمنطقة (بدون تقييد اليوم).
      */
     public function countTodayPending(Request $request)
     {
@@ -52,11 +50,11 @@ class OrderController extends Controller
 
         return response()->json([
             'area_id' => (int) $request->area_id,
-            'date'    => now(config('app.timezone'))->toDateString(),
             'status'  => 'انتظار',
             'count'   => $count,
         ]);
     }
+
 
     /**
      * إرجاع قائمة طلبات اليوم "انتظار" (مع باجينيشن) للمنطقة المسجّل دخول.
