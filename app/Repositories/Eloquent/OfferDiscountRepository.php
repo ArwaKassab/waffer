@@ -11,32 +11,25 @@ class OfferDiscountRepository
 {
     public function getActiveDiscountsByArea(int $areaId, int $perPage = 10)
     {
-        $now = Carbon::now(config('app.timezone'));
+        $today = Carbon::now(config('app.timezone'))->toDateString();
 
         $query = Discount::query()
             ->with([
                 'product:id,name,image,store_id,details,price,status',
                 'product.store:id,name,area_id,image,open_hour,close_hour,status',
             ])
-            ->where('start_date', '<=', $now)
-            ->where('end_date', '>=', $now)
+            ->where('status', 'active')
+            ->whereDate('start_date', '<=', $today)
+            ->whereDate('end_date', '>=', $today)
             ->whereHas('product', function ($q) use ($areaId) {
                 $q->whereHas('store', fn($s) => $s->where('area_id', $areaId));
             })
             ->orderByDesc('id');
 
-        $paginator = $query->paginate($perPage);
-
-        if ($paginator->total() === 0) {
-            Log::info('OfferDiscountRepository.getActiveDiscountsByArea returned 0', [
-                'area_id' => $areaId,
-                'sql' => $query->toSql(),
-                'bindings' => $query->getBindings()
-            ]);
-        }
-
-        return $paginator;
+        return $query->paginate($perPage);
     }
+
+
 
     public function getActiveOffersByArea($areaId, $perPage = 10)
     {

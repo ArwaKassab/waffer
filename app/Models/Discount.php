@@ -8,6 +8,7 @@ use Illuminate\Database\Eloquent\SoftDeletes;
 class Discount extends Model
 {
     use SoftDeletes;
+
     protected $fillable = [
         'title',
         'description',
@@ -19,8 +20,8 @@ class Discount extends Model
     ];
 
     protected $casts = [
-        'start_date' => 'datetime:Y-m-d',
-        'end_date'   => 'datetime:Y-m-d',
+        'start_date' => 'date:Y-m-d',
+        'end_date'   => 'date:Y-m-d',
         'new_price'  => 'float',
     ];
 
@@ -36,7 +37,4 @@ class Discount extends Model
             ->withPivot('discount_fee')
             ->withTimestamps();
     }
-
-
-
 }
