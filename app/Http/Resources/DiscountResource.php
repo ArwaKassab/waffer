@@ -27,6 +27,7 @@ class DiscountResource extends JsonResource
                 'id'      => $this->product?->store?->id,
                 'name'    => $this->product?->store?->name,
                 'area_id' => $this->product?->store?->area_id,
+                'is_open_now' => $this->product?->store?->is_open_now,
                 'image'   => $this->product?->store?->image_url ?? $this->product?->store?->image,
             ],
         ];
