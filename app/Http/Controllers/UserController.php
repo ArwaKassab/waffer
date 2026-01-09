@@ -104,11 +104,9 @@ class UserController extends Controller
         if ($request->filled('new_password')) {
             $user->tokens()->delete();
 
-            // إن أردتِ حذف جميع التوكنات ما عدا الحالي (أبقي المستخدم الحالي فقط مسجّلًا):
             // $currentTokenId = optional($request->user()->currentAccessToken())->id;
             // $user->tokens()->when($currentTokenId, fn($q) => $q->where('id', '!=', $currentTokenId))->delete();
 
-            // (اختياري) لو عندك جلسات ويب (guard:web) وتبغي تسجيل الخروج من كل الجلسات الأخرى:
             // \Auth::logoutOtherDevices($request->input('current_password'));
             DeviceToken::where('user_id', $user->id)->delete();
 
@@ -121,6 +119,7 @@ class UserController extends Controller
                 'open_hour'  => $userData['open_hour']  ?? $user->open_hour,
                 'close_hour' => $userData['close_hour'] ?? $user->close_hour,
                 'status'     => $userData['status']     ?? $user->status,
+                'is_open_now' => $user->is_open_now,
                 'image'      => $userData['image']      ?? ($user->image_url ?? $user->image),
             ];
         } elseif ($user->type === 'customer') {
