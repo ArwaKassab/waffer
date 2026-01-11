@@ -346,6 +346,7 @@ Route::prefix('customer')->group(function () {
         Route::get('/orders/today/Done/ids',       [SubAdminOrderController::class, 'listTodayDone']);
         Route::get('/orders/orderDetails/{orderId}',[SubAdminOrderController::class, 'getOrderDetailsForSubAdmin']);
 
+//        طلبات المتاجر
         Route::post('/products/approve/{req}', [ProductRequestsController::class, 'approve']);
 
 
