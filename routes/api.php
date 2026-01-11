@@ -31,6 +31,9 @@ use App\Http\Controllers\UserController;
 use App\Http\Controllers\SubAdmin\CustomerController as SubAdminCustomerController;
 use App\Http\Controllers\SubAdmin\OrderController as SubAdminOrderController;
 use App\Http\Controllers\SubAdmin\StoreController as SubAdminStoreController;
+use App\Http\Controllers\SubAdmin\CategoryController as SubAdminCategoryController;
+use App\Http\Controllers\SubAdmin\ComplaintController as SubAdminComplaintController;
+
 
 //use App\Http\Controllers\AdminController;
 //use App\Http\Controllers\StoreController;
@@ -340,7 +343,7 @@ Route::prefix('customer')->group(function () {
         Route::get('/orders/today/OnWay/ids',       [SubAdminOrderController::class, 'listTodayOnWay']);
         Route::get('/orders/today/Done/count', [SubAdminOrderController::class, 'countTodayDone']);
         Route::get('/orders/today/Done/ids',       [SubAdminOrderController::class, 'listTodayDone']);
-        Route::get('/orders/orderDitales/{orderId}',[SubAdminOrderController::class, 'getOrderDetailsForSubAdmin']);
+        Route::get('/orders/orderDetails/{orderId}',[SubAdminOrderController::class, 'getOrderDetailsForSubAdmin']);
 
         Route::post('/products/approve/{req}', [ProductRequestsController::class, 'approve']);
 
@@ -352,8 +355,21 @@ Route::prefix('customer')->group(function () {
         Route::get('stores/{storeId}', [SubAdminStoreController::class, 'show']);
         Route::PATCH('/stores/update/{storeId}', [SubAdminStoreController::class, 'update']);
         Route::delete('stores/destroy/{storeId}', [SubAdminStoreController::class, 'destroy']);
-//المنتجات
+        //المنتجات
         Route::PATCH('products/status/{product}', [SubAdminStoreController::class, 'updateStatus']);
+
+//التصنيفات
+        Route::get('categories/all', [SubAdminCategoryController::class, 'index']);
+        Route::post('categories/add', [SubAdminCategoryController::class, 'store']);
+//        Route::put('categories/{id}', [CategoryController::class, 'update']);
+        Route::PATCH('categories/update/{id}', [SubAdminCategoryController::class, 'update']);
+        Route::delete('categories/delete/{id}', [SubAdminCategoryController::class, 'destroy']);
+
+//الشكاوي
+        Route::get('complaints/all', [SubAdminComplaintController::class, 'index']);
+        Route::get('complaints/details/{id}', [SubAdminComplaintController::class, 'show'])
+            ->name('subadmin.complaints.show');
+
     });
 
 Route::middleware('auth:sanctum')->group(function () {

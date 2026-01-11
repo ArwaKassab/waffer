@@ -48,4 +48,5 @@ interface CartRepositoryInterface
      * @return void
      */
     public function removeItem(int $cartId, int $productId);
+
 }
