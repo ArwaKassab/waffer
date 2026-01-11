@@ -33,7 +33,7 @@ use App\Http\Controllers\SubAdmin\OrderController as SubAdminOrderController;
 use App\Http\Controllers\SubAdmin\StoreController as SubAdminStoreController;
 use App\Http\Controllers\SubAdmin\CategoryController as SubAdminCategoryController;
 use App\Http\Controllers\SubAdmin\ComplaintController as SubAdminComplaintController;
-
+use App\Http\Controllers\SubAdmin\OrderStatisticsController as SubAdminOrderStatisticsController;
 
 //use App\Http\Controllers\AdminController;
 //use App\Http\Controllers\StoreController;
@@ -256,6 +256,7 @@ Route::prefix('customer')->group(function () {
         Route::post('orders/{order}/accept', [OrderController::class, 'acceptOrder']);
         Route::post('orders/{order}/setAsReady', [OrderController::class, 'setAsReady']);
         Route::post('orders/{order}/reject', [OrderController::class, 'rejectOrder']);
+//التقاير
         Route::get('orders/done-report', [OrderController::class, 'doneOrdersBetweenDates']);
         Route::get('orders/reject-report', [OrderController::class, 'rejectordersBetweenDates']);
 
@@ -369,6 +370,9 @@ Route::prefix('customer')->group(function () {
         Route::get('complaints/all', [SubAdminComplaintController::class, 'index']);
         Route::get('complaints/details/{id}', [SubAdminComplaintController::class, 'show'])
             ->name('subadmin.complaints.show');
+//        التقاير
+
+        Route::get('/orders/statistics', [SubAdminOrderStatisticsController::class, 'index']);
 
     });
 
