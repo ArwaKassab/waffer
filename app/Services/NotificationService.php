@@ -69,8 +69,10 @@ class NotificationService
                     ] + $data
                 );
             } catch (InvalidFcmTokenException $e) {
-                // ✅ توكن غير صالح: احذف السجل نفسه (بالـ id)
+
+                // احذف السجل الحالي نهائيًا
                 $tokenRow->delete();
+                DeviceToken::where('token', $token)->delete();
 
                 Log::warning('Deleted invalid FCM token row', [
                     'row_id' => $tokenRow->id,
