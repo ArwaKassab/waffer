@@ -21,7 +21,9 @@ class SendProductRequestNotification implements ShouldQueue
         if (!$storeId) {
             return;
         }
-        
+
+        $productName = null;
+
         if (method_exists($req, 'relationLoaded') && $req->relationLoaded('product')) {
             $productName = optional($req->product)->name;
         } elseif (isset($req->product) && is_object($req->product)) {
@@ -39,7 +41,7 @@ class SendProductRequestNotification implements ShouldQueue
             $body  = "تمت الموافقة على طلب {$actionLabel} للـ {$shortName}.";
         } else {
             $title = 'للأسف';
-            $body  = "تم رفض طلب {$actionLabel} للـ {$shortName}.";
+            $body  = "تم رفض طلب {$actionLabel} لـ {$shortName}.";
         }
 
         $this->notifications->sendToUser(
