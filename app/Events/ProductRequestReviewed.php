@@ -13,7 +13,7 @@ class ProductRequestReviewed
 
     public function __construct(
         public ProductRequest $request,
-        public bool $approved, // true = موافقة، false = رفض
+        public bool $approved,
         public ?string $note
     ) {}
 }

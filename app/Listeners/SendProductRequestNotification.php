@@ -21,7 +21,7 @@ class SendProductRequestNotification implements ShouldQueue
         if (!$storeId) {
             return;
         }
-        
+
         $productName = null;
 
         if (method_exists($req, 'relationLoaded') && $req->relationLoaded('product')) {

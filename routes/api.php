@@ -348,6 +348,7 @@ Route::prefix('customer')->group(function () {
 
 //        طلبات المتاجر
         Route::post('/products/approve/{req}', [ProductRequestsController::class, 'approve']);
+        Route::post('/products/reject/{req}', [ProductRequestsController::class, 'reject']);
 
 
 

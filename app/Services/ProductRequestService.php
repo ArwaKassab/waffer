@@ -2,6 +2,7 @@
 
 namespace App\Services;
 
+use App\Events\ProductRequestReviewed;
 use App\Events\StoreProductChanged;
 use App\Models\Product;
 use App\Models\ProductRequest;
@@ -125,7 +126,7 @@ class ProductRequestService
                 }
 
                 $this->repo->markApproved($req, $note);
-                event(new \App\Events\ProductRequestReviewed($req, true, $note));
+                event(new ProductRequestReviewed($req, true, $note));
 
                 return $product;
             }
