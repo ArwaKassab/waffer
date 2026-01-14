@@ -55,6 +55,12 @@ return [
     ],
 
 
+    'safrjal' => [
+        'key' => env('SAFRJAL_API_KEY'),
+        'endpoint' => env('SAFRJAL_OTP_ENDPOINT', 'https://safrjal.com/api/v2/send-otp'),
+        'title' => env('SAFRJAL_OTP_TITLE', 'wafir - وافر'),
+        'expire' => env('SAFRJAL_OTP_EXPIRE', 300), // 5 دقائق
+    ],
 
 
 ];

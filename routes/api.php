@@ -7,6 +7,7 @@ use App\Http\Controllers\CartController;
 use App\Http\Controllers\CategoryController;
 use App\Http\Controllers\ComplaintController;
 use App\Http\Controllers\CustomerAuthController;
+use App\Http\Controllers\CustomerAuthSafrjalController;
 use App\Http\Controllers\CustomerFirebaseAuthController;
 use App\Http\Controllers\DeviceController;
 use App\Http\Controllers\LinkController;
@@ -100,11 +101,12 @@ use App\Http\Controllers\SubAdmin\OrderStatisticsController as SubAdminOrderStat
             ->middleware('verify.temp.token');
     });
 
+    //otp sms.chef
     // ✅ Customer Auth + Reset Password
     Route::prefix('customer')->group(function () {
-        Route::post('/register', [CustomerAuthController::class, 'startRegister']);
-        Route::post('/register/verify', [CustomerAuthController::class, 'verifyRegister']);
-        Route::post('register/resend-otp', [CustomerAuthController::class, 'resendRegisterOtp']);
+//        Route::post('/register', [CustomerAuthController::class, 'startRegister']);
+//        Route::post('/register/verify', [CustomerAuthController::class, 'verifyRegister']);
+//        Route::post('register/resend-otp', [CustomerAuthController::class, 'resendRegisterOtp']);
 
         Route::post('/login', [CustomerAuthController::class, 'login']);
     //    Route::middleware(['auth:sanctum', 'check.role:customer'])->get('/profile', [CustomerController::class, 'profile']);
@@ -118,14 +120,34 @@ use App\Http\Controllers\SubAdmin\OrderStatisticsController as SubAdminOrderStat
         Route::post('resend-reset-password-otp', [AuthResetController::class, 'resendResetPasswordCode']);
 
     });
-
+//otp firebase
 Route::prefix('customer')->group(function () {
 //    Route::post('/register', [CustomerFirebaseAuthController::class, 'register']);
 //    Route::post('/reset-password', [CustomerFirebaseAuthController::class, 'resetPassword']);
 
-    Route::post('/register/firebase', [CustomerFirebaseAuthController::class, 'register']);
-    Route::post('/reset-password/firebase', [CustomerFirebaseAuthController::class, 'resetPassword']);
+//    Route::post('/register/firebase', [CustomerFirebaseAuthController::class, 'register']);
+//    Route::post('/reset-password/firebase', [CustomerFirebaseAuthController::class, 'resetPassword']);
 });
+
+//otp safarjal
+Route::prefix('customer')->group(function () {
+    Route::post('/register', [CustomerAuthSafrjalController::class, 'startRegister']);
+    Route::post('/register/verify', [CustomerAuthSafrjalController::class, 'verifyRegister']);
+    Route::post('register/resend-otp', [CustomerAuthSafrjalController::class, 'resendRegisterOtp']);
+
+    Route::post('/login', [CustomerAuthController::class, 'login']);
+    //    Route::middleware(['auth:sanctum', 'check.role:customer'])->get('/profile', [CustomerController::class, 'profile']);
+    Route::middleware('auth:sanctum')->post('/logout', [CustomerAuthController::class, 'logout']);
+
+    // استعادة كلمة المرور
+    Route::post('send-reset-password-code', [AuthResetController::class, 'sendResetPasswordCode']);
+    Route::post('verify-reset-password-code', [AuthResetController::class, 'verifyResetPasswordCode']);
+    Route::post('reset-password', [AuthResetController::class, 'resetPassword'])
+        ->middleware('verify.temp.token');
+    Route::post('resend-reset-password-otp', [AuthResetController::class, 'resendResetPasswordCode']);
+
+});
+
 
 /*
 |--------------------------------------------------------------------------
