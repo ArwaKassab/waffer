@@ -3,12 +3,14 @@
 use App\Http\Controllers\AddressController;
 use App\Http\Controllers\AreaController;
 use App\Http\Controllers\AuthResetController;
+use App\Http\Controllers\AuthResetSafrjalController;
 use App\Http\Controllers\CartController;
 use App\Http\Controllers\CategoryController;
 use App\Http\Controllers\ComplaintController;
 use App\Http\Controllers\CustomerAuthController;
 use App\Http\Controllers\CustomerAuthSafrjalController;
 use App\Http\Controllers\CustomerFirebaseAuthController;
+use App\Http\Controllers\CustomerPasswordResetSafrjalController;
 use App\Http\Controllers\DeviceController;
 use App\Http\Controllers\LinkController;
 use App\Http\Controllers\NotificationController;
@@ -138,13 +140,13 @@ Route::prefix('customer')->group(function () {
     Route::post('/login', [CustomerAuthController::class, 'login']);
     //    Route::middleware(['auth:sanctum', 'check.role:customer'])->get('/profile', [CustomerController::class, 'profile']);
     Route::middleware('auth:sanctum')->post('/logout', [CustomerAuthController::class, 'logout']);
-
+    
     // استعادة كلمة المرور
-    Route::post('send-reset-password-code', [AuthResetController::class, 'sendResetPasswordCode']);
-    Route::post('verify-reset-password-code', [AuthResetController::class, 'verifyResetPasswordCode']);
-    Route::post('reset-password', [AuthResetController::class, 'resetPassword'])
+    Route::post('send-reset-password-code', [AuthResetSafrjalController::class, 'sendResetPasswordCode']);
+    Route::post('verify-reset-password-code', [AuthResetSafrjalController::class, 'verifyResetPasswordCode']);
+    Route::post('reset-password', [AuthResetSafrjalController::class, 'resetPassword'])
         ->middleware('verify.temp.token');
-    Route::post('resend-reset-password-otp', [AuthResetController::class, 'resendResetPasswordCode']);
+    Route::post('resend-reset-password-otp', [AuthResetSafrjalController::class, 'resendResetPasswordCode']);
 
 });
 
