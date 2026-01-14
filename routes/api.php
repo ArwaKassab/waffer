@@ -140,7 +140,7 @@ Route::prefix('customer')->group(function () {
     Route::post('/login', [CustomerAuthController::class, 'login']);
     //    Route::middleware(['auth:sanctum', 'check.role:customer'])->get('/profile', [CustomerController::class, 'profile']);
     Route::middleware('auth:sanctum')->post('/logout', [CustomerAuthController::class, 'logout']);
-    
+
     // استعادة كلمة المرور
     Route::post('send-reset-password-code', [AuthResetSafrjalController::class, 'sendResetPasswordCode']);
     Route::post('verify-reset-password-code', [AuthResetSafrjalController::class, 'verifyResetPasswordCode']);

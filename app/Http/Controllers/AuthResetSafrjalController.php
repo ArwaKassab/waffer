@@ -56,7 +56,7 @@ class AuthResetSafrjalController extends Controller
         ];
 
         // تحقّق من وجود المستخدم (لكن لا نغير response)
-        $user = $this->userRepo->findByPhoneAndType($phone);
+        $user = $this->userRepo->findByPhoneAndType($phone, 'customer');
         if (!$user) {
             // Fake session: لا إرسال
             $payload['is_fake'] = true;
@@ -179,7 +179,7 @@ class AuthResetSafrjalController extends Controller
             return response()->json(['message' => 'جلسة غير صالحة.'], 400);
         }
 
-        $user = $this->userRepo->findByPhoneAndType($phone);
+        $user = $this->userRepo->findByPhoneAndType($phone, 'customer');
         if (!$user) {
             // حتى لو حصل passed session بشكل غير متوقع، لا تغيّر الرسالة كثيرًا
             return response()->json(['message' => 'الحساب غير موجود.'], 404);
