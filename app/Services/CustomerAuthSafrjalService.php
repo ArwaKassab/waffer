@@ -63,7 +63,7 @@ class CustomerAuthSafrjalService
         $sendMeta = $this->otpService->sendOtp(
             $phoneForSafrjal,
             $otpPlain,
-            config('services.safrjal.title', 'wafr - وفر')
+            config('services.safrjal.title', 'wafir - وافر')
         );
 
         return [$tempId, ['ok' => true, 'provider_response' => $sendMeta]];
@@ -164,7 +164,7 @@ class CustomerAuthSafrjalService
         $sendMeta = $this->otpService->sendOtp(
             $phoneForSafrjal,
             $otpPlain,
-            config('services.safrjal.title', 'wafr - وفر')
+            config('services.safrjal.title', 'wafir - وافر')
         );
 
         return ['ok' => true, 'provider_response' => $sendMeta];
