@@ -186,7 +186,6 @@ class AuthResetSafrjalController extends Controller
         }
 
         $user->password = Hash::make($data['password']);
-        $user->setRememberToken(Str::random(60));
         $user->save();
 
         // تسجيل خروج من كل الأجهزة (كما عندك)

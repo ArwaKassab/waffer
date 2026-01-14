@@ -167,8 +167,6 @@ class AuthResetController extends Controller
             return response()->json(['message' => 'الحساب غير موجود.'], 404);
         }
         $user->password = Hash::make($data['password']);
-        $user->setRememberToken(Str::random(60));
-
         $user->save();
         if (method_exists($user, 'tokens')) {
             $user->tokens()->delete();
