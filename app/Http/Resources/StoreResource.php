@@ -18,7 +18,7 @@ class StoreResource extends JsonResource
             'id'            => $this->id,
             'name'          => $this->name,
 //            'user_name'     => $this->user_name,
-            'phone'         => $this->phone,
+            'phone' => $this->formatPhone($this->phone),
             'status'        => (bool)$this->status,
 
             'open_hour'     => $this->open_hour,
@@ -45,4 +45,18 @@ class StoreResource extends JsonResource
             'created_at' => optional($this->created_at)->format('Y-m-d H:i'),
         ];
     }
+    private function formatPhone(?string $phone): ?string
+    {
+        if (!$phone) {
+            return null;
+        }
+
+        // إذا كان يبدأ بـ 00963 → استبدله بـ 0
+        if (str_starts_with($phone, '00963')) {
+            return '0' . substr($phone, 5);
+        }
+
+        return $phone;
+    }
+
 }
