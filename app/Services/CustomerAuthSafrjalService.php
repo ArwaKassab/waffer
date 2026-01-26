@@ -61,18 +61,23 @@ class CustomerAuthSafrjalService
         $phoneForSafrjal = $this->toSafrjalInternationalNoPlusFromCanonical($data['phone']);
 
 
-            $sendMeta = $this->otpService->sendOtp(
-                $phoneForSafrjal,
-                $otpPlain,
-                config('services.safrjal.title', 'wafir - وافر')
-            );
+        $sendMeta = $this->otpService->sendOtp($phoneForSafrjal, $otpPlain, config('services.safrjal.title'));
 
         if (!empty($sendMeta['ok'])) {
             return [$tempId, ['ok' => true]];
         }
 
-        Log::error('Safrjal OTP failed', ['meta' => $sendMeta, 'temp_id' => $tempId]);
-        return [$tempId, ['ok' => false]];
+// سجلي السبب الحقيقي حسب الـ endpoint
+        Log::warning('Safrjal OTP failed', [
+            'temp_id' => $tempId,
+            'phone' => $phoneForSafrjal,
+            'reason' => $sendMeta['reason'] ?? null,
+            'status' => $sendMeta['status'] ?? null,
+            'provider_code' => $sendMeta['provider_code'] ?? null,
+            'body' => $sendMeta['body'] ?? null,
+        ]);
+
+        return [$tempId, ['ok' => false, 'reason' => $sendMeta['reason'] ?? 'unknown']];
 
     }
 
@@ -174,7 +179,21 @@ class CustomerAuthSafrjalService
             config('services.safrjal.title', 'wafir - وافر')
         );
 
-        return ['ok' => true, 'provider_response' => $sendMeta];
+        if (!empty($sendMeta['ok'])) {
+            return ['ok' => true];
+        }
+
+        Log::warning('Safrjal REGISTER OTP resend failed', [
+            'temp_id' => $tempId,
+            'phone' => $phoneForSafrjal,
+            'reason' => $sendMeta['reason'] ?? null,
+            'status' => $sendMeta['status'] ?? null,
+            'provider_code' => $sendMeta['provider_code'] ?? null,
+            'body' => $sendMeta['body'] ?? null,
+        ]);
+
+        return ['ok' => false, 'reason' => $sendMeta['reason'] ?? 'unknown'];
+
     }
 
     /** ======================

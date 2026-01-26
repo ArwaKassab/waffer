@@ -398,6 +398,9 @@ Route::prefix('customer')->group(function () {
 //        التقاير
 
         Route::get('/orders/statistics', [SubAdminOrderStatisticsController::class, 'index']);
+        //otp-health
+        Route::get('otp-provider/health', [SubAdminCustomerController::class, 'health']);
+
 
     });
 

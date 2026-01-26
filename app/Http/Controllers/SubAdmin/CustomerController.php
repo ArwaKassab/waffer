@@ -107,6 +107,18 @@ class CustomerController extends Controller
         ]);
     }
 
+    public function health(): \Illuminate\Http\JsonResponse
+    {
+        $endpoint = 'https://safrjal.com/api/v1/health';
+
+        $res = \Illuminate\Support\Facades\Http::timeout(10)->get($endpoint);
+
+        return response()->json([
+            'provider' => 'safrjal',
+            'http_status' => $res->status(),
+            'body' => $res->json() ?? $res->body(),
+        ], $res->successful() ? 200 : 502);
+    }
 
 
 

@@ -11,6 +11,7 @@ use Illuminate\Support\Facades\Cache;
 use Illuminate\Support\Facades\Crypt;
 use Illuminate\Support\Facades\DB;
 use Illuminate\Support\Facades\Hash;
+use Illuminate\Support\Facades\Log;
 use Illuminate\Support\Facades\RateLimiter;
 use Illuminate\Validation\ValidationException;
 use Illuminate\Support\Str;
@@ -75,28 +76,37 @@ class AuthResetSafrjalController extends Controller
         // المستخدم موجود: خزّني الجلسة ثم ارسلي عبر Safrjal
         $this->storePendingSession($tempId, $payload);
 
-        try {
-            $phoneForSafrjal = $this->toSafrjalInternationalNoPlusFromCanonical($phone);
+        $phoneForSafrjal = $this->toSafrjalInternationalNoPlusFromCanonical($phone);
 
-            $this->otpService->sendOtp(
-                $phoneForSafrjal,
-                $otpPlain,
-                'رمز إعادة تعيين كلمة المرور'
-            );
+        $sendMeta = $this->otpService->sendOtp(
+            $phoneForSafrjal,
+            $otpPlain,
+            'رمز إعادة تعيين كلمة المرور'
+        );
 
+        if (!empty($sendMeta['ok'])) {
             return response()->json([
                 'message'           => 'تمت جدولة إرسال رمز إعادة التعيين.',
                 'verification_step' => 'otp_pending',
                 'temp_id'           => $tempId,
                 'phone'             => $phone,
             ], 200);
-
-        } catch (\Throwable $e) {
-            // لا تمسحي الجلسة: ممكن المستخدم يطلب resend
-            return response()->json([
-                'message' => 'تعذّر إرسال الرمز حاليًا. حاول بعد قليل.',
-            ], 502);
         }
+
+// سجليها للأدمن
+        Log::warning('Safrjal RESET OTP failed', [
+            'temp_id' => $tempId,
+            'phone' => $phoneForSafrjal,
+            'status' => $sendMeta['status'] ?? null,
+            'reason' => $sendMeta['reason'] ?? null,
+            'provider_code' => $sendMeta['provider_code'] ?? null,
+            'body' => $sendMeta['body'] ?? null,
+        ]);
+
+        return response()->json([
+            'message' => 'تعذّر إرسال الرمز حاليًا. حاول بعد قليل.',
+        ], 502);
+
     }
 
     /**
@@ -271,27 +281,35 @@ class AuthResetSafrjalController extends Controller
             ], 200);
         }
 
-        // إرسال فعلي عبر Safrjal
-        try {
-            $phoneForSafrjal = $this->toSafrjalInternationalNoPlusFromCanonical($phone);
+        $phoneForSafrjal = $this->toSafrjalInternationalNoPlusFromCanonical($phone);
 
-            $this->otpService->sendOtp(
-                $phoneForSafrjal,
-                $otpPlain,
-                'رمز إعادة تعيين كلمة المرور (إعادة إرسال)'
-            );
+        $sendMeta = $this->otpService->sendOtp(
+            $phoneForSafrjal,
+            $otpPlain,
+            'رمز إعادة تعيين كلمة المرور (إعادة إرسال)'
+        );
 
+        if (!empty($sendMeta['ok'])) {
             return response()->json([
                 'message'           => 'تمت إعادة إرسال الرمز.',
                 'verification_step' => 'otp_pending',
                 'temp_id'           => $tempId,
             ], 200);
-
-        } catch (\Throwable $e) {
-            return response()->json([
-                'message' => 'تعذّر إرسال الرمز حاليًا. حاول بعد قليل.',
-            ], 502);
         }
+
+        Log::warning('Safrjal RESET OTP resend failed', [
+            'temp_id' => $tempId,
+            'phone' => $phoneForSafrjal,
+            'status' => $sendMeta['status'] ?? null,
+            'reason' => $sendMeta['reason'] ?? null,
+            'provider_code' => $sendMeta['provider_code'] ?? null,
+            'body' => $sendMeta['body'] ?? null,
+        ]);
+
+        return response()->json([
+            'message' => 'تعذّر إرسال الرمز حاليًا. حاول بعد قليل.',
+        ], 502);
+
     }
 
     /* ========================
