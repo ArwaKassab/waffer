@@ -7,6 +7,7 @@ use App\Repositories\Contracts\CategoryRepositoryInterface;
 use Illuminate\Contracts\Pagination\LengthAwarePaginator;
 use Illuminate\Database\Eloquent\ModelNotFoundException;
 use Illuminate\Support\Collection;
+use Illuminate\Support\Facades\Storage;
 
 class CategoryService
 {
@@ -36,7 +37,6 @@ class CategoryService
         return $category;
     }
 
-
     public function update(int $id, array $data): ?Category
     {
         try {
@@ -45,7 +45,18 @@ class CategoryService
             return null;
         }
 
-        return $this->categories->update($category, $data);
+        // إذا في صورة جديدة، احذفي القديمة (اختياري لكن أفضل)
+        if (array_key_exists('image', $data) && !empty($data['image'])) {
+            $old = $category->getRawOriginal('image'); // المسار المخزن فعلياً
+            if ($old) {
+                Storage::disk('public')->delete($old);
+            }
+        }
+
+        $updated = $this->categories->update($category, $data);
+
+        $updated->append('image_url')->makeHidden(['image']);
+        return $updated;
     }
 
     public function delete(int $id): bool

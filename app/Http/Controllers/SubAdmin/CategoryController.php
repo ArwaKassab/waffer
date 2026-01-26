@@ -68,16 +68,29 @@ class CategoryController extends Controller
     public function update(Request $request, int $id)
     {
         $data = $request->validate([
-            'name'  => ['sometimes', 'required', 'string', 'max:255'],
-            'image' => ['nullable', 'string'],
+            'name' => [
+                'sometimes', 'required', 'string', 'max:255',
+                Rule::unique('categories', 'name')->whereNull('deleted_at')->ignore($id),
+            ],
+            'image' => ['sometimes', 'nullable', 'image', 'mimes:jpg,jpeg,png,webp,gif', 'max:5120'],
+        ], [
+            'name.unique'   => 'اسم التصنيف موجود مسبقًا.',
+            'name.required' => 'اسم التصنيف مطلوب.',
+            'name.max'      => 'اسم التصنيف يجب ألا يتجاوز 255 حرفًا.',
+            'image.image'   => 'الملف المرفق يجب أن يكون صورة.',
+            'image.mimes'   => 'صيغة الصورة غير مدعومة.',
+            'image.max'     => 'حجم الصورة كبير.',
         ]);
+
+        // إذا وصل ملف صورة خزّنيه وخلي data['image'] = path
+        if ($request->hasFile('image')) {
+            $data['image'] = $request->file('image')->store('categories', 'public');
+        }
 
         $category = $this->service->update($id, $data);
 
         if (!$category) {
-            return response()->json([
-                'message' => 'التصنيف غير موجود.',
-            ], 404);
+            return response()->json(['message' => 'التصنيف غير موجود.'], 404);
         }
 
         return response()->json([
