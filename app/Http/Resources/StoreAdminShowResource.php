@@ -20,7 +20,7 @@ class StoreAdminShowResource extends JsonResource
             'id' => $this->id,
             'name' => $this->name,
             'user_name' => $this->user_name,
-            'phone' => $this->phone,
+            'phone' => $this->phone_display,
             'is_open_now' => (bool) $this->is_open_now,
             'status' => (bool) $this->status,
             'open_hour' => $this->open_hour,

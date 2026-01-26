@@ -37,7 +37,7 @@ class User extends Authenticatable
         'restorable_until'  => 'datetime',
         'status'            => 'boolean',
     ];
-    protected $appends = ['image_url', 'is_open_now', 'open_hour_formatted', 'close_hour_formatted'];
+    protected $appends = ['image_url', 'is_open_now', 'open_hour_formatted', 'close_hour_formatted','phone_display'];
     protected $hidden  = ['image'];
 
     public function setImageAttribute($value): void
@@ -145,4 +145,14 @@ class User extends Authenticatable
             ? Carbon::parse($this->close_hour)->format('H:i')
             : null;
     }
+
+    public function getPhoneDisplayAttribute(): string
+    {
+        if (str_starts_with($this->phone, '00963')) {
+            return '0' . substr($this->phone, 5);
+        }
+
+        return $this->phone;
+    }
+
 }

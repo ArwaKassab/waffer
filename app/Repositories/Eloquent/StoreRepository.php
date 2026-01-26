@@ -831,7 +831,7 @@ class StoreRepository implements StoreRepositoryInterface
             return [
                 'id' => $store->id,
                 'name' => $store->name,
-                'phone' => $store->phone,
+                'phone' => $store->phone_display,
                 'is_open_now' => (bool) $store->is_open_now,
                 'status' => $store->status,
                 'work_hours' => $workHours,
@@ -958,8 +958,9 @@ class StoreRepository implements StoreRepositoryInterface
 
         /** @var \App\Models\User $store */
         $store = $query->firstOrFail();
-
-        $store->append('image_url')->makeHidden(['image']);
+        $store
+            ->append(['phone_display', 'image_url'])
+            ->makeHidden(['phone', 'image']);
 
         return $store;
     }
@@ -979,4 +980,6 @@ class StoreRepository implements StoreRepositoryInterface
         $product->status = $status;
         return (bool) $product->save();
     }
+
+
 }
