@@ -34,25 +34,27 @@ class CategoryController extends Controller
         ]);
     }
 
-
     public function store(Request $request)
     {
-        $data = $request->validate(
-            [
-                'name' => [
-                    'required',
-                    'string',
-                    'max:255',
-                    Rule::unique('categories', 'name')->whereNull('deleted_at'),
-                ],
-                'image' => ['nullable', 'string'],
+        $data = $request->validate([
+            'name' => [
+                'required','string','max:255',
+                Rule::unique('categories', 'name')->whereNull('deleted_at'),
             ],
-            [
-                'name.unique'    => 'اسم التصنيف موجود مسبقًا.',
-                'name.required'  => 'اسم التصنيف مطلوب.',
-                'name.max'       => 'اسم التصنيف يجب ألا يتجاوز 255 حرفًا.',
-            ]
-        );
+            'image' => ['nullable', 'image', 'mimes:jpg,jpeg,png,webp,gif', 'max:5120'],
+        ], [
+            'name.unique'   => 'اسم التصنيف موجود مسبقًا.',
+            'name.required' => 'اسم التصنيف مطلوب.',
+            'name.max'      => 'اسم التصنيف يجب ألا يتجاوز 255 حرفًا.',
+            'image.image'   => 'الملف المرفق يجب أن يكون صورة.',
+            'image.mimes'   => 'صيغة الصورة غير مدعومة.',
+            'image.max'     => 'حجم الصورة كبير.',
+        ]);
+
+        // خزّن الصورة وأرسل المسار للخدمة
+        if ($request->hasFile('image')) {
+            $data['image'] = $request->file('image')->store('categories', 'public');
+        }
 
         $category = $this->service->create($data);
 
@@ -61,6 +63,7 @@ class CategoryController extends Controller
             'data'    => $category,
         ], 201);
     }
+
 
     public function update(Request $request, int $id)
     {

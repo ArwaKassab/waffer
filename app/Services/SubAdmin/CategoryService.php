@@ -29,11 +29,13 @@ class CategoryService
             return null;
         }
     }
-
     public function create(array $data): Category
     {
-        return $this->categories->create($data);
+        $category = Category::create($data);
+        $category->append('image_url')->makeHidden(['image']);
+        return $category;
     }
+
 
     public function update(int $id, array $data): ?Category
     {
