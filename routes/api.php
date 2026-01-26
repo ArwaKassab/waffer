@@ -10,7 +10,6 @@ use App\Http\Controllers\ComplaintController;
 use App\Http\Controllers\CustomerAuthController;
 use App\Http\Controllers\CustomerAuthSafrjalController;
 use App\Http\Controllers\CustomerFirebaseAuthController;
-use App\Http\Controllers\CustomerPasswordResetSafrjalController;
 use App\Http\Controllers\DeviceController;
 use App\Http\Controllers\LinkController;
 use App\Http\Controllers\NotificationController;

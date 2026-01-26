@@ -9,6 +9,7 @@ use Illuminate\Support\Facades\Cache;
 use Illuminate\Support\Facades\Crypt;
 use Illuminate\Support\Facades\DB;
 use Illuminate\Support\Facades\Hash;
+use Illuminate\Support\Facades\Log;
 use Illuminate\Support\Str;
 
 class CustomerAuthSafrjalService
@@ -59,14 +60,20 @@ class CustomerAuthSafrjalService
         // Safrjal يريد رقم دولي بدون + (مثال: 9639xxxxxxxx)
         $phoneForSafrjal = $this->toSafrjalInternationalNoPlusFromCanonical($data['phone']);
 
-        // إرسال عبر Safrjal
-        $sendMeta = $this->otpService->sendOtp(
-            $phoneForSafrjal,
-            $otpPlain,
-            config('services.safrjal.title', 'wafir - وافر')
-        );
 
-        return [$tempId, ['ok' => true, 'provider_response' => $sendMeta]];
+            $sendMeta = $this->otpService->sendOtp(
+                $phoneForSafrjal,
+                $otpPlain,
+                config('services.safrjal.title', 'wafir - وافر')
+            );
+
+        if (!empty($sendMeta['ok'])) {
+            return [$tempId, ['ok' => true]];
+        }
+
+        Log::error('Safrjal OTP failed', ['meta' => $sendMeta, 'temp_id' => $tempId]);
+        return [$tempId, ['ok' => false]];
+
     }
 
     public function finalizeRegistration(string $tempId, string $phone, string $otpInput): User
