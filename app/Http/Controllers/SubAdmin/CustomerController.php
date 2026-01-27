@@ -120,6 +120,27 @@ class CustomerController extends Controller
         ], $res->successful() ? 200 : 502);
     }
 
+    public function show_error_reasone(string $tempId)
+    {
+        $logFile = storage_path('logs/laravel.log');
+
+        // حل بسيط جدًا: قراءة آخر جزء من اللوج (للبيئات الصغيرة)
+        $content = @file_get_contents($logFile);
+        if (!$content) {
+            return response()->json(['message' => 'No logs found'], 404);
+        }
+
+        // ابحث عن آخر سطر يحتوي temp_id
+        $lines = array_reverse(explode("\n", $content));
+        foreach ($lines as $line) {
+            if (str_contains($line, $tempId) && str_contains($line, 'Safrjal')) {
+                return response()->json(['log_line' => $line]);
+            }
+        }
+
+        return response()->json(['message' => 'No failure found for this temp_id'], 404);
+    }
+
 
 
 }

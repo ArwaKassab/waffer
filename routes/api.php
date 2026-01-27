@@ -400,6 +400,7 @@ Route::prefix('customer')->group(function () {
         Route::get('/orders/statistics', [SubAdminOrderStatisticsController::class, 'index']);
         //otp-health
         Route::get('otp-provider/health', [SubAdminCustomerController::class, 'health']);
+        Route::get('otp-failures/{tempId}', [SubAdminCustomerController::class, 'show_error_reasone']);
 
 
     });
