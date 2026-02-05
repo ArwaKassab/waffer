@@ -341,6 +341,26 @@ class OrderRepository
             ->where('status', 'انتظار')
             ->count();
     }
+//
+//    /**
+//     * إرجاع قائمة طلبات "انتظار" لمنطقة معيّنة (مع باجينيشن).
+//     * (نفس الاسم، لكن بدون شرط اليوم)
+//     */
+//    public function listPendingByArea(int $areaId, int $perPage = 15)
+//    {
+//        return Order::with([
+//            'user' => function($q) {
+//                $q->withTrashed()
+//                    ->select('id','name','phone','phone_shadow');
+//            },
+//            'address' => fn($q) => $q->withTrashed()
+//        ])
+//            ->where('area_id', $areaId)
+//            ->where('status', Order::STATUS_PENDING)
+//            ->latest()
+//            ->paginate($perPage);
+//    }
+
 
     /**
      * إرجاع قائمة طلبات "انتظار" لمنطقة معيّنة (مع باجينيشن).
@@ -348,14 +368,7 @@ class OrderRepository
      */
     public function listPendingByArea(int $areaId, int $perPage = 15)
     {
-        return Order::with([
-            'user' => function($q) {
-                $q->withTrashed()
-                    ->select('id','name','phone','phone_shadow');
-            },
-            'address' => fn($q) => $q->withTrashed()
-        ])
-            ->where('area_id', $areaId)
+        return Order::where('area_id', $areaId)
             ->where('status', Order::STATUS_PENDING)
             ->latest()
             ->paginate($perPage);
