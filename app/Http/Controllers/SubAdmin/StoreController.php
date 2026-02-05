@@ -50,12 +50,24 @@ class StoreController extends Controller
     {
         $validated = $request->validate([
             'name'        => ['required', 'string', 'max:255'],
-            'user_name'   => ['required', 'string', 'max:255', Rule::unique('users', 'user_name')],
+
+            'user_name' => [
+                'required',
+                'string',
+                'max:255',
+                Rule::unique('users', 'user_name')
+                    ->whereNull('deleted_at'),
+            ],
             'phone' => [
                 'required',
                 'regex:/^09\d{8}$/',
-                Rule::unique('users', 'phone')->where(fn ($q) => $q->where('type', 'store')),
+                Rule::unique('users', 'phone')
+                    ->where(fn ($q) =>
+                    $q->where('type', 'store')
+                        ->whereNull('deleted_at')
+                    ),
             ],
+
 
             'area_id'     => ['required', 'exists:areas,id'],
             'password'    => ['required', 'string', 'min:6'],

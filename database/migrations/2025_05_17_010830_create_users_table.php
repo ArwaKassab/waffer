@@ -13,9 +13,12 @@ class CreateUsersTable extends Migration
 
             $table->string('name');
             $table->enum('type', ['admin', 'sub_admin', 'customer', 'store']);
-            $table->string('user_name')->nullable()->unique();
+
+            // الأعمدة أولًا
+            $table->string('user_name')->nullable();
             $table->string('phone', 20);
-            $table->unique(['phone', 'type'], 'users_phone_type_unique');
+            $table->timestamp('deleted_at')->nullable(); // مهم قبل القيود
+
             $table->string('store_contact_phone')->nullable();
             $table->timestamp('phone_verified_at')->nullable();
             $table->string('password');
@@ -31,9 +34,12 @@ class CreateUsersTable extends Migration
             $table->string('phone_shadow', 20)->nullable();
             $table->index('phone_shadow');
             $table->string('firebase_uid', 128)->nullable()->unique();
+
             $table->timestamps();
-            $table->softDeletes();
+            $table->unique(['user_name', 'deleted_at']);
+            $table->unique(['phone', 'type', 'deleted_at']);
         });
+
     }
 
     public function down(): void
