@@ -11,13 +11,13 @@ class OrderListResource extends JsonResource
         return [
             'id' => $this->id,
             'user_id' => $this->user_id,
-            'user' => $this->whenLoaded('user', function () {
-                return [
-                    'id' => $this->user->id,
-                    'name' => $this->user->name,
-                    'phone' => $this->user->phone,
-                ];
-            }),
+            'user' => [
+                'id' => $this->user?->id,
+                'name' => $this->user?->name ?? 'مستخدم محذوف',
+                'phone' => $this->user?->phone ?? $this->user_phone ?? 'غير متوفر',
+                'user_deleted' => $this->user?->trashed() ?? true,
+            ],
+
             'area_id' => $this->area_id,
             'address_id' => $this->address_id,
             'total_product_price' => $this->total_product_price,
