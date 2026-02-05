@@ -2,13 +2,15 @@
 
 namespace App\Services\SuperAdmin;
 
-use App\Repositories\SubAdminRepository;
+use App\Repositories\Contracts\SubAdminRepositoryInterface;
 use App\Models\User;
 
 class SubAdminService
 {
-    public function __construct(protected SubAdminRepository $repo) {}
-
+    public function __construct(SubAdminRepositoryInterface $addressRepo)
+    {
+        $this->repo = $addressRepo;
+    }
     // إنشاء Sub Admin جديد مرتبط بمنطقة
     public function createSubAdmin(array $data): User
     {

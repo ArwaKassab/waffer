@@ -8,7 +8,7 @@ use Illuminate\Database\Eloquent\Collection;
 interface SubAdminRepositoryInterface
 {
     // إنشاء Sub Admin جديد
-    public function create(array $data): User;
+    public function createSubAdmin(array $data): User;
 
     // جلب كل Sub Admins
     public function all(): Collection;
