@@ -134,73 +134,73 @@ class OrderService
     /**
      * يرجع عدد طلبات اليوم "انتظار" لمنطقة المستخدم المسجّل.
      */
-    public function countPendingForLoggedArea($areaId): int
+    public function countTodayPendingForLoggedArea($areaId): int
     {
-        return $this->orderRepo->countPendingByArea((int) $areaId);
+        return $this->orderRepo->countTodayPendingByArea((int) $areaId);
     }
 
 
     /**
      * يرجع قائمة طلبات اليوم "انتظار" لمنطقة المستخدم المسجّل (مع باجينيشن).
      */
-    public function listPendingForLoggedArea($areaId,int $perPage = 15)
+    public function listTodayPendingForLoggedArea($areaId,int $perPage = 15)
     {
 
-        return $this->orderRepo->listPendingByArea((int) $areaId, $perPage);
+        return $this->orderRepo->listTodayPendingByArea((int) $areaId, $perPage);
     }
 
     /**
      * يرجع عدد طلبات اليوم "يجهز" لمنطقة المستخدم المسجّل.
      */
-    public function countPreparingForLoggedArea($areaId): int
+    public function countTodayPreparingForLoggedArea($areaId): int
     {
-        return $this->orderRepo->countPreparingByArea((int) $areaId);
+        return $this->orderRepo->countTodayPreparingByArea((int) $areaId);
     }
 
 
     /**
      * يرجع قائمة طلبات اليوم "يجهز" لمنطقة المستخدم المسجّل (مع باجينيشن).
      */
-    public function listPreparingForLoggedArea($areaId,int $perPage = 15)
+    public function listTodayPreparingForLoggedArea($areaId,int $perPage = 15)
     {
 
-        return $this->orderRepo->listPreparingByArea((int) $areaId, $perPage);
+        return $this->orderRepo->listTodayPreparingByArea((int) $areaId, $perPage);
     }
 
     /**
      * يرجع عدد طلبات اليوم "في الطريق" لمنطقة المستخدم المسجّل.
      */
-    public function countOnWayForLoggedArea($areaId): int
+    public function countTodayOnWayForLoggedArea($areaId): int
     {
         $user = Auth::user();
-        return $this->orderRepo->countOnWayByArea((int) $areaId);
+        return $this->orderRepo->countTodayOnWayByArea((int) $areaId);
     }
 
     /**
      * يرجع قائمة طلبات اليوم "في الطريق" لمنطقة المستخدم المسجّل (مع باجينيشن).
      */
-    public function listOnWayForLoggedArea($areaId,int $perPage = 15)
+    public function listTodayOnWayForLoggedArea($areaId,int $perPage = 15)
     {
 
-        return $this->orderRepo->listOnWayByArea((int) $areaId, $perPage);
+        return $this->orderRepo->listTodayOnWayByArea((int) $areaId, $perPage);
     }
 
     /**
      * يرجع عدد طلبات اليوم "مستلمة" لمنطقة المستخدم المسجّل.
      */
-    public function countDoneForLoggedArea($areaId): int
+    public function countTodayDoneForLoggedArea($areaId): int
     {
         $user = Auth::user();
-        return $this->orderRepo->countDoneByArea((int) $areaId);
+        return $this->orderRepo->countTodayDoneByArea((int) $areaId);
     }
 
     /**
      * يرجع قائمة طلبات اليوم "مستلمة" لمنطقة المستخدم المسجّل (مع باجينيشن).
      */
-    public function listDoneForLoggedArea($areaId,int $perPage = 15)
+    public function listTodayDoneForLoggedArea($areaId,int $perPage = 15)
     {
 
-        return $this->orderRepo->listDoneByArea((int) $areaId, $perPage);
+        return $this->orderRepo->listTodayDoneByArea((int) $areaId, $perPage);
     }
 
     /**
@@ -214,14 +214,4 @@ class OrderService
 
         return $this->orderRepo->findDetailsForSubAdmin($orderId, $areaId);
     }
-
-    public function listForAreaByStatus(int $areaId, string $status, int $perPage = 15)
-    {
-        return Order::with('user')
-            ->where('area_id', $areaId)
-            ->where('status', $status)
-            ->latest('id')
-            ->paginate($perPage);
-    }
-
 }

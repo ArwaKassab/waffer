@@ -358,15 +358,15 @@ Route::prefix('customer')->group(function () {
         Route::post('/orders/{orderId}/accept', [SubAdminOrderController::class, 'accept']);
         Route::patch('/orders/{orderId}/status', [SubAdminOrderController::class, 'changeStatus']);
 
-        Route::get('/orders/today/pending/count', [SubAdminOrderController::class, 'countPending']);
-        Route::get('/orders/today/pending/ids',       [SubAdminOrderController::class, 'listPending']);
+        Route::get('/orders/today/pending/count', [SubAdminOrderController::class, 'countTodayPending']);
+        Route::get('/orders/today/pending/ids',       [SubAdminOrderController::class, 'listTodayPending']);
 
-        Route::get('/orders/today/preparing/count', [SubAdminOrderController::class, 'countPreparing']);
-        Route::get('/orders/today/preparing/ids',       [SubAdminOrderController::class, 'listPreparing']);
-        Route::get('/orders/today/OnWay/count', [SubAdminOrderController::class, 'countOnWay']);
-        Route::get('/orders/today/OnWay/ids',       [SubAdminOrderController::class, 'listOnWay']);
-        Route::get('/orders/today/Done/count', [SubAdminOrderController::class, 'countDone']);
-        Route::get('/orders/today/Done/ids',       [SubAdminOrderController::class, 'listDone']);
+        Route::get('/orders/today/preparing/count', [SubAdminOrderController::class, 'countTodayPreparing']);
+        Route::get('/orders/today/preparing/ids',       [SubAdminOrderController::class, 'listTodayPreparing']);
+        Route::get('/orders/today/OnWay/count', [SubAdminOrderController::class, 'countTodayOnWay']);
+        Route::get('/orders/today/OnWay/ids',       [SubAdminOrderController::class, 'listTodayOnWay']);
+        Route::get('/orders/today/Done/count', [SubAdminOrderController::class, 'countTodayDone']);
+        Route::get('/orders/today/Done/ids',       [SubAdminOrderController::class, 'listTodayDone']);
         Route::get('/orders/orderDetails/{orderId}',[SubAdminOrderController::class, 'getOrderDetailsForSubAdmin']);
 
 //        طلبات المتاجر

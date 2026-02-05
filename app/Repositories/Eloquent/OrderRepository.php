@@ -334,7 +334,7 @@ class OrderRepository
     /**
      * عدّاد طلبات "انتظار" لمنطقة معيّنة (بدون تقييد اليوم).
      */
-    public function countPendingByArea(int $areaId): int
+    public function countTodayPendingByArea(int $areaId): int
     {
         return Order::query()
             ->where('area_id', $areaId)
@@ -346,29 +346,25 @@ class OrderRepository
      * إرجاع قائمة طلبات "انتظار" لمنطقة معيّنة (مع باجينيشن).
      * (نفس الاسم، لكن بدون شرط اليوم)
      */
-    public function listPendingByArea(int $areaId, int $perPage = 15)
+    public function listTodayPendingByArea(int $areaId, int $perPage = 15)
     {
         return Order::query()
             ->where('area_id', $areaId)
             ->where('status', 'انتظار')
-            ->with([
-                'user:id,name,phone'
-            ])
             ->latest('id')
             ->select([
                 'id','user_id','area_id','address_id',
                 'total_product_price','discount_fee','totalAfterDiscount',
-                'delivery_fee','total_price','date','time','status',
-                'payment_method','notes','created_at'
+                'delivery_fee','total_price','date','time','status','payment_method',
+                'notes','created_at'
             ])
             ->paginate($perPage);
     }
 
-
     /**
      * عدّاد طلبات "يجهز" لمنطقة معيّنة (بدون تقييد اليوم).
      */
-    public function countPreparingByArea(int $areaId): int
+    public function countTodayPreparingByArea(int $areaId): int
     {
         return Order::query()
             ->where('area_id', $areaId)
@@ -380,21 +376,17 @@ class OrderRepository
      * إرجاع قائمة طلبات "يجهز" لمنطقة معيّنة (مع باجينيشن).
      * (نفس الاسم، لكن بدون شرط اليوم)
      */
-    public function listPreparingByArea(int $areaId, int $perPage = 15)
+    public function listTodayPreparingByArea(int $areaId, int $perPage = 15)
     {
-
         return Order::query()
             ->where('area_id', $areaId)
             ->where('status', 'يجهز')
-            ->with([
-                'user:id,name,phone'
-            ])
             ->latest('id')
             ->select([
                 'id','user_id','area_id','address_id',
                 'total_product_price','discount_fee','totalAfterDiscount',
-                'delivery_fee','total_price','date','time','status',
-                'payment_method','notes','created_at'
+                'delivery_fee','total_price','date','time','status','payment_method',
+                'notes','created_at'
             ])
             ->paginate($perPage);
     }
@@ -403,7 +395,7 @@ class OrderRepository
      * عدّاد طلبات "في الطريق" لمنطقة معيّنة.
      * (نفس الاسم، لكن بدون شرط اليوم)
      */
-    public function countOnWayByArea(int $areaId): int
+    public function countTodayOnWayByArea(int $areaId): int
     {
         return Order::query()
             ->where('area_id', $areaId)
@@ -414,20 +406,17 @@ class OrderRepository
      * إرجاع قائمة طلبات "في الطريق" لمنطقة معيّنة (مع باجينيشن).
      * (نفس الاسم، لكن بدون شرط اليوم)
      */
-    public function listOnWayByArea(int $areaId, int $perPage = 15)
+    public function listTodayOnWayByArea(int $areaId, int $perPage = 15)
     {
         return Order::query()
             ->where('area_id', $areaId)
             ->where('status', 'في الطريق')
-            ->with([
-                'user:id,name,phone'
-            ])
             ->latest('id')
             ->select([
                 'id','user_id','area_id','address_id',
                 'total_product_price','discount_fee','totalAfterDiscount',
-                'delivery_fee','total_price','date','time','status',
-                'payment_method','notes','created_at'
+                'delivery_fee','total_price','date','time','status','payment_method',
+                'notes','created_at'
             ])
             ->paginate($perPage);
     }
@@ -436,8 +425,9 @@ class OrderRepository
     /**
      * عدّاد طلبات اليوم بحالة "مستلم" لمنطقة معيّنة.
      */
-    public function countDoneByArea(int $areaId): int
+    public function countTodayDoneByArea(int $areaId): int
     {
+        $today = Carbon::today(config('app.timezone'))->toDateString();
 
         return Order::query()
             ->where('area_id', $areaId)
@@ -448,21 +438,19 @@ class OrderRepository
     /**
      * إرجاع قائمة طلبات اليوم بحالة "مستلمة" لمنطقة معيّنة (مع باجينيشن).
      */
-    public function listDoneByArea(int $areaId, int $perPage = 15)
+    public function listTodayDoneByArea(int $areaId, int $perPage = 15)
     {
+        $today = Carbon::today(config('app.timezone'))->toDateString();
 
         return Order::query()
             ->where('area_id', $areaId)
             ->where('status', 'مستلم')
-            ->with([
-                'user:id,name,phone'
-            ])
             ->latest('id')
             ->select([
                 'id','user_id','area_id','address_id',
                 'total_product_price','discount_fee','totalAfterDiscount',
-                'delivery_fee','total_price','date','time','status',
-                'payment_method','notes','created_at'
+                'delivery_fee','total_price','date','time','status','payment_method',
+                'notes','created_at'
             ])
             ->paginate($perPage);
     }
