@@ -418,7 +418,7 @@ Route::prefix('customer')->group(function () {
 //Ads
         Route::get('Ads/all', [SubAdminAdController::class, 'index']);
         Route::post('Ads/add', [SubAdminAdController::class, 'store']);
-        Route::delete('Ads/delete', [SubAdminAdController::class, 'destroy']);
+        Route::delete('Ads/delete/{$adId}', [SubAdminAdController::class, 'destroy']);
 
 
     });

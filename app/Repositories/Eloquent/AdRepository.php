@@ -66,7 +66,7 @@ class AdRepository implements AdRepositoryInterface
         $area->ads()->attach($ad->id);
 
         return $ad;
-        
+
     }
 
     /**
