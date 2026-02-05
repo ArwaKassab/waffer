@@ -121,7 +121,7 @@ class OrderController extends Controller
             ]);
         }
 
-        return response()->json($orders);
+        return OrderListResource::collection($orders);
     }
 
 
@@ -163,7 +163,7 @@ class OrderController extends Controller
             ]);
         }
 
-        return response()->json($orders);
+        return OrderListResource::collection($orders);
     }
 
 
@@ -205,7 +205,7 @@ class OrderController extends Controller
             ]);
         }
 
-        return response()->json($orders);
+        return OrderListResource::collection($orders);
     }
 
     /**

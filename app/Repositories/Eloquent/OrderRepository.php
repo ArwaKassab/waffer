@@ -380,6 +380,7 @@ class OrderRepository
     public function listPreparingByArea(int $areaId, int $perPage = 15)
     {
         return Order::query()
+            ->with(['user:id,name,phone'])
             ->where('area_id', $areaId)
             ->where('status', 'يجهز')
             ->latest('id')
@@ -410,6 +411,7 @@ class OrderRepository
     public function listOnWayByArea(int $areaId, int $perPage = 15)
     {
         return Order::query()
+            ->with(['user:id,name,phone'])
             ->where('area_id', $areaId)
             ->where('status', 'في الطريق')
             ->latest('id')
@@ -444,6 +446,7 @@ class OrderRepository
         $today = Carbon::today(config('app.timezone'))->toDateString();
 
         return Order::query()
+            ->with(['user:id,name,phone'])
             ->where('area_id', $areaId)
             ->where('status', 'مستلم')
             ->latest('id')
