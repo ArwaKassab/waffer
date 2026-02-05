@@ -7,8 +7,9 @@ namespace App\Services\SubAdmin;
     use App\Repositories\Eloquent\AdRepository;
     use Illuminate\Database\Eloquent\Collection;
     use Illuminate\Http\UploadedFile;
+    use Illuminate\Support\Facades\Storage;
 
-class AdService
+    class AdService
 {
     public function __construct(protected AdRepository $repo) {}
 
@@ -17,9 +18,15 @@ class AdService
         return $this->repo->getAdsByAreaId($areaId);
     }
 
-    public function addAdToArea(int $areaId, UploadedFile $image): Ad
+    public function addAdToArea(int $areaId, UploadedFile $image): array
     {
-        return $this->repo->addAdToArea($areaId, $image);
+        $ad = $this->repo->addAdToArea($areaId, $image);
+
+        // نرجع البيانات مع رابط كامل للصورة
+        return [
+            'id' => $ad->id,
+            'image' => url(Storage::url($ad->image)), // رابط كامل
+        ];
     }
 
     public function removeAdFromArea(int $areaId, int $adId): ?bool

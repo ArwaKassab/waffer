@@ -6,6 +6,7 @@ use App\Services\SubAdmin\AdService;
 use App\Services\AreaService;
 use Illuminate\Http\Request;
 use Illuminate\Http\JsonResponse;
+use Illuminate\Support\Facades\Storage;
 
 class AreaAdController extends Controller
 {
@@ -25,7 +26,6 @@ class AreaAdController extends Controller
         ]);
     }
 
-    // إضافة إعلان لمنطقة
     public function store(Request $request): JsonResponse
     {
         $request->validate([
@@ -33,17 +33,13 @@ class AreaAdController extends Controller
             'image' => 'required|image|mimes:jpg,jpeg,png,gif,webp|max:5120',
         ]);
 
-        $ad = $this->service->addAdToArea((int) $request->area_id, $request->file('image'));
+        $adData = $this->service->addAdToArea((int) $request->area_id, $request->file('image'));
 
         return response()->json([
             'message' => 'تم إضافة الإعلان بنجاح.',
-            'data' => [
-                'id' => $ad->id,
-                'image' => $ad->image,
-            ],
+            'data' => $adData,
         ], 201);
     }
-
     // حذف إعلان من منطقة
     public function destroy(Request $request, int $adId): JsonResponse
     {
