@@ -6,6 +6,8 @@ use App\Http\Controllers\Controller;
 use App\Http\Resources\StoreAdminShowResource;
 use App\Http\Resources\StoreResource;
 use App\Models\User;
+use App\Repositories\Eloquent\AreaRepository;
+use App\Services\AreaService;
 use App\Services\SubAdmin\StoreService;
 use App\Services\SuperAdmin\SubAdminService;
 use Illuminate\Http\JsonResponse;
@@ -14,7 +16,7 @@ use Illuminate\Validation\Rule;
 
 class SubAdminController extends Controller
 {
-    public function __construct(protected SubAdminService $service) {}
+    public function __construct(protected AreaService $service) {}
     public function addSubAdmin(Request $request)
     {
         // التحقق من البيانات

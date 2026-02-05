@@ -412,8 +412,6 @@ Route::prefix('customer')->group(function () {
         Route::get('otp-provider/health', [SubAdminCustomerController::class, 'health']);
         Route::get('otp-failures/{tempId}', [SubAdminCustomerController::class, 'show_error_reasone']);
 
-        //اضافة منطقة
-        Route::post('area/add', [SubAdminCategoryController::class, 'store_super_admin']);
 
     });
 
@@ -431,6 +429,8 @@ Route::prefix('Admin-auth')->middleware(['auth:sanctum','attach.user.area'])->gr
     Route::delete('categories/delete/{id}', [SubAdminCategoryController::class, 'destroy']);
 
     Route::post('sub-admin/add', [SuperAdminSubAdminController::class, 'addSubAdmin']);
+    //اضافة منطقة
+    Route::post('area/add', [SubAdminCategoryController::class, 'store_super_admin']);
 
 
 });
