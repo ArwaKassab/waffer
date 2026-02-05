@@ -12,8 +12,8 @@ class OrderListResource extends JsonResource
         return [
             'id' => $this->id,
             'user' => [
-                'name'  => $this->user_id->name,
-                'phone' => str_starts_with($this->user_id->phone, '00963')
+                'name'  => $this->user->name,
+                'phone' => str_starts_with($this->user->phone, '00963')
                     ? '0' . substr($this->user->phone, 4)
                     : $this->user->phone,
             ],
@@ -23,3 +23,4 @@ class OrderListResource extends JsonResource
         ];
     }
 }
+
