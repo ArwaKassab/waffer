@@ -217,13 +217,11 @@ class OrderService
 
     public function listForAreaByStatus(int $areaId, string $status, int $perPage = 15)
     {
-        return Order::query()
+        return Order::with('user')
             ->where('area_id', $areaId)
             ->where('status', $status)
-            ->with(['user:id,name,phone'])
             ->latest('id')
             ->paginate($perPage);
-
     }
 
 }
