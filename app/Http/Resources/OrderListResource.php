@@ -16,7 +16,7 @@ class OrderListResource extends JsonResource
             'user' => [
                 'id' => $user?->id,
                 'name' => $user?->name ?? 'مستخدم محذوف',
-                'phone' => $user->phone,
+                'phone' => $user->phone  ?? 'مستخدم محذوف',
             ],
 
             'area_id' => $this->area_id,

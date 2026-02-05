@@ -381,7 +381,7 @@ class OrderRepository
             ])
             ->paginate($perPage);
     }
-    
+
 
     /**
      * عدّاد طلبات "يجهز" لمنطقة معيّنة (بدون تقييد اليوم).
