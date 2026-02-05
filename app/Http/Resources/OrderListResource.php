@@ -22,7 +22,6 @@ class OrderListResource extends JsonResource
             'time'        => $this->time,
         ];
     }
-}
 
 }
 
