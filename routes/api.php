@@ -413,7 +413,7 @@ Route::prefix('customer')->group(function () {
         Route::get('otp-failures/{tempId}', [SubAdminCustomerController::class, 'show_error_reasone']);
 
         //اضافة منطقة
-        Route::get('area/add', [SubAdminCategoryController::class, 'store_super_admin']);
+        Route::post('area/add', [SubAdminCategoryController::class, 'store_super_admin']);
 
     });
 
