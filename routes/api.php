@@ -392,8 +392,8 @@ Route::prefix('customer')->group(function () {
         Route::get('categories/all', [SubAdminCategoryController::class, 'index']);
         Route::get('categories/allbyArea', [SubAdminCategoryController::class, 'byArea']);
         Route::get('categories/unassigned-toarea', [SubAdminCategoryController::class, 'unassigned']);
-        Route::get('categories/assign-toarea', [SubAdminCategoryController::class, 'assign']);
-        Route::get('categories/detach', [SubAdminCategoryController::class, 'detach']);
+        Route::post('categories/assign-toarea/{category}', [SubAdminCategoryController::class, 'assign']);
+        Route::post('categories/detach/{category}', [SubAdminCategoryController::class, 'detach']);
 
 
 //        Route::post('categories/add', [SubAdminCategoryController::class, 'store']);
