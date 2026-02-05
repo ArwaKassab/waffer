@@ -334,7 +334,7 @@ class OrderRepository
     /**
      * عدّاد طلبات "انتظار" لمنطقة معيّنة (بدون تقييد اليوم).
      */
-    public function countTodayPendingByArea(int $areaId): int
+    public function countPendingByArea(int $areaId): int
     {
         return Order::query()
             ->where('area_id', $areaId)
@@ -346,35 +346,24 @@ class OrderRepository
      * إرجاع قائمة طلبات "انتظار" لمنطقة معيّنة (مع باجينيشن).
      * (نفس الاسم، لكن بدون شرط اليوم)
      */
-    public function listTodayPendingByArea(int $areaId, int $perPage = 15)
+    public function listPendingByArea(int $areaId, int $perPage = 15)
     {
         return Order::query()
             ->where('area_id', $areaId)
             ->where('status', 'انتظار')
-            ->whereDate('date', now()->toDateString())
             ->with([
                 'user:id,name,phone'
             ])
             ->latest('id')
             ->select([
-                'id',
-                'user_id',
-                'area_id',
-                'address_id',
-                'total_product_price',
-                'discount_fee',
-                'totalAfterDiscount',
-                'delivery_fee',
-                'total_price',
-                'date',
-                'time',
-                'status',
-                'payment_method',
-                'notes',
-                'created_at',
+                'id','user_id','area_id','address_id',
+                'total_product_price','discount_fee','totalAfterDiscount',
+                'delivery_fee','total_price','date','time','status',
+                'payment_method','notes','created_at'
             ])
             ->paginate($perPage);
     }
+
 
     /**
      * عدّاد طلبات "يجهز" لمنطقة معيّنة (بدون تقييد اليوم).
@@ -458,7 +447,6 @@ class OrderRepository
      */
     public function countTodayDoneByArea(int $areaId): int
     {
-        $today = Carbon::today(config('app.timezone'))->toDateString();
 
         return Order::query()
             ->where('area_id', $areaId)

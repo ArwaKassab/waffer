@@ -134,25 +134,25 @@ class OrderService
     /**
      * يرجع عدد طلبات اليوم "انتظار" لمنطقة المستخدم المسجّل.
      */
-    public function countTodayPendingForLoggedArea($areaId): int
+    public function countPendingForLoggedArea($areaId): int
     {
-        return $this->orderRepo->countTodayPendingByArea((int) $areaId);
+        return $this->orderRepo->countPendingByArea((int) $areaId);
     }
 
 
     /**
      * يرجع قائمة طلبات اليوم "انتظار" لمنطقة المستخدم المسجّل (مع باجينيشن).
      */
-    public function listTodayPendingForLoggedArea($areaId,int $perPage = 15)
+    public function listPendingForLoggedArea($areaId,int $perPage = 15)
     {
 
-        return $this->orderRepo->listTodayPendingByArea((int) $areaId, $perPage);
+        return $this->orderRepo->listPendingByArea((int) $areaId, $perPage);
     }
 
     /**
      * يرجع عدد طلبات اليوم "يجهز" لمنطقة المستخدم المسجّل.
      */
-    public function countTodayPreparingForLoggedArea($areaId): int
+    public function countPreparingForLoggedArea($areaId): int
     {
         return $this->orderRepo->countTodayPreparingByArea((int) $areaId);
     }

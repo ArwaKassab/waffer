@@ -106,9 +106,9 @@ class OrderController extends Controller
     /**
      * إرجاع عدد طلبات "يجهز" الخاصة بالمنطقة (بدون تقييد اليوم).
      */
-    public function countTodaypreparing(Request $request)
+    public function countpreparing(Request $request)
     {
-        $count = $this->orderService->countTodayPreparingForLoggedArea($request->area_id);
+        $count = $this->orderService->countPreparingForLoggedArea($request->area_id);
 
         return response()->json([
             'area_id' => (int) $request->area_id,
@@ -121,7 +121,7 @@ class OrderController extends Controller
     /**
      * إرجاع قائمة طلبات اليوم "يجهز" (مع باجينيشن) للمنطقة المسجّل دخول.
      */
-    public function listTodaypreparing(Request $request)
+    public function listpreparing(Request $request)
     {
         $user = Auth::user();
 
@@ -132,7 +132,7 @@ class OrderController extends Controller
         $perPage = (int) $request->query('per_page', 15);
 
         $orders = $this->orderService
-            ->listTodayPendingForLoggedArea((int) $request->area_id, $perPage);
+            ->listPendingForLoggedArea((int) $request->area_id, $perPage);
 
         return response()->json([
             'area_id' => (int) $request->area_id,

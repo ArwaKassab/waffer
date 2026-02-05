@@ -358,8 +358,8 @@ Route::prefix('customer')->group(function () {
         Route::post('/orders/{orderId}/accept', [SubAdminOrderController::class, 'accept']);
         Route::patch('/orders/{orderId}/status', [SubAdminOrderController::class, 'changeStatus']);
 
-        Route::get('/orders/today/pending/count', [SubAdminOrderController::class, 'countTodayPending']);
-        Route::get('/orders/today/pending/ids',       [SubAdminOrderController::class, 'listTodayPending']);
+        Route::get('/orders/today/pending/count', [SubAdminOrderController::class, 'countPending']);
+        Route::get('/orders/today/pending/ids',       [SubAdminOrderController::class, 'listPending']);
 
         Route::get('/orders/today/preparing/count', [SubAdminOrderController::class, 'countTodayPreparing']);
         Route::get('/orders/today/preparing/ids',       [SubAdminOrderController::class, 'listTodayPreparing']);
