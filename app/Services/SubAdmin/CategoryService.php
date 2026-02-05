@@ -7,6 +7,7 @@ use App\Repositories\Contracts\CategoryRepositoryInterface;
 use Illuminate\Contracts\Pagination\LengthAwarePaginator;
 use Illuminate\Database\Eloquent\ModelNotFoundException;
 use Illuminate\Support\Collection;
+use Illuminate\Support\Facades\DB;
 use Illuminate\Support\Facades\Storage;
 
 class CategoryService
@@ -14,17 +15,6 @@ class CategoryService
     public function __construct(
         protected CategoryRepositoryInterface $categories
     ) {}
-
-    public function listAll(
-        int $areaId,
-        bool $paged = true,
-        int $perPage = 20
-    ): LengthAwarePaginator|Collection
-    {
-        return $paged
-            ? $this->categories->paginateByArea($areaId, $perPage)
-            : $this->categories->allByArea($areaId);
-    }
 
 
     public function findById(int $id): ?Category
@@ -40,6 +30,22 @@ class CategoryService
         $category = Category::create($data);
         $category->append('image_url')->makeHidden(['image']);
         return $category;
+    }
+
+    public function createAndAttachToArea(int $areaId, array $data): Category
+    {
+        return DB::transaction(function () use ($areaId, $data) {
+
+            $category = Category::create($data);
+
+            // ربط التصنيف بالمنطقة
+            $category->areas()->attach($areaId);
+
+            // تجهيز الإخراج
+            $category->append('image_url')->makeHidden(['image']);
+
+            return $category;
+        });
     }
 
     public function update(int $id, array $data): ?Category
@@ -74,4 +80,44 @@ class CategoryService
 
         return $this->categories->delete($category);
     }
+
+    public function addCategoryToArea(int $categoryId, int $areaId): void
+    {
+        $this->categories->attachToArea($categoryId, $areaId);
+    }
+    public function create_by_super_admin(array $data): Category
+    {
+        return $this->categories->create_by_super_admin($data);
+    }
+
+    // جميع التصنيفات
+    public function listAll(): Collection
+    {
+        return $this->categories->all();
+    }
+
+    // تصنيفات مرتبطة بمنطقة
+    public function listForArea(int $areaId): Collection
+    {
+        return $this->categories->forArea($areaId);
+    }
+
+    // تصنيفات غير مرتبطة بمنطقة
+    public function listUnassignedForArea(int $areaId): Collection
+    {
+        return $this->categories->notForArea($areaId);
+    }
+
+    // ربط تصنيف بمنطقة
+    public function assignToArea(int $categoryId, int $areaId): void
+    {
+        $this->categories->attachToArea($categoryId, $areaId);
+    }
+
+    // فك الربط من منطقة
+    public function removeFromArea(int $categoryId, int $areaId): void
+    {
+        $this->categories->detachFromArea($categoryId, $areaId);
+    }
+
 }

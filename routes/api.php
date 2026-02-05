@@ -385,8 +385,18 @@ Route::prefix('customer')->group(function () {
         Route::PATCH('products/status/{product}', [SubAdminStoreController::class, 'updateStatus']);
 
 //التصنيفات
+
+        Route::get('categories/add', [SubAdminCategoryController::class, 'store_super_admin']);
         Route::get('categories/all', [SubAdminCategoryController::class, 'index']);
-        Route::post('categories/add', [SubAdminCategoryController::class, 'store']);
+        Route::get('categories/allbyArea', [SubAdminCategoryController::class, 'byArea']);
+        Route::get('categories/unassigned-toarea', [SubAdminCategoryController::class, 'unassigned']);
+        Route::get('categories/assign-toarea', [SubAdminCategoryController::class, 'assign']);
+        Route::get('categories/detach', [SubAdminCategoryController::class, 'detach']);
+
+
+//        Route::post('categories/add', [SubAdminCategoryController::class, 'store']);
+//        Route::post('categories/assignToArea', [SubAdminCategoryController::class, 'assignToArea']);
+
 //        Route::put('categories/{id}', [CategoryController::class, 'update']);
         Route::PATCH('categories/update/{id}', [SubAdminCategoryController::class, 'update']);
         Route::delete('categories/delete/{id}', [SubAdminCategoryController::class, 'destroy']);
