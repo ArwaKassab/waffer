@@ -475,7 +475,6 @@ class OrderRepository
         return Order::query()
             ->where('area_id', $areaId)
             ->where('status', 'مستلم')
-            ->whereDate('date', now()->toDateString())
             ->with([
                 'user:id,name,phone'
             ])
