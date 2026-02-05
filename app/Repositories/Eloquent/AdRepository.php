@@ -56,14 +56,17 @@ class AdRepository implements AdRepositoryInterface
      * @param string $image
      * @return Ad
      */
-    public function addAdToArea(int $areaId, string $image): Ad
+    public function addAdToArea(int $areaId, UploadedFile $image): Ad
     {
-        $ad = Ad::create(['image' => $image]);
+        $path = Storage::disk('public')->put('ads', $image);
+
+        $ad = Ad::create(['image' => $path]);
 
         $area = Area::findOrFail($areaId);
         $area->ads()->attach($ad->id);
 
         return $ad;
+        
     }
 
     /**

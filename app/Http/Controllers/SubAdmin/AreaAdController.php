@@ -34,9 +34,9 @@ class AreaAdController extends Controller
         ]);
 
         // حفظ الصورة في التخزين
-        $path = $request->file('image')->store('ads', 'public');
+//        $path = $request->file('image')->store('ads', 'public');
 
-        $ad = $this->service->addAdToArea((int) $request->area_id, $path);
+        $ad = $this->service->addAdToArea((int) $request->area_id, $request->file('image'));
 
         return response()->json([
             'message' => 'تم إضافة الإعلان بنجاح.',
