@@ -60,13 +60,46 @@ class OrderController extends Controller
     /**
      * إرجاع قائمة طلبات اليوم "انتظار" (مع باجينيشن) للمنطقة المسجّل دخول.
      */
-    public function listPendingByArea(int $areaId, int $perPage = 15)
+    public function listPending(Request $request)
     {
-        return Order::with(['user' => fn($q) => $q->withTrashed()->select('id','name','phone')])
-            ->where('area_id', $areaId)
-            ->where('status', 'انتظار')
-            ->latest()
-            ->paginate($perPage);
+        $user = Auth::user();
+        if (!$user || !$request->area_id) {
+            return response()->json(['message' => 'لا يوجد منطقة للمستخدم الحالي'], 400);
+        }
+
+        $perPage = (int) $request->query('per_page', 15);
+
+        // نجيب الطلبات مع المستخدم حتى لو محذوف
+        $orders = $this->orderService->listPendingForLoggedArea($request->area_id, $perPage);
+
+        // إذا كانت Collection فارغة
+        if ($orders->isEmpty()) {
+            return response()->json([
+                'area_id' => (int) $request->area_id,
+                'date'    => now(config('app.timezone'))->toDateString(),
+                'status'  => 'انتظار',
+                'data'    => [],
+                'meta'    => [
+                    'total' => 0,
+                    'per_page' => $perPage,
+                    'current_page' => 1,
+                ],
+            ]);
+        }
+
+        // تحويل الـ Paginate لـ Resource
+        return OrderListResource::collection($orders)->additional([
+            'meta' => [
+                'current_page' => $orders->currentPage(),
+                'from' => $orders->firstItem(),
+                'last_page' => $orders->lastPage(),
+                'to' => $orders->lastItem(),
+                'per_page' => $orders->perPage(),
+                'total' => $orders->total(),
+                'path' => $orders->path(),
+                'links' => $orders->linkCollection()->all(),
+            ],
+        ]);
     }
 
 
