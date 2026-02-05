@@ -189,7 +189,7 @@ class CategoryController extends Controller
     }
 
     // ربط تصنيف بمنطقة
-    public function assign(Request $request, int $id)
+    public function assign(Request $request, int $category_id)
     {
         $data = $request->validate([
             'area_id' => ['required','exists:areas,id'],
@@ -201,7 +201,7 @@ class CategoryController extends Controller
     }
 
     // فك الربط من منطقة
-    public function detach(Request $request, int $id)
+    public function detach(Request $request, int $category_id)
     {
         $data = $request->validate([
             'area_id' => ['required','exists:areas,id'],
