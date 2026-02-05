@@ -60,7 +60,14 @@ class OrderController extends Controller
     /**
      * إرجاع قائمة طلبات اليوم "انتظار" (مع باجينيشن) للمنطقة المسجّل دخول.
      */
-    /**
+    public function listPendingByArea(int $areaId, int $perPage = 15)
+    {
+        return Order::with(['user' => fn($q) => $q->withTrashed()->select('id','name','phone')])
+            ->where('area_id', $areaId)
+            ->where('status', 'انتظار')
+            ->latest()
+            ->paginate($perPage);
+    }
 
 
 
