@@ -12,7 +12,7 @@ class AdminSeeder extends Seeder
     {
         // Super Admin
         User::updateOrCreate(
-            ['phone' => '00963123456789', 'type' => 'admin'], // رقم الهاتف الفريد لكل نوع
+            ['phone' => '00963935971524', 'type' => 'admin'], // رقم الهاتف الفريد لكل نوع
             [
                 'name' => 'Super Admin',
                 'user_name' => 'superadmin',
