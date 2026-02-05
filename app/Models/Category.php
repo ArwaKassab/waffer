@@ -36,7 +36,13 @@ class Category extends Model
 
     public function areas()
     {
-        return $this->belongsToMany(Area::class);
+        return $this->belongsToMany(
+            Area::class,
+            'area_category_pivot',
+            'category_id',
+            'area_id'
+        );
     }
+
 
 }

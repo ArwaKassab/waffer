@@ -30,8 +30,14 @@ class Area extends Model
     }
     public function categories()
     {
-        return $this->belongsToMany(Category::class);
+        return $this->belongsToMany(
+            Category::class,
+            'area_category_pivot',
+            'area_id',
+            'category_id'
+        );
     }
+
 
 }
 

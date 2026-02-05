@@ -113,6 +113,7 @@ class CategoryRepository implements CategoryRepositoryInterface
             ->get();
     }
 
+
     // تصنيفات غير مرتبطة بمنطقة معينة
     public function notForArea(int $areaId): Collection
     {

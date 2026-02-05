@@ -54,7 +54,6 @@ class SubAdminController extends Controller
 
         return response()->json([
             'message' => 'تم إنشاء Sub Admin بنجاح.',
-            'data' => $subAdmin,
         ], 201);
     }
 
