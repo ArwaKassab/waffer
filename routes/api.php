@@ -417,6 +417,35 @@ Route::prefix('customer')->group(function () {
 
     });
 
+
+Route::prefix('Admin-auth')->middleware(['auth:sanctum','attach.user.area'])->group(function () {
+
+    Route::post('categories/add', [SubAdminCategoryController::class, 'store_super_admin']);
+    Route::get('categories/all', [SubAdminCategoryController::class, 'index']);
+
+//        Route::post('categories/add', [SubAdminCategoryController::class, 'store']);
+//        Route::post('categories/assignToArea', [SubAdminCategoryController::class, 'assignToArea']);
+
+//        Route::put('categories/{id}', [CategoryController::class, 'update']);
+    Route::PATCH('categories/update/{id}', [SubAdminCategoryController::class, 'update']);
+    Route::delete('categories/delete/{id}', [SubAdminCategoryController::class, 'destroy']);
+
+//الشكاوي
+    Route::get('complaints/all', [SubAdminComplaintController::class, 'index']);
+    Route::get('complaints/details/{id}', [SubAdminComplaintController::class, 'show'])
+        ->name('subadmin.complaints.show');
+//        التقاير
+
+    Route::get('/orders/statistics', [SubAdminOrderStatisticsController::class, 'index']);
+    //otp-health
+    Route::get('otp-provider/health', [SubAdminCustomerController::class, 'health']);
+    Route::get('otp-failures/{tempId}', [SubAdminCustomerController::class, 'show_error_reasone']);
+
+    //اضافة منطقة
+    Route::post('area/add', [SubAdminCategoryController::class, 'store_super_admin']);
+
+});
+
 Route::middleware('auth:sanctum')->group(function () {
     // Flutter يسجّل توكن الجهاز
     Route::post('devices/register-tokens', [DeviceController::class, 'store']);
