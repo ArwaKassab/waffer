@@ -38,6 +38,7 @@ use App\Http\Controllers\SubAdmin\ComplaintController as SubAdminComplaintContro
 use App\Http\Controllers\SubAdmin\OrderStatisticsController as SubAdminOrderStatisticsController;
 use App\Http\Controllers\SuperAdmin\SubAdminController as SuperAdminSubAdminController;
 use App\Http\Controllers\SuperAdmin\AreaController as SubAdminAreaController;
+use App\Http\Controllers\SubAdmin\AreaAdController as SubAdminAdController;
 
 //use App\Http\Controllers\AdminController;
 //use App\Http\Controllers\StoreController;
@@ -413,6 +414,11 @@ Route::prefix('customer')->group(function () {
         //otp-health
         Route::get('otp-provider/health', [SubAdminCustomerController::class, 'health']);
         Route::get('otp-failures/{tempId}', [SubAdminCustomerController::class, 'show_error_reasone']);
+
+//Ads
+        Route::get('Ads/all', [SubAdminAdController::class, 'index']);
+        Route::post('Ads/add', [SubAdminAdController::class, 'store']);
+        Route::delete('Ads/delete', [SubAdminAdController::class, 'destroy']);
 
 
     });
