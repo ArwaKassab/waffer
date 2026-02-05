@@ -36,7 +36,7 @@ use App\Http\Controllers\SubAdmin\StoreController as SubAdminStoreController;
 use App\Http\Controllers\SubAdmin\CategoryController as SubAdminCategoryController;
 use App\Http\Controllers\SubAdmin\ComplaintController as SubAdminComplaintController;
 use App\Http\Controllers\SubAdmin\OrderStatisticsController as SubAdminOrderStatisticsController;
-
+use App\Http\Controllers\SuperAdmin\SubAdminController as SuperAdminSubAdminController;
 //use App\Http\Controllers\AdminController;
 //use App\Http\Controllers\StoreController;
 //use App\Http\Controllers\CustomerController;
@@ -430,19 +430,8 @@ Route::prefix('Admin-auth')->middleware(['auth:sanctum','attach.user.area'])->gr
     Route::PATCH('categories/update/{id}', [SubAdminCategoryController::class, 'update']);
     Route::delete('categories/delete/{id}', [SubAdminCategoryController::class, 'destroy']);
 
-//الشكاوي
-    Route::get('complaints/all', [SubAdminComplaintController::class, 'index']);
-    Route::get('complaints/details/{id}', [SubAdminComplaintController::class, 'show'])
-        ->name('subadmin.complaints.show');
-//        التقاير
+    Route::post('sub-admin/add', [SuperAdminSubAdminController::class, 'addSubAdmin']);
 
-    Route::get('/orders/statistics', [SubAdminOrderStatisticsController::class, 'index']);
-    //otp-health
-    Route::get('otp-provider/health', [SubAdminCustomerController::class, 'health']);
-    Route::get('otp-failures/{tempId}', [SubAdminCustomerController::class, 'show_error_reasone']);
-
-    //اضافة منطقة
-    Route::post('area/add', [SubAdminCategoryController::class, 'store_super_admin']);
 
 });
 
