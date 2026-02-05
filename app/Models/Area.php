@@ -3,6 +3,7 @@
 namespace App\Models;
 
 use Illuminate\Database\Eloquent\Model;
+use Illuminate\Database\Eloquent\Relations\HasMany;
 use Illuminate\Database\Eloquent\SoftDeletes;
 
 class Area extends Model
@@ -37,14 +38,9 @@ class Area extends Model
             'category_id'
         );
     }
-    public function ads()
+    public function ads(): HasMany
     {
-        return $this->belongsToMany(
-            Ad::class,
-            'area_ad',   // جدول pivot
-            'area_id',
-            'ad_id'
-        )->withTimestamps();
+        return $this->hasMany(Ad::class);
     }
 
 

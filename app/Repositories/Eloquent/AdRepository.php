@@ -60,14 +60,15 @@ class AdRepository implements AdRepositoryInterface
     {
         $path = Storage::disk('public')->put('ads', $image);
 
-        $ad = Ad::create(['image' => $path]);
-
         $area = Area::findOrFail($areaId);
-        $area->ads()->attach($ad->id);
+
+        $ad = $area->ads()->create([
+            'image' => $path,
+        ]);
 
         return $ad;
-
     }
+
 
     /**
      * حذف إعلان من منطقة معينة

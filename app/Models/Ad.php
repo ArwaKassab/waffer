@@ -3,6 +3,7 @@
 namespace App\Models;
 
 use Illuminate\Database\Eloquent\Model;
+use Illuminate\Database\Eloquent\Relations\BelongsTo;
 use Illuminate\Database\Eloquent\SoftDeletes;
 
 class Ad extends Model
@@ -11,14 +12,9 @@ class Ad extends Model
 
     protected $fillable = ['image'];
 
-    public function areas()
+    public function area(): BelongsTo
     {
-        return $this->belongsToMany(
-            Area::class,
-            'area_ad',
-            'ad_id',
-            'area_id'
-        )->withTimestamps();
+        return $this->belongsTo(Area::class);
     }
 
 }

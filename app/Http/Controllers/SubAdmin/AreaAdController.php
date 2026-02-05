@@ -33,9 +33,6 @@ class AreaAdController extends Controller
             'image' => 'required|image|mimes:jpg,jpeg,png,gif,webp|max:5120',
         ]);
 
-        // حفظ الصورة في التخزين
-//        $path = $request->file('image')->store('ads', 'public');
-
         $ad = $this->service->addAdToArea((int) $request->area_id, $request->file('image'));
 
         return response()->json([
