@@ -75,6 +75,7 @@ class OrderController extends Controller
                 'date'    => now(config('app.timezone'))->toDateString(),
                 'status'  => 'انتظار',
                 'data'    => [],
+                'user'=>[$orders->user_id->name,$orders->user_id->phone],
                 'meta'    => ['total' => 0, 'per_page' => $perPage, 'current_page' => 1],
             ]);
         }

@@ -430,7 +430,6 @@ class OrderRepository
         $today = Carbon::today(config('app.timezone'))->toDateString();
 
         return Order::query()
-            ->whereDate('date', $today)
             ->where('area_id', $areaId)
             ->where('status', 'مستلم')
             ->count();
@@ -444,7 +443,6 @@ class OrderRepository
         $today = Carbon::today(config('app.timezone'))->toDateString();
 
         return Order::query()
-            ->whereDate('date', $today)
             ->where('area_id', $areaId)
             ->where('status', 'مستلم')
             ->latest('id')
