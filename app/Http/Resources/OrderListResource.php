@@ -13,9 +13,8 @@ class OrderListResource extends JsonResource
             'user' => $this->user ? [
                 'id'    => $this->user->id,
                 'name'  => $this->user->name,
-                'phone' => $this->user->phone,
+                'phone' => $this->user->phone_display,
             ] : null,
-            'phone' => $this->user_id->phone,
             'area_id'              => $this->area_id,
             'address_id'           => $this->address_id,
             'total_product_price'  => $this->total_product_price,
