@@ -15,24 +15,36 @@ class CategoryController extends Controller
 
     public function index(Request $request)
     {
+        if (!$request->area_id) {
+            return response()->json([
+                'message' => 'المنطقة مطلوبة'
+            ], 422);
+        }
+
         $paged   = filter_var($request->query('paged', true), FILTER_VALIDATE_BOOLEAN);
         $perPage = (int) $request->query('per_page', 20);
         $perPage = $perPage > 0 ? min($perPage, 100) : 20;
 
-        $result = $this->service->listAll($paged, $perPage);
+        $result = $this->service->listAll(
+            (int) $request->area_id,
+            $paged,
+            $perPage
+        );
 
         $items = $result instanceof \Illuminate\Contracts\Pagination\LengthAwarePaginator
             ? collect($result->items())
             : $result;
 
         return response()->json([
-            'data'   => $items->map(fn($c) => [
-                'id' =>$c->id,
+            'data' => $items->map(fn ($c) => [
+                'id'    => $c->id,
                 'name'  => $c->name,
                 'image' => $c->image_url,
             ])->values(),
         ]);
     }
+
+
 
     public function store(Request $request)
     {

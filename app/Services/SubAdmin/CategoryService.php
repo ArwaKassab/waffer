@@ -15,12 +15,17 @@ class CategoryService
         protected CategoryRepositoryInterface $categories
     ) {}
 
-    public function listAll(bool $paged = true, int $perPage = 20): LengthAwarePaginator|Collection
+    public function listAll(
+        int $areaId,
+        bool $paged = true,
+        int $perPage = 20
+    ): LengthAwarePaginator|Collection
     {
         return $paged
-            ? $this->categories->paginate($perPage)
-            : $this->categories->all();
+            ? $this->categories->paginateByArea($areaId, $perPage)
+            : $this->categories->allByArea($areaId);
     }
+
 
     public function findById(int $id): ?Category
     {

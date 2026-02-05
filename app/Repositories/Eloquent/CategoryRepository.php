@@ -2,6 +2,7 @@
 
 namespace App\Repositories\Eloquent;
 
+use App\Models\Area;
 use App\Models\Category;
 use App\Repositories\Contracts\CategoryRepositoryInterface;
 use Illuminate\Contracts\Pagination\LengthAwarePaginator;
@@ -24,10 +25,36 @@ class CategoryRepository implements CategoryRepositoryInterface
             ->orderBy('name')
             ->get();
     }
-    public function getAll()
+    public function allByArea(int $areaId): Collection
     {
-        return Category::all();
+        return Category::query()
+            ->select(['id', 'name', 'image'])
+            ->whereHas('areas', function ($q) use ($areaId) {
+                $q->where('areas.id', $areaId);
+            })
+            ->orderBy('name')
+            ->get();
     }
+
+    public function paginateByArea(int $areaId, int $perPage = 20)
+    {
+        return Category::query()
+            ->select(['id', 'name', 'image'])
+            ->whereHas('areas', function ($q) use ($areaId) {
+                $q->where('areas.id', $areaId);
+            })
+            ->orderBy('name')
+            ->paginate($perPage);
+    }
+
+    public function getByArea(int $areaId)
+    {
+        return Area::findOrFail($areaId)
+            ->categories()
+            ->get();
+    }
+
+
 
     public function findById(int $id): Category
     {
