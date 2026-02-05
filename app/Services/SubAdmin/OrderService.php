@@ -154,53 +154,53 @@ class OrderService
      */
     public function countPreparingForLoggedArea($areaId): int
     {
-        return $this->orderRepo->countTodayPreparingByArea((int) $areaId);
+        return $this->orderRepo->countPreparingByArea((int) $areaId);
     }
 
 
     /**
      * يرجع قائمة طلبات اليوم "يجهز" لمنطقة المستخدم المسجّل (مع باجينيشن).
      */
-    public function listTodayPreparingForLoggedArea($areaId,int $perPage = 15)
+    public function listPreparingForLoggedArea($areaId,int $perPage = 15)
     {
 
-        return $this->orderRepo->listTodayPreparingByArea((int) $areaId, $perPage);
+        return $this->orderRepo->listPreparingByArea((int) $areaId, $perPage);
     }
 
     /**
      * يرجع عدد طلبات اليوم "في الطريق" لمنطقة المستخدم المسجّل.
      */
-    public function countTodayOnWayForLoggedArea($areaId): int
+    public function countOnWayForLoggedArea($areaId): int
     {
         $user = Auth::user();
-        return $this->orderRepo->countTodayOnWayByArea((int) $areaId);
+        return $this->orderRepo->countOnWayByArea((int) $areaId);
     }
 
     /**
      * يرجع قائمة طلبات اليوم "في الطريق" لمنطقة المستخدم المسجّل (مع باجينيشن).
      */
-    public function listTodayOnWayForLoggedArea($areaId,int $perPage = 15)
+    public function listOnWayForLoggedArea($areaId,int $perPage = 15)
     {
 
-        return $this->orderRepo->listTodayOnWayByArea((int) $areaId, $perPage);
+        return $this->orderRepo->listOnWayByArea((int) $areaId, $perPage);
     }
 
     /**
      * يرجع عدد طلبات اليوم "مستلمة" لمنطقة المستخدم المسجّل.
      */
-    public function countTodayDoneForLoggedArea($areaId): int
+    public function countDoneForLoggedArea($areaId): int
     {
         $user = Auth::user();
-        return $this->orderRepo->countTodayDoneByArea((int) $areaId);
+        return $this->orderRepo->countDoneByArea((int) $areaId);
     }
 
     /**
      * يرجع قائمة طلبات اليوم "مستلمة" لمنطقة المستخدم المسجّل (مع باجينيشن).
      */
-    public function listTodayDoneForLoggedArea($areaId,int $perPage = 15)
+    public function listDoneForLoggedArea($areaId,int $perPage = 15)
     {
 
-        return $this->orderRepo->listTodayDoneByArea((int) $areaId, $perPage);
+        return $this->orderRepo->listDoneByArea((int) $areaId, $perPage);
     }
 
     /**
@@ -214,4 +214,14 @@ class OrderService
 
         return $this->orderRepo->findDetailsForSubAdmin($orderId, $areaId);
     }
+
+    public function listForAreaByStatus(int $areaId, string $status, int $perPage = 15)
+    {
+        return Order::with('user')
+            ->where('area_id', $areaId)
+            ->where('status', $status)
+            ->orderByDesc('created_at')
+            ->paginate($perPage);
+    }
+
 }

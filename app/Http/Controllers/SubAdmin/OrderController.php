@@ -2,12 +2,14 @@
 
 namespace App\Http\Controllers\SubAdmin;
 
+use App\Http\Resources\OrderListResource;
 use App\Http\Resources\SubAdminOrderDetailsResource;
 use App\Services\SubAdmin\OrderService;
 use Illuminate\Http\Request;
 use Illuminate\Support\Collection;
 use Illuminate\Support\Facades\Auth;
 use App\Http\Controllers\Controller;
+use App\Models\Order;
 
 class OrderController extends Controller
 {
@@ -44,9 +46,9 @@ class OrderController extends Controller
     /**
      * إرجاع عدد طلبات "انتظار" الخاصة بالمنطقة (بدون تقييد اليوم).
      */
-    public function countTodayPending(Request $request)
+    public function countPending(Request $request)
     {
-        $count = $this->orderService->countTodayPendingForLoggedArea($request->area_id);
+        $count = $this->orderService->countPendingForLoggedArea($request->area_id);
 
         return response()->json([
             'area_id' => (int) $request->area_id,
@@ -59,46 +61,14 @@ class OrderController extends Controller
     /**
      * إرجاع قائمة طلبات اليوم "انتظار" (مع باجينيشن) للمنطقة المسجّل دخول.
      */
-    public function listTodayPending(Request $request)
+    public function listPending(Request $request)
     {
-        $user = Auth::user();
+        $orders = $this->orderService->listForAreaByStatus(
+            $request->area_id,
+            Order::STATUS_PENDING
+        );
 
-        if (!$user || !$request->area_id) {
-            return response()->json(['message' => 'لا يوجد منطقة للمستخدم الحالي'], 400);
-        }
-
-        $perPage = (int) $request->query('per_page', 15);
-
-        $orders = $this->orderService
-            ->listTodayPendingForLoggedArea((int) $request->area_id, $perPage);
-
-        return response()->json([
-            'area_id' => (int) $request->area_id,
-            'date'    => now()->toDateString(),
-            'status'  => 'انتظار',
-            'data'    => collect($orders->items())->map(function ($order) {
-                return [
-                    'order_id'    => $order->id,
-                    'user' => [
-                        'id'    => $order->user->id,
-                        'name'  => $order->user->name,
-                        'phone' => str_starts_with($order->user->phone, '00963')
-                            ? '0' . substr($order->user->phone, 4)
-                            : $order->user->phone,
-                    ],
-                    'total_price' => $order->total_price,
-                    'payment_method' => $order->payment_method,
-                    'date' => $order->date,
-                    'time' => $order->time,
-                ];
-            }),
-            'meta' => [
-                'total'        => $orders->total(),
-                'per_page'     => $orders->perPage(),
-                'current_page' => $orders->currentPage(),
-                'last_page'    => $orders->lastPage(),
-            ],
-        ]);
+        return OrderListResource::collection($orders);
     }
 
 
@@ -121,55 +91,24 @@ class OrderController extends Controller
     /**
      * إرجاع قائمة طلبات اليوم "يجهز" (مع باجينيشن) للمنطقة المسجّل دخول.
      */
-    public function listpreparing(Request $request)
+    public function listPreparing(Request $request)
     {
-        $user = Auth::user();
+        $orders = $this->orderService->listForAreaByStatus(
+            $request->area_id,
+            Order::STATUS_PREPARING
+        );
 
-        if (!$user || !$request->area_id) {
-            return response()->json(['message' => 'لا يوجد منطقة للمستخدم الحالي'], 400);
-        }
-
-        $perPage = (int) $request->query('per_page', 15);
-
-        $orders = $this->orderService
-            ->listPendingForLoggedArea((int) $request->area_id, $perPage);
-
-        return response()->json([
-            'area_id' => (int) $request->area_id,
-            'date'    => now()->toDateString(),
-            'status'  => 'يجهز',
-            'data'    => collect($orders->items())->map(function ($order) {
-                return [
-                    'order_id'    => $order->id,
-                    'user' => [
-                        'id'    => $order->user->id,
-                        'name'  => $order->user->name,
-                        'phone' => str_starts_with($order->user->phone, '00963')
-                            ? '0' . substr($order->user->phone, 4)
-                            : $order->user->phone,
-                    ],
-                    'total_price' => $order->total_price,
-                    'payment_method' => $order->payment_method,
-                    'date' => $order->date,
-                    'time' => $order->time,
-                ];
-            }),
-            'meta' => [
-                'total'        => $orders->total(),
-                'per_page'     => $orders->perPage(),
-                'current_page' => $orders->currentPage(),
-                'last_page'    => $orders->lastPage(),
-            ],
-        ]);
+        return OrderListResource::collection($orders);
     }
+
 
 
     /**
      * إرجاع عدد طلبات اليوم "في الطريق" الخاصة بالمنطقة المسجّل دخول.
      */
-    public function countTodayOnWay(Request $request)
+    public function countOnWay(Request $request)
     {
-        $count = $this->orderService->countTodayOnWayForLoggedArea($request->area_id);
+        $count = $this->orderService->countOnWayForLoggedArea($request->area_id);
 
         return response()->json([
             'area_id' => (int) $request->area_id,
@@ -182,55 +121,24 @@ class OrderController extends Controller
     /**
      * إرجاع قائمة طلبات اليوم "في الطريق" (مع باجينيشن) للمنطقة المسجّل دخول.
      */
-    public function listTodayOnWay(Request $request)
+    public function listOnWay(Request $request)
     {
-        $user = Auth::user();
+        $orders = $this->orderService->listForAreaByStatus(
+            $request->area_id,
+            Order::STATUS_ONWAY
+        );
 
-        if (!$user || !$request->area_id) {
-            return response()->json(['message' => 'لا يوجد منطقة للمستخدم الحالي'], 400);
-        }
-
-        $perPage = (int) $request->query('per_page', 15);
-
-        $orders = $this->orderService
-            ->listTodayPendingForLoggedArea((int) $request->area_id, $perPage);
-
-        return response()->json([
-            'area_id' => (int) $request->area_id,
-            'date'    => now()->toDateString(),
-            'status'  => 'في الطريق',
-            'data'    => collect($orders->items())->map(function ($order) {
-                return [
-                    'order_id'    => $order->id,
-                    'user' => [
-                        'id'    => $order->user->id,
-                        'name'  => $order->user->name,
-                        'phone' => str_starts_with($order->user->phone, '00963')
-                            ? '0' . substr($order->user->phone, 4)
-                            : $order->user->phone,
-                    ],
-                    'total_price' => $order->total_price,
-                    'payment_method' => $order->payment_method,
-                    'date' => $order->date,
-                    'time' => $order->time,
-                ];
-            }),
-            'meta' => [
-                'total'        => $orders->total(),
-                'per_page'     => $orders->perPage(),
-                'current_page' => $orders->currentPage(),
-                'last_page'    => $orders->lastPage(),
-            ],
-        ]);
+        return OrderListResource::collection($orders);
     }
+
 
 
     /**
      * إرجاع عدد طلبات اليوم "مستلم" الخاصة بالمنطقة المسجّل دخول.
      */
-    public function countTodayDone(Request $request)
+    public function countDone(Request $request)
     {
-        $count = $this->orderService->countTodayDoneForLoggedArea($request->area_id);
+        $count = $this->orderService->countDoneForLoggedArea($request->area_id);
 
         return response()->json([
             'area_id' => (int) $request->area_id,
@@ -243,46 +151,14 @@ class OrderController extends Controller
     /**
      * إرجاع قائمة طلبات اليوم "مستلم" (مع باجينيشن) للمنطقة المسجّل دخول.
      */
-    public function listTodayDone(Request $request)
+    public function listDone(Request $request)
     {
-        $user = Auth::user();
+        $orders = $this->orderService->listForAreaByStatus(
+            $request->area_id,
+            Order::STATUS_Done
+        );
 
-        if (!$user || !$request->area_id) {
-            return response()->json(['message' => 'لا يوجد منطقة للمستخدم الحالي'], 400);
-        }
-
-        $perPage = (int) $request->query('per_page', 15);
-
-        $orders = $this->orderService
-            ->listTodayPendingForLoggedArea((int) $request->area_id, $perPage);
-
-        return response()->json([
-            'area_id' => (int) $request->area_id,
-            'date'    => now()->toDateString(),
-            'status'  => 'مستلم',
-            'data'    => collect($orders->items())->map(function ($order) {
-                return [
-                    'order_id'    => $order->id,
-                    'user' => [
-                        'id'    => $order->user->id,
-                        'name'  => $order->user->name,
-                        'phone' => str_starts_with($order->user->phone, '00963')
-                            ? '0' . substr($order->user->phone, 4)
-                            : $order->user->phone,
-                    ],
-                    'total_price' => $order->total_price,
-                    'payment_method' => $order->payment_method,
-                    'date' => $order->date,
-                    'time' => $order->time,
-                ];
-            }),
-            'meta' => [
-                'total'        => $orders->total(),
-                'per_page'     => $orders->perPage(),
-                'current_page' => $orders->currentPage(),
-                'last_page'    => $orders->lastPage(),
-            ],
-        ]);
+        return OrderListResource::collection($orders);
     }
 
     /**

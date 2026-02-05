@@ -28,6 +28,12 @@ class Order extends Model
     protected $casts = [
         'wallet_deducted_at' => 'datetime',
     ];
+
+    public const STATUS_PENDING  = 'انتظار';
+    public const STATUS_PREPARING  = 'يجهز';
+    public const STATUS_ONWAY = 'في الطريق';
+    public const STATUS_Done = 'مستلم';
+
     public function user()
     {
         return $this->belongsTo(User::class);
