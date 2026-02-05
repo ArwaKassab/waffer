@@ -11,6 +11,7 @@ class CreateAdsTable extends Migration
         Schema::create('ads', function (Blueprint $table) {
             $table->id();
             $table->string('image');
+            $table->foreignId('area_id')->constrained('areas');
             $table->timestamps();
             $table->softDeletes();
         });
