@@ -10,24 +10,27 @@ class OrderListResource extends JsonResource
     {
         return [
             'id' => $this->id,
-            'user' => $this->user ? [
-                'id'    => $this->user->id,
-                'name'  => $this->user->name,
-                'phone' => $this->user->phone_display,
-            ] : null,
-            'area_id'              => $this->area_id,
-            'address_id'           => $this->address_id,
-            'total_product_price'  => $this->total_product_price,
-            'discount_fee'         => $this->discount_fee,
-            'totalAfterDiscount'   => $this->totalAfterDiscount,
-            'delivery_fee'         => $this->delivery_fee,
-            'total_price'          => $this->total_price,
-            'date'                 => $this->date,
-            'time'                 => $this->time,
-            'status'               => $this->status,
-            'payment_method'       => $this->payment_method,
-            'notes'                => $this->notes,
-            'created_at'           => $this->created_at->toDateTimeString(),
+            'user_id' => $this->user_id,
+            'user' => $this->whenLoaded('user', function () {
+                return [
+                    'id' => $this->user->id,
+                    'name' => $this->user->name,
+                    'phone' => $this->user->phone,
+                ];
+            }),
+            'area_id' => $this->area_id,
+            'address_id' => $this->address_id,
+            'total_product_price' => $this->total_product_price,
+            'discount_fee' => $this->discount_fee,
+            'totalAfterDiscount' => $this->totalAfterDiscount,
+            'delivery_fee' => $this->delivery_fee,
+            'total_price' => $this->total_price,
+            'date' => $this->date,
+            'time' => $this->time,
+            'status' => $this->status,
+            'payment_method' => $this->payment_method,
+            'notes' => $this->notes,
+            'created_at' => $this->created_at,
         ];
     }
 

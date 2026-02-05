@@ -2,6 +2,7 @@
 
 namespace App\Http\Controllers\SubAdmin;
 
+use App\Http\Resources\OrderListResource;
 use App\Http\Resources\SubAdminOrderDetailsResource;
 use App\Services\SubAdmin\OrderService;
 use Illuminate\Http\Request;
@@ -79,8 +80,7 @@ class OrderController extends Controller
             ]);
         }
 
-        return response()->json($orders);
-    }
+        return OrderListResource::collection($orders);    }
 
 
     /**
