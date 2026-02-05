@@ -53,11 +53,10 @@ class AdminAuthController extends Controller
     public function login(Request $request)
     {
         $request->validate([
-            'email'    => 'required|email',
+            'name'    => 'required|string',
             'password' => 'required|string',
         ]);
-
-        $user = User::where('email', $request->email)->where('type', 'admin')->first();
+        $user = User::where('name', $request->name)->where('type', 'admin')->first();
 
         if (!$user || !Hash::check($request->password, $user->password)) {
             return response()->json(['message' => 'Invalid credentials'], 401);
