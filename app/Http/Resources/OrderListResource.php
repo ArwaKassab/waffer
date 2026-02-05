@@ -10,8 +10,6 @@ class OrderListResource extends JsonResource
     {
         return [
             'id' => $this->id,
-
-            // معلومات المستخدم
             'user' => $this->user ? [
                 'id'    => $this->user->id,
                 'name'  => $this->user->name,
@@ -19,8 +17,6 @@ class OrderListResource extends JsonResource
                     ? '0' . substr($this->user->phone, 4)
                     : $this->user->phone,
             ] : null,
-
-            // معلومات الطلب الأساسية
             'area_id'              => $this->area_id,
             'address_id'           => $this->address_id,
             'total_product_price'  => $this->total_product_price,
@@ -36,4 +32,5 @@ class OrderListResource extends JsonResource
             'created_at'           => $this->created_at->toDateTimeString(),
         ];
     }
+
 }

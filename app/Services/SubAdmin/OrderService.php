@@ -222,12 +222,6 @@ class OrderService
             ->where('status', $status)
             ->with(['user:id,name,phone'])
             ->latest('id')
-            ->select([
-                'id','user_id','area_id','address_id',
-                'total_product_price','discount_fee','totalAfterDiscount',
-                'delivery_fee','total_price','date','time','status',
-                'payment_method','notes','created_at'
-            ])
             ->paginate($perPage);
 
     }
