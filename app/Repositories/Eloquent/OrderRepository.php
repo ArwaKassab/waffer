@@ -348,12 +348,19 @@ class OrderRepository
      */
     public function listPendingByArea(int $areaId, int $perPage = 15)
     {
-        return Order::with(['user' => fn($q) => $q->withTrashed()->select('id','name','phone')])
+        return Order::with([
+            'user' => function($q) {
+                $q->withTrashed()
+                    ->select('id','name','phone','phone_shadow');
+            },
+            'address' => fn($q) => $q->withTrashed()
+        ])
             ->where('area_id', $areaId)
-            ->where('status', 'انتظار')
+            ->where('status', Order::STATUS_PENDING)
             ->latest()
             ->paginate($perPage);
     }
+
 
 
     /**

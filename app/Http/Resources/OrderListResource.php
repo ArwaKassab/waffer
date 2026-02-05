@@ -16,11 +16,10 @@ class OrderListResource extends JsonResource
             'user' => [
                 'id' => $user?->id,
                 'name' => $user?->name ?? 'مستخدم محذوف',
-                'phone' => $user
-                    ? ($user->trashed() ? $user->phone_shadow ?? 'غير متوفر' : $user->phone)
-                    : 'غير متوفر',
-                'user_deleted' => $user ? $user->trashed() : true,
+                'phone' => $user?->trashed() ? $user->phone_shadow : $user->phone,
+                'user_deleted' => $user?->trashed() ?? false,
             ],
+
 
             'area_id' => $this->area_id,
             'address_id' => $this->address_id,
