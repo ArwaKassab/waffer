@@ -13,15 +13,17 @@ class AreaAdController extends Controller
     public function __construct(protected AdService $service) {}
 
     // جلب الإعلانات لمنطقة معينة
+
     public function index(Request $request): JsonResponse
     {
         $request->validate(['area_id' => 'required|exists:areas,id']);
+
         $ads = $this->service->getAdsByArea((int) $request->area_id);
 
         return response()->json([
             'data' => $ads->map(fn($ad) => [
                 'id' => $ad->id,
-                'image' => $ad->image,
+                'image' => url(Storage::url($ad->image)),
             ]),
         ]);
     }
@@ -49,4 +51,5 @@ class AreaAdController extends Controller
 
         return response()->json(['message' => 'تم حذف الإعلان بنجاح.']);
     }
+
 }

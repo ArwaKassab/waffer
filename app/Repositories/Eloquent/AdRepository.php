@@ -45,9 +45,10 @@ class AdRepository implements AdRepositoryInterface
      */
     public function getAdsByAreaId(int $areaId): Collection
     {
-        return Ad::whereHas('areas', fn($q) => $q->where('areas.id', $areaId))
+        return Ad::where('area_id', $areaId)
             ->get(['id', 'image']); // فقط الأعمدة المطلوبة
     }
+
 
     /**
      * إضافة إعلان جديد لمنطقة معينة
@@ -82,6 +83,9 @@ class AdRepository implements AdRepositoryInterface
     public function removeAdFromArea(int $areaId, int $adId): ?bool
     {
         $area = Area::findOrFail($areaId);
-        return $area->ads()->detach($adId);
+
+        $ad = $area->ads()->findOrFail($adId);
+        return $ad->delete();
     }
+
 }
