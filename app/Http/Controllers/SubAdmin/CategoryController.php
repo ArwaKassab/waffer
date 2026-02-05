@@ -195,7 +195,7 @@ class CategoryController extends Controller
             'area_id' => ['required','exists:areas,id'],
         ]);
 
-        $this->service->assignToArea($data['category_id'], $data['area_id']);
+        $this->service->assignToArea($category_id, $data['area_id']);
 
         return response()->json(['message' => 'تمت إضافة التصنيف للمنطقة بنجاح']);
     }
@@ -207,7 +207,7 @@ class CategoryController extends Controller
             'area_id' => ['required','exists:areas,id'],
         ]);
 
-        $this->service->removeFromArea($data['category_id'], $data['area_id']);
+        $this->service->removeFromArea($category_id, $data['area_id']);
 
         return response()->json(['message' => 'تمت إزالة التصنيف من المنطقة بنجاح']);
     }
