@@ -12,6 +12,7 @@ use App\Repositories\Contracts\{AdRepositoryInterface,
     OfferDiscountRepositoryInterface,
     OrderRepositoryInterface,
     ProductRepositoryInterface,
+    SubAdminRepositoryInterface,
     UserRepositoryInterface,
     AddressRepositoryInterface,
     StoreRepositoryInterface,
@@ -26,6 +27,7 @@ use App\Repositories\Eloquent\{AdRepository,
     OfferDiscountRepository,
     OrderRepository,
     ProductRepository,
+    SubAdminRepository,
     UserRepository,
     AddressRepository,
     StoreRepository,
@@ -51,7 +53,10 @@ class AppServiceProvider extends ServiceProvider
         $this->app->bind(ComplaintRepositoryInterface::class, ComplaintRepository::class);
         $this->app->bind(AdRepositoryInterface::class, AdRepository::class);
         $this->app->bind(CustomerRepositoryInterface::class, CustomerRepository::class);
-
+        $this->app->bind(
+            SubAdminRepositoryInterface::class,
+            SubAdminRepository::class
+        );
     }
 
     public function boot(): void

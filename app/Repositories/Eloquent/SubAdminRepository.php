@@ -1,21 +1,27 @@
 <?php
 
+
 namespace App\Repositories\Eloquent;
 
+use App\Repositories\Contracts\SubAdminRepositoryInterface;
 use App\Models\User;
-use Illuminate\Support\Collection;
+use Illuminate\Database\Eloquent\Collection;
 
-class SubAdminRepository
+class SubAdminRepository implements SubAdminRepositoryInterface
 {
-    // إنشاء Sub Admin
     public function createSubAdmin(array $data): User
     {
         return User::create($data);
     }
 
-    // الحصول على كل Sub Admins (اختياري)
-    public function getSubAdmins(): Collection
+    public function all(): Collection
     {
-        return User::where('type', 'sub_admin')->orderBy('name')->get();
+        return User::where('type', 'sub_admin')->get();
+    }
+
+    public function find(int $id): ?User
+    {
+        return User::where('type', 'sub_admin')->find($id);
     }
 }
+
