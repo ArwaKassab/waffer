@@ -351,12 +351,27 @@ class OrderRepository
         return Order::query()
             ->where('area_id', $areaId)
             ->where('status', 'انتظار')
+            ->whereDate('date', now()->toDateString())
+            ->with([
+                'user:id,name,phone'
+            ])
             ->latest('id')
             ->select([
-                'id','user_id','area_id','address_id',
-                'total_product_price','discount_fee','totalAfterDiscount',
-                'delivery_fee','total_price','date','time','status','payment_method',
-                'notes','created_at'
+                'id',
+                'user_id',
+                'area_id',
+                'address_id',
+                'total_product_price',
+                'discount_fee',
+                'totalAfterDiscount',
+                'delivery_fee',
+                'total_price',
+                'date',
+                'time',
+                'status',
+                'payment_method',
+                'notes',
+                'created_at',
             ])
             ->paginate($perPage);
     }
@@ -378,15 +393,31 @@ class OrderRepository
      */
     public function listTodayPreparingByArea(int $areaId, int $perPage = 15)
     {
+
         return Order::query()
             ->where('area_id', $areaId)
             ->where('status', 'يجهز')
+            ->whereDate('date', now()->toDateString())
+            ->with([
+                'user:id,name,phone'
+            ])
             ->latest('id')
             ->select([
-                'id','user_id','area_id','address_id',
-                'total_product_price','discount_fee','totalAfterDiscount',
-                'delivery_fee','total_price','date','time','status','payment_method',
-                'notes','created_at'
+                'id',
+                'user_id',
+                'area_id',
+                'address_id',
+                'total_product_price',
+                'discount_fee',
+                'totalAfterDiscount',
+                'delivery_fee',
+                'total_price',
+                'date',
+                'time',
+                'status',
+                'payment_method',
+                'notes',
+                'created_at',
             ])
             ->paginate($perPage);
     }
@@ -440,17 +471,31 @@ class OrderRepository
      */
     public function listTodayDoneByArea(int $areaId, int $perPage = 15)
     {
-        $today = Carbon::today(config('app.timezone'))->toDateString();
 
         return Order::query()
             ->where('area_id', $areaId)
             ->where('status', 'مستلم')
+            ->whereDate('date', now()->toDateString())
+            ->with([
+                'user:id,name,phone'
+            ])
             ->latest('id')
             ->select([
-                'id','user_id','area_id','address_id',
-                'total_product_price','discount_fee','totalAfterDiscount',
-                'delivery_fee','total_price','date','time','status','payment_method',
-                'notes','created_at'
+                'id',
+                'user_id',
+                'area_id',
+                'address_id',
+                'total_product_price',
+                'discount_fee',
+                'totalAfterDiscount',
+                'delivery_fee',
+                'total_price',
+                'date',
+                'time',
+                'status',
+                'payment_method',
+                'notes',
+                'created_at',
             ])
             ->paginate($perPage);
     }

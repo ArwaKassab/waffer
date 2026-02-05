@@ -62,26 +62,45 @@ class OrderController extends Controller
     public function listTodayPending(Request $request)
     {
         $user = Auth::user();
+
         if (!$user || !$request->area_id) {
             return response()->json(['message' => 'لا يوجد منطقة للمستخدم الحالي'], 400);
         }
 
         $perPage = (int) $request->query('per_page', 15);
-        $orders  = $this->orderService->listTodayPendingForLoggedArea($request->area_id,$perPage);
 
-        if (is_a($orders, Collection::class)) {
-            return response()->json([
-                'area_id' => (int) $request->area_id,
-                'date'    => now(config('app.timezone'))->toDateString(),
-                'status'  => 'انتظار',
-                'data'    => [],
-                'user'=>[$orders->user_id->name,$orders->user_id->phone],
-                'meta'    => ['total' => 0, 'per_page' => $perPage, 'current_page' => 1],
-            ]);
-        }
+        $orders = $this->orderService
+            ->listTodayPendingForLoggedArea((int) $request->area_id, $perPage);
 
-        return response()->json($orders);
+        return response()->json([
+            'area_id' => (int) $request->area_id,
+            'date'    => now()->toDateString(),
+            'status'  => 'انتظار',
+            'data'    => collect($orders->items())->map(function ($order) {
+                return [
+                    'order_id'    => $order->id,
+                    'user' => [
+                        'id'    => $order->user->id,
+                        'name'  => $order->user->name,
+                        'phone' => str_starts_with($order->user->phone, '00963')
+                            ? '0' . substr($order->user->phone, 4)
+                            : $order->user->phone,
+                    ],
+                    'total_price' => $order->total_price,
+                    'payment_method' => $order->payment_method,
+                    'date' => $order->date,
+                    'time' => $order->time,
+                ];
+            }),
+            'meta' => [
+                'total'        => $orders->total(),
+                'per_page'     => $orders->perPage(),
+                'current_page' => $orders->currentPage(),
+                'last_page'    => $orders->lastPage(),
+            ],
+        ]);
     }
+
 
 
     /**
@@ -105,24 +124,43 @@ class OrderController extends Controller
     public function listTodaypreparing(Request $request)
     {
         $user = Auth::user();
+
         if (!$user || !$request->area_id) {
             return response()->json(['message' => 'لا يوجد منطقة للمستخدم الحالي'], 400);
         }
 
         $perPage = (int) $request->query('per_page', 15);
-        $orders  = $this->orderService->listTodayPreparingForLoggedArea($request->area_id,$perPage);
 
-        if (is_a($orders, Collection::class)) {
-            return response()->json([
-                'area_id' => (int) $request->area_id,
-                'date'    => now(config('app.timezone'))->toDateString(),
-                'status'  => 'يجهز',
-                'data'    => [],
-                'meta'    => ['total' => 0, 'per_page' => $perPage, 'current_page' => 1],
-            ]);
-        }
+        $orders = $this->orderService
+            ->listTodayPendingForLoggedArea((int) $request->area_id, $perPage);
 
-        return response()->json($orders);
+        return response()->json([
+            'area_id' => (int) $request->area_id,
+            'date'    => now()->toDateString(),
+            'status'  => 'يجهز',
+            'data'    => collect($orders->items())->map(function ($order) {
+                return [
+                    'order_id'    => $order->id,
+                    'user' => [
+                        'id'    => $order->user->id,
+                        'name'  => $order->user->name,
+                        'phone' => str_starts_with($order->user->phone, '00963')
+                            ? '0' . substr($order->user->phone, 4)
+                            : $order->user->phone,
+                    ],
+                    'total_price' => $order->total_price,
+                    'payment_method' => $order->payment_method,
+                    'date' => $order->date,
+                    'time' => $order->time,
+                ];
+            }),
+            'meta' => [
+                'total'        => $orders->total(),
+                'per_page'     => $orders->perPage(),
+                'current_page' => $orders->currentPage(),
+                'last_page'    => $orders->lastPage(),
+            ],
+        ]);
     }
 
 
@@ -147,24 +185,43 @@ class OrderController extends Controller
     public function listTodayOnWay(Request $request)
     {
         $user = Auth::user();
+
         if (!$user || !$request->area_id) {
             return response()->json(['message' => 'لا يوجد منطقة للمستخدم الحالي'], 400);
         }
 
         $perPage = (int) $request->query('per_page', 15);
-        $orders  = $this->orderService->listTodayOnWayForLoggedArea($request->area_id,$perPage);
 
-        if (is_a($orders, Collection::class)) {
-            return response()->json([
-                'area_id' => (int) $request->area_id,
-                'date'    => now(config('app.timezone'))->toDateString(),
-                'status'  => 'في الطريق',
-                'data'    => [],
-                'meta'    => ['total' => 0, 'per_page' => $perPage, 'current_page' => 1],
-            ]);
-        }
+        $orders = $this->orderService
+            ->listTodayPendingForLoggedArea((int) $request->area_id, $perPage);
 
-        return response()->json($orders);
+        return response()->json([
+            'area_id' => (int) $request->area_id,
+            'date'    => now()->toDateString(),
+            'status'  => 'في الطريق',
+            'data'    => collect($orders->items())->map(function ($order) {
+                return [
+                    'order_id'    => $order->id,
+                    'user' => [
+                        'id'    => $order->user->id,
+                        'name'  => $order->user->name,
+                        'phone' => str_starts_with($order->user->phone, '00963')
+                            ? '0' . substr($order->user->phone, 4)
+                            : $order->user->phone,
+                    ],
+                    'total_price' => $order->total_price,
+                    'payment_method' => $order->payment_method,
+                    'date' => $order->date,
+                    'time' => $order->time,
+                ];
+            }),
+            'meta' => [
+                'total'        => $orders->total(),
+                'per_page'     => $orders->perPage(),
+                'current_page' => $orders->currentPage(),
+                'last_page'    => $orders->lastPage(),
+            ],
+        ]);
     }
 
 
@@ -189,24 +246,43 @@ class OrderController extends Controller
     public function listTodayDone(Request $request)
     {
         $user = Auth::user();
+
         if (!$user || !$request->area_id) {
             return response()->json(['message' => 'لا يوجد منطقة للمستخدم الحالي'], 400);
         }
 
         $perPage = (int) $request->query('per_page', 15);
-        $orders  = $this->orderService->listTodayDoneForLoggedArea($request->area_id,$perPage);
 
-        if (is_a($orders, Collection::class)) {
-            return response()->json([
-                'area_id' => (int) $request->area_id,
-                'date'    => now(config('app.timezone'))->toDateString(),
-                'status'  => 'مستلم',
-                'data'    => [],
-                'meta'    => ['total' => 0, 'per_page' => $perPage, 'current_page' => 1],
-            ]);
-        }
+        $orders = $this->orderService
+            ->listTodayPendingForLoggedArea((int) $request->area_id, $perPage);
 
-        return response()->json($orders);
+        return response()->json([
+            'area_id' => (int) $request->area_id,
+            'date'    => now()->toDateString(),
+            'status'  => 'مستلم',
+            'data'    => collect($orders->items())->map(function ($order) {
+                return [
+                    'order_id'    => $order->id,
+                    'user' => [
+                        'id'    => $order->user->id,
+                        'name'  => $order->user->name,
+                        'phone' => str_starts_with($order->user->phone, '00963')
+                            ? '0' . substr($order->user->phone, 4)
+                            : $order->user->phone,
+                    ],
+                    'total_price' => $order->total_price,
+                    'payment_method' => $order->payment_method,
+                    'date' => $order->date,
+                    'time' => $order->time,
+                ];
+            }),
+            'meta' => [
+                'total'        => $orders->total(),
+                'per_page'     => $orders->perPage(),
+                'current_page' => $orders->currentPage(),
+                'last_page'    => $orders->lastPage(),
+            ],
+        ]);
     }
 
     /**
