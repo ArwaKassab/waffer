@@ -17,7 +17,7 @@ class AdService
         return $this->repo->getAdsByAreaId($areaId);
     }
 
-    public function addAdToArea(int $areaId, string $image): Ad
+    public function addAdToArea(int $areaId, UploadedFile $image): Ad
     {
         return $this->repo->addAdToArea($areaId, $image);
     }
