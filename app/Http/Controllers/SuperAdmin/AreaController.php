@@ -7,6 +7,7 @@ use App\Http\Resources\StoreAdminShowResource;
 use App\Http\Resources\StoreResource;
 use App\Models\User;
 use App\Services\SubAdmin\StoreService;
+use App\Services\SuperAdmin\AreaService;
 use App\Services\SuperAdmin\SubAdminService;
 use Illuminate\Http\JsonResponse;
 use Illuminate\Http\Request;
@@ -14,6 +15,7 @@ use Illuminate\Validation\Rule;
 
 class AreaController extends Controller
 {
+    public function __construct(protected AreaService $service) {}
     public function store(Request $request)
     {
 

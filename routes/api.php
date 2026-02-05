@@ -37,6 +37,8 @@ use App\Http\Controllers\SubAdmin\CategoryController as SubAdminCategoryControll
 use App\Http\Controllers\SubAdmin\ComplaintController as SubAdminComplaintController;
 use App\Http\Controllers\SubAdmin\OrderStatisticsController as SubAdminOrderStatisticsController;
 use App\Http\Controllers\SuperAdmin\SubAdminController as SuperAdminSubAdminController;
+use App\Http\Controllers\SuperAdmin\AreaController as SubAdminAreaController;
+
 //use App\Http\Controllers\AdminController;
 //use App\Http\Controllers\StoreController;
 //use App\Http\Controllers\CustomerController;
@@ -430,7 +432,7 @@ Route::prefix('Admin-auth')->middleware(['auth:sanctum','attach.user.area'])->gr
 
     Route::post('sub-admin/add', [SuperAdminSubAdminController::class, 'addSubAdmin']);
     //اضافة منطقة
-    Route::post('area/add', [SubAdminCategoryController::class, 'store_super_admin']);
+    Route::post('area/add', [SubAdminAreaController::class, 'store']);
 
 
 });
