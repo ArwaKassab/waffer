@@ -63,10 +63,7 @@ class OrderController extends Controller
      */
     public function listPending(Request $request)
     {
-        $orders = $this->orderService->listForAreaByStatus(
-            $request->area_id,
-            Order::STATUS_PENDING
-        );
+        $orders = $this->orderService->listPendingForLoggedArea($request->area_id,10);
 
         return OrderListResource::collection($orders);
     }
