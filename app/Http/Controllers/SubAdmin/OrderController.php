@@ -60,27 +60,8 @@ class OrderController extends Controller
     /**
      * إرجاع قائمة طلبات اليوم "انتظار" (مع باجينيشن) للمنطقة المسجّل دخول.
      */
-    public function listPending(Request $request)
-    {
-        $user = Auth::user();
-        if (!$user || !$request->area_id) {
-            return response()->json(['message' => 'لا يوجد منطقة للمستخدم الحالي'], 400);
-        }
+    /**
 
-        $perPage = (int) $request->query('per_page', 15);
-        $orders  = $this->orderService->listPendingForLoggedArea($request->area_id,$perPage);
-
-        if (is_a($orders, Collection::class)) {
-            return response()->json([
-                'area_id' => (int) $request->area_id,
-                'date'    => now(config('app.timezone'))->toDateString(),
-                'status'  => 'انتظار',
-                'data'    => [],
-                'meta'    => ['total' => 0, 'per_page' => $perPage, 'current_page' => 1],
-            ]);
-        }
-
-        return OrderListResource::collection($orders);    }
 
 
     /**

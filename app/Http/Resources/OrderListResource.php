@@ -4,20 +4,23 @@ namespace App\Http\Resources;
 
 use Illuminate\Http\Resources\Json\JsonResource;
 
+
+
 class OrderListResource extends JsonResource
 {
     public function toArray($request)
     {
+        $user = $this->whenLoaded('user');
+
         return [
             'id' => $this->id,
             'user_id' => $this->user_id,
             'user' => [
-                'id' => $this->user?->id,
-                'name' => $this->user?->name ?? 'مستخدم محذوف',
-                'phone' => $this->user?->phone ?? $this->user_phone ?? 'غير متوفر',
-                'user_deleted' => $this->user?->trashed() ?? true,
+                'id' => $user?->id,
+                'name' => $user?->name ?? 'مستخدم محذوف',
+                'phone' => $user?->phone ?? $this->user_phone ?? 'غير متوفر',
+                'user_deleted' => $user ? ($user->trashed() ? true : false) : true,
             ],
-
             'area_id' => $this->area_id,
             'address_id' => $this->address_id,
             'total_product_price' => $this->total_product_price,
@@ -33,5 +36,7 @@ class OrderListResource extends JsonResource
             'created_at' => $this->created_at,
         ];
     }
-
 }
+
+
+
