@@ -11,4 +11,14 @@ class Ad extends Model
 
     protected $fillable = ['image'];
 
+    public function areas()
+    {
+        return $this->belongsToMany(
+            Area::class,
+            'area_ad',
+            'ad_id',
+            'area_id'
+        )->withTimestamps();
+    }
+
 }

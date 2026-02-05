@@ -37,6 +37,15 @@ class Area extends Model
             'category_id'
         );
     }
+    public function ads()
+    {
+        return $this->belongsToMany(
+            Ad::class,
+            'area_ad',   // جدول pivot
+            'area_id',
+            'ad_id'
+        )->withTimestamps();
+    }
 
 
 }
