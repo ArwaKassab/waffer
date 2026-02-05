@@ -16,7 +16,7 @@ use Illuminate\Validation\Rule;
 
 class SubAdminController extends Controller
 {
-    public function __construct(protected AreaService $service) {}
+    public function __construct(protected SubAdminService $service) {}
     public function addSubAdmin(Request $request)
     {
         // التحقق من البيانات
