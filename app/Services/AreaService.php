@@ -2,6 +2,7 @@
 
 namespace App\Services;
 
+use App\Models\Area;
 use App\Repositories\Contracts\AreaRepositoryInterface;
 
 class AreaService
@@ -16,5 +17,10 @@ class AreaService
     public function getAllAreas()
     {
         return $this->areaRepository->getAll();
+    }
+
+    public function create(array $data): Area
+    {
+        return $this->areaRepository->create($data);
     }
 }

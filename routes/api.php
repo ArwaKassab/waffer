@@ -412,6 +412,8 @@ Route::prefix('customer')->group(function () {
         Route::get('otp-provider/health', [SubAdminCustomerController::class, 'health']);
         Route::get('otp-failures/{tempId}', [SubAdminCustomerController::class, 'show_error_reasone']);
 
+        //اضافة منطقة
+        Route::get('area/add', [SubAdminCategoryController::class, 'store_super_admin']);
 
     });
 

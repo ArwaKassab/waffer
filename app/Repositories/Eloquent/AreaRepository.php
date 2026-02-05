@@ -11,4 +11,10 @@ class AreaRepository implements AreaRepositoryInterface
     {
         return Area::select('id', 'name')->get();
     }
+
+    // إنشاء منطقة جديدة
+    public function create(array $data): Area
+    {
+        return Area::create($data);
+    }
 }
