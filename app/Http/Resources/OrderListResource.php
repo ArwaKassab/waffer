@@ -4,12 +4,11 @@ namespace App\Http\Resources;
 
 use Illuminate\Http\Resources\Json\JsonResource;
 
-
-
 class OrderListResource extends JsonResource
 {
     public function toArray($request)
     {
+        // المستخدم محمّل مع الـ order
         $user = $this->whenLoaded('user');
 
         return [
@@ -18,8 +17,11 @@ class OrderListResource extends JsonResource
             'user' => [
                 'id' => $user?->id,
                 'name' => $user?->name ?? 'مستخدم محذوف',
-                'phone' => $user?->phone_shadow ?? 'غير متوفر',
-                'user_deleted' => $user ? ($user->trashed() ? true : false) : true,
+                // نعرض الرقم الأصلي المحفوظ في phone_shadow إذا المستخدم محذوف
+                'phone' => $user
+                    ? ($user->trashed() ? $user->phone_shadow : $user->phone)
+                    : ($this->user_phone ?? 'غير متوفر'),
+                'user_deleted' => $user ? $user->trashed() : true,
             ],
             'area_id' => $this->area_id,
             'address_id' => $this->address_id,
@@ -37,6 +39,3 @@ class OrderListResource extends JsonResource
         ];
     }
 }
-
-
-
