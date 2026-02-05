@@ -44,9 +44,9 @@ class OrderController extends Controller
     /**
      * إرجاع عدد طلبات "انتظار" الخاصة بالمنطقة (بدون تقييد اليوم).
      */
-    public function countTodayPending(Request $request)
+    public function countPending(Request $request)
     {
-        $count = $this->orderService->countTodayPendingForLoggedArea($request->area_id);
+        $count = $this->orderService->countPendingForLoggedArea($request->area_id);
 
         return response()->json([
             'area_id' => (int) $request->area_id,
@@ -59,7 +59,7 @@ class OrderController extends Controller
     /**
      * إرجاع قائمة طلبات اليوم "انتظار" (مع باجينيشن) للمنطقة المسجّل دخول.
      */
-    public function listTodayPending(Request $request)
+    public function listPending(Request $request)
     {
         $user = Auth::user();
         if (!$user || !$request->area_id) {
@@ -67,7 +67,7 @@ class OrderController extends Controller
         }
 
         $perPage = (int) $request->query('per_page', 15);
-        $orders  = $this->orderService->listTodayPendingForLoggedArea($request->area_id,$perPage);
+        $orders  = $this->orderService->listPendingForLoggedArea($request->area_id,$perPage);
 
         if (is_a($orders, Collection::class)) {
             return response()->json([
@@ -86,9 +86,9 @@ class OrderController extends Controller
     /**
      * إرجاع عدد طلبات "يجهز" الخاصة بالمنطقة (بدون تقييد اليوم).
      */
-    public function countTodaypreparing(Request $request)
+    public function countpreparing(Request $request)
     {
-        $count = $this->orderService->countTodayPreparingForLoggedArea($request->area_id);
+        $count = $this->orderService->countPreparingForLoggedArea($request->area_id);
 
         return response()->json([
             'area_id' => (int) $request->area_id,
@@ -101,7 +101,7 @@ class OrderController extends Controller
     /**
      * إرجاع قائمة طلبات اليوم "يجهز" (مع باجينيشن) للمنطقة المسجّل دخول.
      */
-    public function listTodaypreparing(Request $request)
+    public function listpreparing(Request $request)
     {
         $user = Auth::user();
         if (!$user || !$request->area_id) {
@@ -109,7 +109,7 @@ class OrderController extends Controller
         }
 
         $perPage = (int) $request->query('per_page', 15);
-        $orders  = $this->orderService->listTodayPreparingForLoggedArea($request->area_id,$perPage);
+        $orders  = $this->orderService->listPreparingForLoggedArea($request->area_id,$perPage);
 
         if (is_a($orders, Collection::class)) {
             return response()->json([
@@ -126,11 +126,11 @@ class OrderController extends Controller
 
 
     /**
-     * إرجاع عدد طلبات اليوم "في الطريق" الخاصة بالمنطقة المسجّل دخول.
+     * إرجاع عدد طلبات  "في الطريق" الخاصة بالمنطقة المسجّل دخول.
      */
-    public function countTodayOnWay(Request $request)
+    public function countOnWay(Request $request)
     {
-        $count = $this->orderService->countTodayOnWayForLoggedArea($request->area_id);
+        $count = $this->orderService->countOnWayForLoggedArea($request->area_id);
 
         return response()->json([
             'area_id' => (int) $request->area_id,
@@ -141,9 +141,9 @@ class OrderController extends Controller
     }
 
     /**
-     * إرجاع قائمة طلبات اليوم "في الطريق" (مع باجينيشن) للمنطقة المسجّل دخول.
+     * إرجاع قائمة طلبات  "في الطريق" (مع باجينيشن) للمنطقة المسجّل دخول.
      */
-    public function listTodayOnWay(Request $request)
+    public function listOnWay(Request $request)
     {
         $user = Auth::user();
         if (!$user || !$request->area_id) {
@@ -151,7 +151,7 @@ class OrderController extends Controller
         }
 
         $perPage = (int) $request->query('per_page', 15);
-        $orders  = $this->orderService->listTodayOnWayForLoggedArea($request->area_id,$perPage);
+        $orders  = $this->orderService->listOnWayForLoggedArea($request->area_id,$perPage);
 
         if (is_a($orders, Collection::class)) {
             return response()->json([
@@ -168,11 +168,11 @@ class OrderController extends Controller
 
 
     /**
-     * إرجاع عدد طلبات اليوم "مستلم" الخاصة بالمنطقة المسجّل دخول.
+     * إرجاع عدد طلبات  "مستلم" الخاصة بالمنطقة المسجّل دخول.
      */
     public function countTodayDone(Request $request)
     {
-        $count = $this->orderService->countTodayDoneForLoggedArea($request->area_id);
+        $count = $this->orderService->countDoneForLoggedArea($request->area_id);
 
         return response()->json([
             'area_id' => (int) $request->area_id,
@@ -183,9 +183,9 @@ class OrderController extends Controller
     }
 
     /**
-     * إرجاع قائمة طلبات اليوم "مستلم" (مع باجينيشن) للمنطقة المسجّل دخول.
+     * إرجاع قائمة طلبات  "مستلم" (مع باجينيشن) للمنطقة المسجّل دخول.
      */
-    public function listTodayDone(Request $request)
+    public function listDone(Request $request)
     {
         $user = Auth::user();
         if (!$user || !$request->area_id) {
@@ -193,7 +193,7 @@ class OrderController extends Controller
         }
 
         $perPage = (int) $request->query('per_page', 15);
-        $orders  = $this->orderService->listTodayDoneForLoggedArea($request->area_id,$perPage);
+        $orders  = $this->orderService->listDoneForLoggedArea($request->area_id,$perPage);
 
         if (is_a($orders, Collection::class)) {
             return response()->json([
