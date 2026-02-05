@@ -13,9 +13,7 @@ class OrderListResource extends JsonResource
             'user' => $this->user ? [
                 'id'    => $this->user->id,
                 'name'  => $this->user->name,
-                'phone' => str_starts_with($this->user->phone, '00963')
-                    ? '0' . substr($this->user->phone, 4)
-                    : $this->user->phone,
+                'phone' => $this->user->phone,
             ] : null,
             'area_id'              => $this->area_id,
             'address_id'           => $this->address_id,
