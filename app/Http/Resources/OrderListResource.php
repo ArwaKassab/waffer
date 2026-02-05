@@ -8,7 +8,6 @@ class OrderListResource extends JsonResource
 {
     public function toArray($request)
     {
-        // المستخدم محمّل مع الـ order
         $user = $this->whenLoaded('user');
 
         return [
@@ -17,11 +16,10 @@ class OrderListResource extends JsonResource
             'user' => [
                 'id' => $user?->id,
                 'name' => $user?->name ?? 'مستخدم محذوف',
-                // نعرض الرقم الأصلي المحفوظ في phone_shadow إذا المستخدم محذوف
                 'phone' => $user
-                    ? ($user->trashed() ? $user->phone_shadow : $user->phone)
+                    ? ($user->phone !== $user->phone_shadow ? $user->phone_shadow : $user->phone)
                     : ($this->user_phone ?? 'غير متوفر'),
-                'user_deleted' => $user ? $user->trashed() : true,
+                'user_deleted' => $user ? ($user->phone !== $user->phone_shadow) : true,
             ],
             'area_id' => $this->area_id,
             'address_id' => $this->address_id,
