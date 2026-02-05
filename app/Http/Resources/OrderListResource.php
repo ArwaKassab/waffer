@@ -16,9 +16,10 @@ class OrderListResource extends JsonResource
             'user' => [
                 'id' => $user?->id,
                 'name' => $user?->name ?? 'مستخدم محذوف',
-                'phone' => $user?->phone_shadow ?? $user?->phone ?? 'غير متوفر',
-                'user_deleted' => $user ? ($user->status === false || str_starts_with($user->phone, 'del_')) : true,
+                'phone' => $user?->phone_shadow ?? 'غير متوفر', // الرقم الأصلي المحفوظ
+                'user_deleted' => $user ? true : true, // بما أنه تم الحذف بالفعل
             ],
+
 
 
 
