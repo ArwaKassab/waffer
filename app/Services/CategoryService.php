@@ -13,9 +13,8 @@ class CategoryService
         $this->categoryRepo = $categoryRepo;
     }
 
-    public function getCategoriesByArea(int $areaId)
+    public function getAllCategories()
     {
-        return $this->categoryRepo->getByArea($areaId);
+        return $this->categoryRepo->getAll();
     }
-
 }

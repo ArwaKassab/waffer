@@ -2,7 +2,6 @@
 
 namespace App\Repositories\Eloquent;
 
-use App\Models\Area;
 use App\Models\Category;
 use App\Repositories\Contracts\CategoryRepositoryInterface;
 use Illuminate\Contracts\Pagination\LengthAwarePaginator;
@@ -18,36 +17,17 @@ class CategoryRepository implements CategoryRepositoryInterface
             ->paginate($perPage);
     }
 
-    public function allByArea(int $areaId): Collection
+    public function all(): Collection
     {
         return Category::query()
             ->select(['id', 'name', 'image'])
-            ->whereHas('areas', function ($q) use ($areaId) {
-                $q->where('areas.id', $areaId);
-            })
             ->orderBy('name')
             ->get();
     }
-
-    public function paginateByArea(int $areaId, int $perPage = 20)
+    public function getAll()
     {
-        return Category::query()
-            ->select(['id', 'name', 'image'])
-            ->whereHas('areas', function ($q) use ($areaId) {
-                $q->where('areas.id', $areaId);
-            })
-            ->orderBy('name')
-            ->paginate($perPage);
+        return Category::all();
     }
-
-    public function getByArea(int $areaId)
-    {
-        return Area::findOrFail($areaId)
-            ->categories()
-            ->get();
-    }
-
-
 
     public function findById(int $id): Category
     {
@@ -80,60 +60,5 @@ class CategoryRepository implements CategoryRepositoryInterface
         return (bool) $category->delete();
     }
 
-    public function getNotAssignedToArea(int $areaId): Collection
-    {
-        return Category::query()
-            ->whereDoesntHave('areas', function ($q) use ($areaId) {
-                $q->where('areas.id', $areaId);
-            })
-            ->orderBy('name')
-            ->get();
-    }
-
-    public function create_by_super_admin(array $data): Category
-    {
-        return Category::create($data);
-    }
-
-    // جميع التصنيفات
-
-    public function all(): Collection
-    {
-        return Category::query()
-            ->select(['id', 'name', 'image'])
-            ->orderBy('name')
-            ->get();
-    }
-
-    // تصنيفات مرتبطة بمنطقة معينة
-    public function forArea(int $areaId): Collection
-    {
-        return Category::whereHas('areas', fn($q) => $q->where('areas.id', $areaId))
-            ->orderBy('name')
-            ->get();
-    }
-
-
-    // تصنيفات غير مرتبطة بمنطقة معينة
-    public function notForArea(int $areaId): Collection
-    {
-        return Category::whereDoesntHave('areas', fn($q) => $q->where('areas.id', $areaId))
-            ->orderBy('name')
-            ->get();
-    }
-
-    // ربط تصنيف موجود بمنطقة
-    public function attachToArea(int $categoryId, int $areaId): void
-    {
-        $area = Area::findOrFail($areaId);
-        $area->categories()->syncWithoutDetaching([$categoryId]);
-    }
-
-    // فك الربط من منطقة
-    public function detachFromArea(int $categoryId, int $areaId): void
-    {
-        $area = Area::findOrFail($areaId);
-        $area->categories()->detach($categoryId);
-    }
 
 }
