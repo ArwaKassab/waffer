@@ -46,4 +46,5 @@ interface ProductRequestRepositoryInterface
 
     public function updateCreateRequest(ProductRequest $req, array $data): ProductRequest;
 
+    public function findCreateRequestForAdmin(int $requestId, int $adminAreaId): ?ProductRequest;
 }

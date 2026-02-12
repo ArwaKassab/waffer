@@ -18,6 +18,7 @@ use App\Http\Controllers\OrderController;
 use App\Http\Controllers\ProductController;
 use App\Http\Controllers\ProductRequestsController;
 use App\Http\Controllers\StoreController;
+use App\Http\Controllers\SubAdmin\ProductRequestController;
 use App\Http\Controllers\SupAdminAuthController;
 use App\Http\Controllers\WalletController;
 use App\Services\FcmV1Client;
@@ -440,6 +441,9 @@ Route::prefix('Admin-auth')->middleware(['auth:sanctum','attach.user.area'])->gr
     //اضافة منطقة
     Route::post('area/add', [SubAdminAreaController::class, 'store']);
 
+//المنتجات
+    Route::get('product-requests/create/{id}', [ProductRequestController::class, 'showCreateRequest']);
+    Route::get('product-requests/create', [ProductRequestController::class, 'indexCreateRequests']);
 
 });
 

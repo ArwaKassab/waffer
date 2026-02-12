@@ -5,6 +5,7 @@ namespace App\Repositories\Eloquent;
 use App\Models\Product;
 use App\Models\ProductRequest;
 use Illuminate\Database\Eloquent\Collection;
+use Illuminate\Database\Eloquent\Builder;
 
 class ProductRequestRepository
 {
@@ -184,5 +185,39 @@ class ProductRequestRepository
     public function deleteProductDirect(Product $product): void
     {
         $product->delete();
+    }
+
+    public function findCreateRequestForAdmin(
+        int $requestId,
+        int $adminAreaId
+    ): ?ProductRequest {
+
+        $result = ProductRequest::with('store')
+            ->where('id', $requestId)
+            ->where('action', 'create')
+            ->whereHas('store', function ($q) use ($adminAreaId) {
+                $q->where('area_id', $adminAreaId);
+            })
+            ->first();
+
+        if ($result instanceof ProductRequest) {
+            return $result;
+        }
+
+        return null;
+    }
+
+    /**
+     * @return Collection<int, ProductRequest>
+     */
+    public function getCreateRequestsForAdminArea(int $adminAreaId): Collection
+    {
+        return ProductRequest::with('store')
+            ->where('action', 'create')
+            ->whereHas('store', function ($q) use ($adminAreaId) {
+                $q->where('area_id', $adminAreaId);
+            })
+            ->latest()
+            ->get();
     }
 }
