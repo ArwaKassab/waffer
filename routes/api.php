@@ -421,6 +421,9 @@ Route::prefix('customer')->group(function () {
         Route::post('Ads/add', [SubAdminAdController::class, 'store']);
         Route::delete('Ads/delete/{adId}', [SubAdminAdController::class, 'destroy']);
 
+//المنتجات
+        Route::get('product-requests/create/{id}', [ProductRequestController::class, 'showCreateRequest']);
+        Route::get('product-requests/create', [ProductRequestController::class, 'indexCreateRequests']);
 
     });
 
@@ -441,9 +444,6 @@ Route::prefix('Admin-auth')->middleware(['auth:sanctum','attach.user.area'])->gr
     //اضافة منطقة
     Route::post('area/add', [SubAdminAreaController::class, 'store']);
 
-//المنتجات
-    Route::get('product-requests/create/{id}', [ProductRequestController::class, 'showCreateRequest']);
-    Route::get('product-requests/create', [ProductRequestController::class, 'indexCreateRequests']);
 
 });
 
