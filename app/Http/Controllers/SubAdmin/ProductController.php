@@ -4,6 +4,7 @@ namespace App\Http\Controllers\SubAdmin;
 
 use App\Http\Controllers\Controller;
 use App\Http\Requests\ProductRequest;
+use App\Http\Requests\SupAdminUpdateProductRequest;
 use App\Services\SubAdmin\ProductRequestService;
 use App\Services\SubAdmin\ProductService;
 use Illuminate\Http\JsonResponse;
@@ -30,7 +31,7 @@ class ProductController extends Controller
         ]);
     }
 
-    public function update(ProductRequest $request, int $id)
+    public function update(SupAdminUpdateProductRequest $request, int $id)
     {
         $data = $request->validated();
 
