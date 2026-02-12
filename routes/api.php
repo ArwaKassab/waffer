@@ -40,6 +40,7 @@ use App\Http\Controllers\SubAdmin\OrderStatisticsController as SubAdminOrderStat
 use App\Http\Controllers\SuperAdmin\SubAdminController as SuperAdminSubAdminController;
 use App\Http\Controllers\SuperAdmin\AreaController as SubAdminAreaController;
 use App\Http\Controllers\SubAdmin\AreaAdController as SubAdminAdController;
+use App\Http\Controllers\SubAdmin\ProductController as SubAdminProductController;
 
 //use App\Http\Controllers\AdminController;
 //use App\Http\Controllers\StoreController;
@@ -390,6 +391,11 @@ Route::prefix('customer')->group(function () {
         Route::delete('stores/destroy/{storeId}', [SubAdminStoreController::class, 'destroy']);
         //المنتجات
         Route::PATCH('products/status/{product}', [SubAdminStoreController::class, 'updateStatus']);
+        Route::post('products/add', [SubAdminProductController::class, 'store']);
+        Route::put('products/edit/{id}', [SubAdminProductController::class, 'update']);
+        Route::delete('products/delete/{id}', [SubAdminProductController::class, 'destroy']);
+        Route::get('product-requests/create/{id}', [ProductRequestController::class, 'showCreateRequest']);
+        Route::get('product-requests/create', [ProductRequestController::class, 'indexCreateRequests']);
 
 //التصنيفات
 
@@ -424,9 +430,7 @@ Route::prefix('customer')->group(function () {
         Route::post('Ads/add', [SubAdminAdController::class, 'store']);
         Route::delete('Ads/delete/{adId}', [SubAdminAdController::class, 'destroy']);
 
-//المنتجات
-        Route::get('product-requests/create/{id}', [ProductRequestController::class, 'showCreateRequest']);
-        Route::get('product-requests/create', [ProductRequestController::class, 'indexCreateRequests']);
+
 
     });
 

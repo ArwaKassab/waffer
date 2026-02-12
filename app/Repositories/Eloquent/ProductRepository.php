@@ -56,6 +56,29 @@ class ProductRepository
         return array_map(fn($u) => ['value' => $u], Product::UNITS);
     }
 
+    public function create(array $data): Product
+    {
+        return Product::create($data);
+    }
+
+    public function findInAdminArea(int $productId, int $areaId): ?Product
+    {
+        return Product::where('id', $productId)
+            ->whereHas('store', function ($q) use ($areaId) {
+                $q->where('area_id', $areaId);
+            })
+            ->first();
+    }
+
+    public function update(Product $product, array $data): bool
+    {
+        return $product->update($data);
+    }
+
+    public function delete(Product $product): bool
+    {
+        return $product->delete();
+    }
 
 }
 
