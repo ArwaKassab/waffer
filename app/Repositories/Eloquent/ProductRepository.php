@@ -58,8 +58,20 @@ class ProductRepository
 
     public function create(array $data): Product
     {
-        return Product::create($data);
+        $product = Product::create([
+            'name'     => $data['name'],
+            'price'    => $data['price'],
+            'image'    => $data['image'] ,
+            'status'   => $data['status'] ?? 'available',
+            'quantity' => $data['quantity'],
+            'unit'     => $data['unit'],
+            'details'  => $data['details'] ?? null,
+            'store_id' => $data['store_id'],
+        ]);
+
+        return $product->fresh();
     }
+
 
     public function findInAdminArea(int $productId, int $areaId): ?Product
     {

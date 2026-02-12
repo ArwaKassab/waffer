@@ -17,11 +17,18 @@ class ProductController extends Controller
 
     public function store(ProductRequest $request)
     {
-        $data = $request->validated();
-        return response()->json(
-            $this->productService->createProduct($data, auth()->user())
-        );
+        if ($request->hasFile('image')) {
+            $data['image'] = $request->file('image')->store('products', 'public');
+        }
+        $product = $this->productService->createProduct($data, auth()->user());
+
+        return response()->json([
+            'success' => true,
+            'message' => 'تم إنشاء المنتج بنجاح',
+            'product' => $product,
+        ]);
     }
+    
     public function update(Request $request, int $id)
     {
         return response()->json(
