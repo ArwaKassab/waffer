@@ -84,8 +84,13 @@ class ProductRepository
 
     public function update(Product $product, array $data): bool
     {
+        if (isset($data['image']) && $data['image'] instanceof \Illuminate\Http\UploadedFile) {
+            $data['image'] = $data['image']->store('products', 'public');
+        }
+
         return $product->update($data);
     }
+
 
     public function delete(Product $product): bool
     {

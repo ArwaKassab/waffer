@@ -392,8 +392,9 @@ Route::prefix('customer')->group(function () {
         //المنتجات
         Route::PATCH('products/status/{product}', [SubAdminStoreController::class, 'updateStatus']);
         Route::post('products/add', [SubAdminProductController::class, 'store']);
-        Route::put('products/edit/{id}', [SubAdminProductController::class, 'update']);
+        Route::put('products/update/{id}', [SubAdminProductController::class, 'update']);
         Route::delete('products/delete/{id}', [SubAdminProductController::class, 'destroy']);
+
         Route::get('product-requests/create/{id}', [ProductRequestController::class, 'showCreateRequest']);
         Route::get('product-requests/create', [ProductRequestController::class, 'indexCreateRequests']);
 

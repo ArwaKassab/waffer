@@ -30,12 +30,14 @@ class ProductController extends Controller
         ]);
     }
 
-    public function update(Request $request, int $id)
+    public function update(ProductRequest $request, int $id)
     {
+        $data = $request->validated();
+
         return response()->json(
             $this->productService->updateProduct(
                 $id,
-                $request->validated(),
+                $data,
                 $request->area_id
             )
         );
