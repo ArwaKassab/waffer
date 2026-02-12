@@ -17,6 +17,7 @@ class ProductRequest extends FormRequest
             'unit'     => 'required|in:غرام,كيلوغرام,قطعة,لتر',
             'details'  => 'nullable|string',
             'store_id' => 'required|exists:users,id',
+            'status'   => 'nullable|in:available,not_available',
         ];
     }
 }

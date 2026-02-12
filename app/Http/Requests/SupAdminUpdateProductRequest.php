@@ -16,6 +16,7 @@ class SupAdminUpdateProductRequest extends FormRequest
             'quantity' => 'sometimes|numeric|min:0',
             'unit'     => 'sometimes|in:غرام,كيلوغرام,قطعة,لتر',
             'details'  => 'sometimes|string|nullable',
+            'status'   => 'nullable|in:available,not_available',
         ];
     }
 
