@@ -451,7 +451,12 @@ Route::prefix('Admin-auth')->middleware(['auth:sanctum','attach.user.area'])->gr
     Route::post('sub-admin/add', [SuperAdminSubAdminController::class, 'addSubAdmin']);
     //اضافة منطقة
     Route::post('area/add', [SubAdminAreaController::class, 'store']);
-
+    //  كل المناطق
+    Route::get('area/all', [AreaController::class, 'index'])->name('areas.index');
+    // استرجاع منطقة واحدة
+    Route::get('{id}', [AreaController::class, 'show'])->name('areas.show');
+    // حذف منطقة
+    Route::delete('area/delete/{id}', [AreaController::class, 'destroy'])->name('areas.destroy');
 
 });
 

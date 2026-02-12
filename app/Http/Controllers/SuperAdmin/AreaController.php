@@ -37,6 +37,48 @@ class AreaController extends Controller
             'data' => $area
         ], 201);
     }
+    // حذف منطقة
+    public function destroy(int $id): JsonResponse
+    {
+        $deleted = $this->service->delete($id);
+
+        if (!$deleted) {
+            return response()->json([
+                'message' => 'المنطقة غير موجودة أو لا يمكن حذفها.'
+            ], 404);
+        }
+
+        return response()->json([
+            'message' => 'تم حذف المنطقة بنجاح.'
+        ]);
+    }
+
+    // استرجاع منطقة واحدة
+    public function show(int $id): JsonResponse
+    {
+        $area = $this->service->find($id);
+
+        if (!$area) {
+            return response()->json([
+                'message' => 'المنطقة غير موجودة.'
+            ], 404);
+        }
+
+        return response()->json([
+            'data' => $area
+        ]);
+    }
+
+    // استرجاع كل المناطق
+    public function index(): JsonResponse
+    {
+        $areas = $this->service->all();
+
+        return response()->json([
+            'data' => $areas
+        ]);
+    }
+
 }
 
 
