@@ -8,17 +8,17 @@ use Illuminate\Validation\ValidationException;
 
 class ProductService
 {
-    protected ProductRepository $repository;
+    private ProductRepository $repository;
 
     public function __construct(ProductRepository $repository)
     {
-        $this->productRepo = $repository;
+        $this->repository = $repository;
     }
 
     public function createProduct(array $data): array
     {
 
-        $product = $this->productRepo->create($data);
+        $product = $this->repository->create($data);
 
         return [
             'success' => true,
