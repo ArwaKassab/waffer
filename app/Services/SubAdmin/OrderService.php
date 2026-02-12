@@ -27,6 +27,10 @@ class OrderService
     public const STATUS_ACCEPTED = 'يجهز';
 
     public const PAYMENT_WALLET = 'محفظة';
+    const STATUS_ON_THE_WAY = 'في الطريق';
+    const STATUS_DELIVERED  = 'مستلم';
+
+
     /**
       * تحديث حالة الطلب
     */
@@ -213,5 +217,126 @@ class OrderService
         $areaId = $user ? (int) data_get($user, 'area_id') : null;
 
         return $this->orderRepo->findDetailsForSubAdmin($orderId, $areaId);
+    }
+
+    public function markOrderOnTheWay(int $orderId): array
+    {
+        try {
+            $order = DB::transaction(function () use ($orderId) {
+
+                $order = $this->orderRepo->findForUpdate($orderId);
+
+                if (! $order) {
+                    return null;
+                }
+
+                if ($order->status !== self::STATUS_ACCEPTED) {
+                    throw ValidationException::withMessages([
+                        'status' => "لا يمكن تحويل الطلب إلى 'في الطريق' لأن حالته الحالية هي: {$order->status}"
+                    ]);
+                }
+
+                $ok = $this->orderRepo
+                    ->setOrderStatusOnly($order->id, self::STATUS_ON_THE_WAY);
+
+                if (! $ok) {
+                    throw ValidationException::withMessages([
+                        'order' => 'تعذر تحديث حالة الطلب.'
+                    ]);
+                }
+
+                return $order->fresh();
+            });
+
+            if (! $order) {
+                return ['success' => false, 'message' => 'الطلب غير موجود.'];
+            }
+
+            event(new OrderStatusUpdated($order, $order->user_id));
+
+            return [
+                'success' => true,
+                'message' => 'تم تحويل الطلب إلى "في الطريق" بنجاح.',
+                'order'   => $order,
+            ];
+
+        } catch (ValidationException $e) {
+
+            $first = collect($e->errors())->flatten()->first() ?? 'خطأ تحقق';
+
+            return [
+                'success' => false,
+                'message' => $first,
+                'errors'  => $e->errors()
+            ];
+
+        } catch (\Throwable $e) {
+
+            return [
+                'success' => false,
+                'message' => 'حدث خطأ غير متوقع أثناء تحديث حالة الطلب.'
+            ];
+        }
+    }
+
+
+    public function markOrderDelivered(int $orderId): array
+    {
+        try {
+            $order = DB::transaction(function () use ($orderId) {
+
+                $order = $this->orderRepo->findForUpdate($orderId);
+
+                if (! $order) {
+                    return null;
+                }
+
+                if ($order->status !== self::STATUS_ON_THE_WAY) {
+                    throw ValidationException::withMessages([
+                        'status' => "لا يمكن تسليم الطلب لأن حالته الحالية هي: {$order->status}"
+                    ]);
+                }
+
+                $ok = $this->orderRepo
+                    ->setOrderStatusOnly($order->id, self::STATUS_DELIVERED);
+
+                if (! $ok) {
+                    throw ValidationException::withMessages([
+                        'order' => 'تعذر تحديث حالة الطلب.'
+                    ]);
+                }
+
+                return $order->fresh();
+            });
+
+            if (! $order) {
+                return ['success' => false, 'message' => 'الطلب غير موجود.'];
+            }
+
+            event(new OrderStatusUpdated($order, $order->user_id));
+
+            return [
+                'success' => true,
+                'message' => 'تم تسليم الطلب بنجاح.',
+                'order'   => $order,
+            ];
+
+        } catch (ValidationException $e) {
+
+            $first = collect($e->errors())->flatten()->first() ?? 'خطأ تحقق';
+
+            return [
+                'success' => false,
+                'message' => $first,
+                'errors'  => $e->errors()
+            ];
+
+        } catch (\Throwable $e) {
+
+            return [
+                'success' => false,
+                'message' => 'حدث خطأ غير متوقع أثناء تسليم الطلب.'
+            ];
+        }
     }
 }

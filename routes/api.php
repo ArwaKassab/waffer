@@ -360,7 +360,10 @@ Route::prefix('customer')->group(function () {
         Route::put('/customers/ban/{user}', [SubAdminCustomerController::class, 'setOrToggleBan']);
         //الطلبات
         Route::post('/orders/{orderId}/accept', [SubAdminOrderController::class, 'accept']);
-        Route::patch('/orders/{orderId}/status', [SubAdminOrderController::class, 'changeStatus']);
+        Route::patch('/orders/{orderId}/change', [SubAdminOrderController::class, 'changeStatus']);
+        Route::patch('/orders/{id}/on-the-way', [SubAdminOrderController::class, 'markOnTheWay']);
+        Route::patch('/orders/{id}/delivered', [SubAdminOrderController::class, 'markDelivered']);
+
 
         Route::get('/orders/today/pending/count', [SubAdminOrderController::class, 'countPending']);
         Route::get('/orders/today/pending/ids',       [SubAdminOrderController::class, 'listPending']);

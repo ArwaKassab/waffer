@@ -5,6 +5,7 @@ namespace App\Http\Controllers\SubAdmin;
 use App\Http\Resources\OrderListResource;
 use App\Http\Resources\SubAdminOrderDetailsResource;
 use App\Services\SubAdmin\OrderService;
+use Illuminate\Http\JsonResponse;
 use Illuminate\Http\Request;
 use Illuminate\Support\Collection;
 use Illuminate\Support\Facades\Auth;
@@ -40,6 +41,21 @@ class OrderController extends Controller
             $response['success'] ? 200 : 400
         );
     }
+
+    public function markOnTheWay(int $id): JsonResponse
+    {
+        $result = $this->orderService->markOrderOnTheWay($id);
+
+        return response()->json($result);
+    }
+
+    public function markDelivered(int $id): JsonResponse
+    {
+        $result = $this->orderService->markOrderDelivered($id);
+
+        return response()->json($result);
+    }
+
 
 
     /**

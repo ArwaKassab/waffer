@@ -71,14 +71,7 @@ class OrderRepository
         return Order::lockForUpdate()->find($id);
     }
 
-    public function setOrderStatusOnly(int $orderId, string $newStatus): bool
-    {
-        $order = Order::find($orderId);
-        if (! $order) return false;
 
-        $order->status = $newStatus;
-        return (bool) $order->save();
-    }
 
     public function setStatusWithItems(int $orderId, string $newStatus): bool
     {
@@ -625,6 +618,24 @@ class OrderRepository
                     ->where('user_id', $userId);
             })
             ->delete();
+    }
+
+//    public function setOrderStatusOnly(int $orderId, string $newStatus): bool
+//    {
+//        $order = Order::find($orderId);
+//        if (! $order) return false;
+//
+//        $order->status = $newStatus;
+//        return (bool) $order->save();
+//    }
+
+    public function setOrderStatusOnly(int $orderId, string $status): bool
+    {
+        return (bool) Order::where('id', $orderId)
+            ->update([
+                'status' => $status,
+                'updated_at' => now(),
+            ]);
     }
 
 
