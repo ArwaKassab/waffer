@@ -29,8 +29,7 @@ class ProductService
 
     public function updateProduct(int $productId, array $data, int $area_id): array
     {
-        $product = $this->repository
-            ->findInAdminArea($productId, $area_id);
+        $product = $this->repository->findInAdminArea($productId, $area_id);
 
         if (! $product) {
             return ['success' => false, 'message' => 'المنتج غير موجود أو لا ينتمي لمنطقتك'];
@@ -44,6 +43,7 @@ class ProductService
             'product' => $product->fresh()
         ];
     }
+
 
     public function deleteProduct(int $productId, int $area_id): array
     {
