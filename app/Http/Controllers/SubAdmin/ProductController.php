@@ -15,8 +15,9 @@ class ProductController extends Controller
         private ProductService $productService
     ) {}
 
-    public function store(ProductRequest $request)
+    public function store(ProductRequest  $request)
     {
+        $data = $request->validated();
         if ($request->hasFile('image')) {
             $data['image'] = $request->file('image')->store('products', 'public');
         }
@@ -28,7 +29,7 @@ class ProductController extends Controller
             'product' => $product,
         ]);
     }
-    
+
     public function update(Request $request, int $id)
     {
         return response()->json(
