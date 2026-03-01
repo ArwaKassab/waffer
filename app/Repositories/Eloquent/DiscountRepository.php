@@ -69,7 +69,7 @@ class DiscountRepository
     {
         return Discount::query()
             ->whereHas('product', function ($q) use ($areaId) {
-                $q->where('store_id', function ($q2) use ($areaId) {
+                $q->whereIn('store_id', function ($q2) use ($areaId) {
                     $q2->select('id')
                         ->from('users')
                         ->where('area_id', $areaId);
@@ -79,7 +79,6 @@ class DiscountRepository
             ->latest()
             ->get();
     }
-
     public function getDiscountsByStore(int $storeId)
     {
         return Discount::query()
