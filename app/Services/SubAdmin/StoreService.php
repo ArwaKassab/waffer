@@ -21,12 +21,11 @@ class StoreService
     /**
      * جلب المتاجر في نفس منطقة الأدمن الحالي.
      */
-    public function getStoresForCurrentAdminArea(Request $request,int $perPage = 20)
+    public function getStoresByAreaForAdmin(int $areaId, int $perPage = 20)
     {
-
-        $areaId = (int) $request->area_id;
-
-        return $this->storeRepository->getStoresByAreaForAdmin($areaId, $perPage);
+        return User::where('type', 'store')
+            ->where('area_id', $areaId)
+            ->paginate($perPage);
     }
 
     /**
