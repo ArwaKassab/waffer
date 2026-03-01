@@ -36,10 +36,7 @@ class StoreController extends Controller
 
         return response()->json([
             'success' => true,
-            'data' => [
-                'current_page' => $storesPaginator->currentPage(),
-                'data'         => $storesPaginator->items(), // العناصر فقط
-            ],
+            'data' => $storesPaginator
         ]);
     }
 
