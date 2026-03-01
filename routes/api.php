@@ -436,11 +436,8 @@ Route::prefix('customer')->group(function () {
         // العروض
         Route::get('discounts/listByArea', [DiscountController::class, 'listByArea']);
         Route::get('discounts/listByStore/{id}', [DiscountController::class, 'listByStore']);
-
-        Route::get('discounts/{productId}/discounts', [DiscountController::class, 'index']);
-        Route::get('discounts/{id}', [DiscountController::class, 'show']);
+        Route::get('discounts/{productId}', [DiscountController::class, 'index']);
         Route::post('discounts/add/{id}', [DiscountController::class, 'store']);
-        Route::put('discounts/update/{id}', [DiscountController::class, 'update']);
         Route::delete('discounts/destroy/{id}', [DiscountController::class, 'destroy']);
 
 
