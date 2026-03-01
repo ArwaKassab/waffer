@@ -29,7 +29,7 @@ class OrderService
     public const PAYMENT_WALLET = 'محفظة';
     const STATUS_ON_THE_WAY = 'في الطريق';
     const STATUS_DELIVERED  = 'مستلم';
-
+    public const STATUS_REJECTED = 'مرفوض';
 
     /**
       * تحديث حالة الطلب
@@ -336,6 +336,67 @@ class OrderService
             return [
                 'success' => false,
                 'message' => 'حدث خطأ غير متوقع أثناء تسليم الطلب.'
+            ];
+        }
+    }
+
+    public function rejectOrder(int $orderId): array
+    {
+        try {
+
+            $order = DB::transaction(function () use ($orderId) {
+
+                $order = $this->orderRepo->findForUpdate($orderId);
+
+                if (! $order) {
+                    return null;
+                }
+
+                if ($order->status !== self::STATUS_PENDING) {
+                    throw ValidationException::withMessages([
+                        'status' => "لا يمكن رفض الطلب لأن حالته الحالية هي: {$order->status}"
+                    ]);
+                }
+
+                $ok = $this->orderRepo
+                    ->setOrderStatusOnly($order->id, self::STATUS_REJECTED);
+
+                if (! $ok) {
+                    throw ValidationException::withMessages([
+                        'order' => 'تعذر تحديث حالة الطلب.'
+                    ]);
+                }
+
+                return $order->fresh();
+            });
+
+            if (! $order) {
+                return ['success' => false, 'message' => 'الطلب غير موجود.'];
+            }
+
+            event(new OrderStatusUpdated($order, $order->user_id));
+
+            return [
+                'success' => true,
+                'message' => 'تم رفض الطلب بنجاح.',
+                'order'   => $order,
+            ];
+
+        } catch (ValidationException $e) {
+
+            $first = collect($e->errors())->flatten()->first() ?? 'خطأ تحقق';
+
+            return [
+                'success' => false,
+                'message' => $first,
+                'errors'  => $e->errors()
+            ];
+
+        } catch (\Throwable $e) {
+
+            return [
+                'success' => false,
+                'message' => 'حدث خطأ غير متوقع أثناء رفض الطلب.'
             ];
         }
     }

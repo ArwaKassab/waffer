@@ -364,6 +364,7 @@ Route::prefix('customer')->group(function () {
         Route::patch('/orders/{orderId}/change', [SubAdminOrderController::class, 'changeStatus']);
         Route::post('/orders/{id}/on-the-way', [SubAdminOrderController::class, 'markOnTheWay']);
         Route::post('/orders/{id}/delivered', [SubAdminOrderController::class, 'markDelivered']);
+        Route::post('/orders/{id}/reject', [SubAdminOrderController::class, 'reject']);
 
 
         Route::get('/orders/today/pending/count', [SubAdminOrderController::class, 'countPending']);

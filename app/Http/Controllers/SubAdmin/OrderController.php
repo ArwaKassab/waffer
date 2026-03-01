@@ -56,6 +56,16 @@ class OrderController extends Controller
         return response()->json($result);
     }
 
+    public function reject(int $id): JsonResponse
+    {
+        $result = $this->orderService->rejectOrder($id);
+
+        return response()->json(
+            $result,
+            $result['success'] ? 200 : 400
+        );
+    }
+
 
 
     /**
