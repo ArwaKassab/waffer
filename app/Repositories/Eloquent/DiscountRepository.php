@@ -27,4 +27,67 @@ class DiscountRepository
             'end_date'   => $end,
         ]);
     }
+
+
+    public function createByAdmin(array $data): Discount
+    {
+        return Discount::create($data);
+    }
+
+    public function update(int $id, array $data): ?Discount
+    {
+        $discount = Discount::find($id);
+        if ($discount) {
+            $discount->update($data);
+        }
+        return $discount;
+    }
+
+    public function delete(int $id): bool
+    {
+        $discount = Discount::find($id);
+        if (!$discount) return false;
+
+        return $discount->delete();
+    }
+
+    public function findById(int $id): ?Discount
+    {
+        /** @var Discount|null $discount */
+        $discount = Discount::with('product')->find($id);
+        return $discount;
+    }
+
+    public function listByProduct(int $productId)
+    {
+        return Discount::where('product_id', $productId)
+            ->orderByDesc('start_date')
+            ->paginate(15);
+    }
+
+    public function getDiscountsByAdminArea(int $areaId)
+    {
+        return Discount::query()
+            ->whereHas('product', function ($q) use ($areaId) {
+                $q->where('store_id', function ($q2) use ($areaId) {
+                    $q2->select('id')
+                        ->from('users')
+                        ->where('area_id', $areaId);
+                });
+            })
+            ->with(['product:id,name,store_id'])
+            ->latest()
+            ->get();
+    }
+
+    public function getDiscountsByStore(int $storeId)
+    {
+        return Discount::query()
+            ->whereHas('product', function ($q) use ($storeId) {
+                $q->where('store_id', $storeId);
+            })
+            ->with(['product:id,name,store_id'])
+            ->latest()
+            ->get();
+    }
 }

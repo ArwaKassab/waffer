@@ -18,6 +18,7 @@ use App\Http\Controllers\OrderController;
 use App\Http\Controllers\ProductController;
 use App\Http\Controllers\ProductRequestsController;
 use App\Http\Controllers\StoreController;
+use App\Http\Controllers\SubAdmin\DiscountController;
 use App\Http\Controllers\SubAdmin\ProductRequestController;
 use App\Http\Controllers\SupAdminAuthController;
 use App\Http\Controllers\WalletController;
@@ -432,6 +433,15 @@ Route::prefix('customer')->group(function () {
         Route::post('Ads/add', [SubAdminAdController::class, 'store']);
         Route::delete('Ads/delete/{adId}', [SubAdminAdController::class, 'destroy']);
 
+        // العروض
+        Route::get('discounts/listByArea', [DiscountController::class, 'listByArea']);
+        Route::get('discounts/listByStore', [DiscountController::class, 'listByStore']);
+
+        Route::get('discounts/{productId}/discounts', [DiscountController::class, 'index']);
+        Route::get('discounts/{id}', [DiscountController::class, 'show']);
+        Route::post('discounts/add/{id}', [DiscountController::class, 'store']);
+        Route::put('discounts/update/{id}', [DiscountController::class, 'update']);
+        Route::delete('discounts/destroy/{id}', [DiscountController::class, 'destroy']);
 
 
     });
