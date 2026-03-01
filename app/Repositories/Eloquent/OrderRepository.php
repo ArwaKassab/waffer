@@ -394,7 +394,10 @@ class OrderRepository
     public function listPreparingByArea(int $areaId, int $perPage = 15)
     {
         return Order::query()
-            ->with(['user:id,name,phone'])
+            ->with([
+                'user:id,name,phone',
+                'items.store:id,name'
+            ])
             ->where('area_id', $areaId)
             ->where('status', 'يجهز')
             ->latest('id')
@@ -404,6 +407,18 @@ class OrderRepository
                 'delivery_fee','total_price','date','time','status','payment_method',
                 'notes','created_at'
             ])
+            ->paginate($perPage);
+    }
+
+    public function listByArea(int $areaId, int $perPage = 15)
+    {
+        return Order::query()
+            ->with([
+                'user:id,name,phone',
+                'items.store:id,name' // ضروري لجلب المتجر
+            ])
+            ->where('area_id', $areaId)
+            ->latest('id')
             ->paginate($perPage);
     }
 

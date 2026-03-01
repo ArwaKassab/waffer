@@ -3,6 +3,7 @@
 namespace App\Http\Controllers\SubAdmin;
 
 use App\Http\Resources\OrderListResource;
+use App\Http\Resources\OrderPrapiringListResource;
 use App\Http\Resources\SubAdminOrderDetailsResource;
 use App\Services\SubAdmin\OrderService;
 use Illuminate\Http\JsonResponse;
@@ -167,8 +168,8 @@ class OrderController extends Controller
                 'meta'    => ['total' => 0, 'per_page' => $perPage, 'current_page' => 1],
             ]);
         }
-
-        return OrderListResource::collection($orders);
+        return OrderPrapiringListResource::collection($orders);
+//        return OrderListResource::collection($orders);
     }
 
 
