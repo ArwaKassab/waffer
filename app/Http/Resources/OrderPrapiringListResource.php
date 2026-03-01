@@ -8,11 +8,13 @@ class OrderPrapiringListResource extends JsonResource
 {
     public function toArray($request)
     {
+        $user = $this->whenLoaded('user');
+
 
         $stores = $this->whenLoaded('items')->groupBy('store_id')->map(function ($items, $storeId) {
             $store = $items->first()->store;
             $status = $items->pluck('status')->unique();
-            $status = $status->count() === 1 ? $status->first() : 'لم يتم تجهيز كامل المنتجات بعد';
+            $status = $status->count() === 1 ? $status->first() : 'لم تجهز كل المنتجات بعد';
 
             return [
                 'id' => $store?->id,
@@ -22,7 +24,26 @@ class OrderPrapiringListResource extends JsonResource
         })->values();
 
         return [
-            'order_id' => $this->id,
+            'id' => $this->id,
+            'user_id' => $this->user_id,
+            'user' => [
+                'id' => $user?->id,
+                'name' => $user?->name ?? 'مستخدم محذوف',
+                'phone' => $user?->phone ?? 'مستخدم محذوف',
+            ],
+            'area_id' => $this->area_id,
+            'address_id' => $this->address_id,
+            'total_product_price' => $this->total_product_price,
+            'discount_fee' => $this->discount_fee,
+            'totalAfterDiscount' => $this->totalAfterDiscount,
+            'delivery_fee' => $this->delivery_fee,
+            'total_price' => $this->total_price,
+            'date' => $this->date,
+            'time' => $this->time,
+            'status' => $this->status,
+            'payment_method' => $this->payment_method,
+            'notes' => $this->notes,
+            'created_at' => $this->created_at,
             'stores' => $stores,
         ];
     }
