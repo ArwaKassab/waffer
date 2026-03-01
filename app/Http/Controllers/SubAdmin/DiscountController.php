@@ -15,12 +15,11 @@ class DiscountController extends Controller
     public function store(Request $request,int $product_id)
     {
         $data = $request->validate([
-            'product_id' => $product_id,
             'new_price'  => 'required|numeric|min:0',
             'start_date' => 'required|date',
             'end_date'   => 'required|date|after_or_equal:start_date',
         ]);
-
+        $data['product_id'] = $product_id;
         $discount = $this->discountService->createDiscount($data);
 
         return new DiscountResource($discount);
