@@ -217,7 +217,7 @@ class OrderController extends Controller
     /**
      * إرجاع عدد طلبات  "مستلم" الخاصة بالمنطقة المسجّل دخول.
      */
-    public function countTodayDone(Request $request)
+    public function countDone(Request $request)
     {
         $count = $this->orderService->countDoneForLoggedArea($request->area_id);
 
