@@ -435,7 +435,7 @@ Route::prefix('customer')->group(function () {
 
         // العروض
         Route::get('discounts/listByArea', [DiscountController::class, 'listByArea']);
-        Route::get('discounts/listByStore', [DiscountController::class, 'listByStore']);
+        Route::get('discounts/listByStore/{id}', [DiscountController::class, 'listByStore']);
 
         Route::get('discounts/{productId}/discounts', [DiscountController::class, 'index']);
         Route::get('discounts/{id}', [DiscountController::class, 'show']);

@@ -79,6 +79,7 @@ class DiscountRepository
             ->latest()
             ->get();
     }
+
     public function getDiscountsByStore(int $storeId)
     {
         return Discount::query()
