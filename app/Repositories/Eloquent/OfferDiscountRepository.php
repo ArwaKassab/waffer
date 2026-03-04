@@ -15,7 +15,7 @@ class OfferDiscountRepository
 
         $query = Discount::query()
             ->with([
-                'product:id,name,image,store_id,details,price,status','quantity','unit',
+                'product:id,name,image,store_id,details,price,status,quantity,unit',
                 'product.store:id,name,area_id,image,open_hour,close_hour,status',
             ])
             ->where('status', 'active')
