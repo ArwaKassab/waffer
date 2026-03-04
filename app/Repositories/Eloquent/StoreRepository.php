@@ -332,7 +332,6 @@ class StoreRepository implements StoreRepositoryInterface
                             $q2->select(
                                 'discounts.id',
                                 'discounts.product_id',
-//                                'discounts.title',      // ✅ مهم
                                 'discounts.new_price',
                                 'discounts.start_date',
                                 'discounts.end_date',
@@ -340,7 +339,7 @@ class StoreRepository implements StoreRepositoryInterface
                             );
                         }
                     ])
-                        ->select('id', 'store_id', 'name', 'price', 'status', 'unit', 'details', 'image')
+                        ->select('id', 'store_id', 'name', 'price', 'status','quantity', 'unit', 'details', 'image')
                         ->orderBy('name');
                 },
             ])
@@ -370,6 +369,7 @@ class StoreRepository implements StoreRepositoryInterface
                     'image'       => $product->image_url,
                     'image_url'   => $product->image_url,
                     'isAvailable' => $product->status === 'available',
+                    'quantity' =>$product->quantity,
                     'unit'        => $product->unit,
                     'details'     => $product->details,
                     'original_price' => (float) $product->price,
