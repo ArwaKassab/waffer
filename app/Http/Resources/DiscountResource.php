@@ -21,6 +21,9 @@ class DiscountResource extends JsonResource
                 'isAvailable' =>  $this->product->status === 'available',
                 'old_price'=> $this->product?->price,
                 'new_price'=> (float) $this->new_price,
+                'quantity'=> $this->product?->quantity,
+                'unit'=> $this->product?->unit,
+
             ],
 
             'store' => [
