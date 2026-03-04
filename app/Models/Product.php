@@ -7,6 +7,7 @@ use Illuminate\Support\Facades\Storage;
 use Carbon\Carbon;
 use Illuminate\Database\Eloquent\Model;
 use Illuminate\Database\Eloquent\SoftDeletes;
+use SebastianBergmann\CodeCoverage\Report\Xml\Unit;
 
 class Product extends Model
 {
@@ -101,7 +102,10 @@ class Product extends Model
     {
         return $this->hasMany(ProductRequest::class, 'product_id');
     }
-
+    public function unit()
+    {
+        return $this->belongsTo(Unit::class);
+    }
 
 
 
