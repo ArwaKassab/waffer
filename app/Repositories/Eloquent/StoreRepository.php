@@ -369,7 +369,7 @@ class StoreRepository implements StoreRepositoryInterface
                     'image'       => $product->image_url,
                     'image_url'   => $product->image_url,
                     'isAvailable' => $product->status === 'available',
-                    'quantity' =>$product->quantity,
+                    'quantity_per_unit' =>$product->quantity,
                     'unit'        => $product->unit,
                     'details'     => $product->details,
                     'original_price' => (float) $product->price,
