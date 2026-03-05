@@ -166,7 +166,7 @@ class CustomerController extends Controller
     }
 
     // عدد الزبائن يلي رصيدهم > 0 ضمن المنطقة
-    public function customersWithBalanceCountByArea(Request $request: JsonResponse
+    public function customersWithBalanceCountByArea(Request $request): JsonResponse
     {
         return response()->json([
             'area_id' => $request->area_id,
