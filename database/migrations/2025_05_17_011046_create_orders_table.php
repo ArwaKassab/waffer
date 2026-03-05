@@ -10,7 +10,7 @@ class CreateOrdersTable extends Migration
     {
         Schema::create('orders', function (Blueprint $table) {
             $table->id();
-            $table->foreignId('user_id')->constrained('users'); // الزبون
+            $table->foreignId('user_id')->constrained('users');
             $table->foreignId('area_id')->constrained('areas');
             $table->foreignId('address_id')->constrained('addresses');
             $table->decimal('total_product_price', 10, 2);

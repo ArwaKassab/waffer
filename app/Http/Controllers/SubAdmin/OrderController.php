@@ -5,7 +5,9 @@ namespace App\Http\Controllers\SubAdmin;
 use App\Http\Resources\OrderListResource;
 use App\Http\Resources\OrderPrapiringListResource;
 use App\Http\Resources\SubAdminOrderDetailsResource;
+use App\Models\Order;
 use App\Services\SubAdmin\OrderService;
+use Carbon\Carbon;
 use Illuminate\Http\JsonResponse;
 use Illuminate\Http\Request;
 use Illuminate\Support\Collection;
@@ -273,4 +275,16 @@ class OrderController extends Controller
         return (new SubAdminOrderDetailsResource($order))
             ->additional(['success' => true]);
     }
+
+    public function deliveredTodayCount(int $areaId): JsonResponse
+    {
+        return response()->json([
+            'area_id' => $areaId,
+            'status'  => 'مستلم',
+            'date'    => now(config('app.timezone'))->toDateString(),
+            'count'   => $this->orderService->getDeliveredTodayCountByArea($areaId),
+        ]);
+    }
+
+
 }

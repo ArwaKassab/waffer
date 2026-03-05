@@ -472,12 +472,15 @@ class OrderRepository
      */
     public function listDoneByArea(int $areaId, int $perPage = 15)
     {
-        $today = Carbon::today(config('app.timezone'))->toDateString();
+        $tz = config('app.timezone');
+        $start = Carbon::now($tz)->startOfDay();
+        $end   = Carbon::now($tz)->endOfDay();
 
         return Order::query()
             ->with(['user:id,name,phone'])
             ->where('area_id', $areaId)
             ->where('status', 'مستلم')
+            ->whereBetween('created_at', [$start, $end])
             ->latest('id')
             ->select([
                 'id','user_id','area_id','address_id',
@@ -487,7 +490,6 @@ class OrderRepository
             ])
             ->paginate($perPage);
     }
-
     /**
      * إحضار تفاصيل طلب للأدمن الفرعي مع تقييد المنطقة (إن وُجدت),
      *
@@ -653,7 +655,16 @@ class OrderRepository
             ]);
     }
 
+    public function countDeliveredTodayByArea(int $areaId): int
+    {
+        $today = Carbon::today(config('app.timezone'))->toDateString();
 
+        return Order::query()
+            ->where('area_id', $areaId)
+            ->where('status', 'مستلم')
+            ->whereDate('date', $today)
+            ->count();
+    }
 
 }
 

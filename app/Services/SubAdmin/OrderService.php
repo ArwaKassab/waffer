@@ -400,4 +400,9 @@ class OrderService
             ];
         }
     }
+
+    public function getDeliveredTodayCountByArea(int $areaId): int
+    {
+        return $this->orderRepo->countDeliveredTodayByArea($areaId);
+    }
 }
