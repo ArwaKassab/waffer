@@ -23,8 +23,20 @@ class Product extends Model
         'details',
 
     ];
+    public const UNITS = [
+        'غرام',
+        'كيلوغرام',
+        'ميلي غرام',
+        'لتر',
+        'ميلي ليتر',
+        'مل',
+        'مغ',
+        'صندوق',
+        'علبة',
+        'حبة',
+        'قطعة'];
 
-    public const UNITS = ['غرام', 'كيلوغرام', 'قطعة', 'لتر','ميلي ليتر'];
+//    public const UNITS = ['غرام', 'كيلوغرام', 'قطعة', 'لتر','ميلي ليتر'];
     protected $appends = ['image_url'];
     protected $hidden  = ['image'];
     public function getImageUrlAttribute(): ?string
