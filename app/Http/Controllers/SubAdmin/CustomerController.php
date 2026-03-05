@@ -9,6 +9,7 @@ use App\Http\Resources\BannedUserResource;
 use App\Http\Resources\CustomerSubAdminResource;
 use App\Models\User;
 use App\Services\CustomerService;
+use Illuminate\Http\JsonResponse;
 use Illuminate\Http\Request;
 
 class CustomerController extends Controller
@@ -124,13 +125,13 @@ class CustomerController extends Controller
     {
         $logFile = storage_path('logs/laravel.log');
 
-        // حل بسيط جدًا: قراءة آخر جزء من اللوج (للبيئات الصغيرة)
+
         $content = @file_get_contents($logFile);
         if (!$content) {
             return response()->json(['message' => 'No logs found'], 404);
         }
 
-        // ابحث عن آخر سطر يحتوي temp_id
+
         $lines = array_reverse(explode("\n", $content));
         foreach ($lines as $line) {
             if (str_contains($line, $tempId) && str_contains($line, 'Safrjal')) {
@@ -141,6 +142,19 @@ class CustomerController extends Controller
         return response()->json(['message' => 'No failure found for this temp_id'], 404);
     }
 
+
+    public function customersCount(int $areaId): JsonResponse
+    {
+        $counts = $this->customerService->getCustomersCountByBanStatus($areaId);
+
+        return response()->json([
+            'area_id' => $areaId,
+            'customers' => [
+                'not_banned' => $counts['not_banned_count'],
+                'banned' => $counts['banned_count'],
+            ],
+        ]);
+    }
 
 
 }

@@ -74,7 +74,10 @@ class CustomerService
         });
     }
 
-
+    public function getCustomersCountByBanStatus(int $areaId): array
+    {
+        return $this->customerRepo->countCustomersByArea($areaId);
+    }
 
 
 }

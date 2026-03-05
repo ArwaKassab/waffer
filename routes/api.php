@@ -353,6 +353,7 @@ Route::prefix('customer')->group(function () {
         Route::get('customers/AllCustomers', [SubAdminCustomerController::class, 'index']);
         Route::get('customers/search-name',   [SubAdminCustomerController::class, 'searchByName']);
         Route::get('customers/search-phone',  [SubAdminCustomerController::class, 'searchByPhone']);
+        Route::get('areas/customers-count/{areaId}', [SubAdminCustomerController::class, 'customersCount']);
 
         //عناوبن المستخدمين
         Route::get('/customers/addresses/{user}', [SubAdminCustomerController::class, 'addresses']);

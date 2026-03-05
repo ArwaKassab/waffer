@@ -94,4 +94,20 @@ class CustomerRepository implements CustomerRepositoryInterface
         User::whereKey($userId)->update($data);
     }
 
+    public function countCustomersByArea(int $areaId): array
+    {
+        $rows = \App\Models\User::query()
+            ->where('area_id', $areaId)
+            ->where('type', 'customer')
+            ->selectRaw("
+            SUM(CASE WHEN is_banned = 1 THEN 1 ELSE 0 END) AS banned_count,
+            SUM(CASE WHEN is_banned = 0 THEN 1 ELSE 0 END) AS not_banned_count
+        ")
+            ->first();
+
+        return [
+            'banned_count' => (int) ($rows->banned_count ?? 0),
+            'not_banned_count' => (int) ($rows->not_banned_count ?? 0),
+        ];
+    }
 }
