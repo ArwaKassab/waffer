@@ -121,7 +121,9 @@ class CustomerService
             $user->wallet_balance = (float) $user->wallet_balance + (float) $amount;
             $user->save();
 
-            return $user->fresh(['id','name','phone','wallet_balance','area_id']);
+            $user->refresh();
+            return $user;
+
         });
     }
 

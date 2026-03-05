@@ -201,9 +201,6 @@ class CustomerController extends Controller
             'message' => 'تم شحن المحفظة بنجاح.',
             'data' => [
                 'id' => $user->id,
-                'name' => $user->name,
-                'phone' => $user->phone_display ?? $user->phone,
-                'area_id' => $user->area_id,
                 'wallet_balance' => (float) $user->wallet_balance,
             ],
         ]);
