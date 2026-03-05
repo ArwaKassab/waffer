@@ -185,4 +185,28 @@ class CustomerController extends Controller
         );
     }
 
+    public function topUp(Request $request, int $customerId): JsonResponse
+    {
+        $data = $request->validate([
+            'amount' => ['required', 'numeric', 'gt:0'],
+        ], [
+            'amount.required' => 'المبلغ مطلوب.',
+            'amount.numeric'  => 'المبلغ يجب أن يكون رقمًا.',
+            'amount.gt'       => 'المبلغ يجب أن يكون أكبر من 0.',
+        ]);
+
+        $user = $this->customerService->topUpCustomerWallet($customerId, (float) $data['amount']);
+
+        return response()->json([
+            'message' => 'تم شحن المحفظة بنجاح.',
+            'data' => [
+                'id' => $user->id,
+                'name' => $user->name,
+                'phone' => $user->phone_display ?? $user->phone,
+                'area_id' => $user->area_id,
+                'wallet_balance' => (float) $user->wallet_balance,
+            ],
+        ]);
+    }
+
 }

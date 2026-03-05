@@ -3,6 +3,7 @@
 // app/Services/SubAdminUserService.php
 namespace App\Services;
 
+use App\Models\User;
 use Illuminate\Support\Facades\DB;
 use App\Events\UserBanned;
 use App\Events\UserUnbanned;
@@ -99,6 +100,29 @@ class CustomerService
     public function getCustomersWithBalanceByArea(int $areaId, int $perPage = 20): LengthAwarePaginator
     {
         return $this->customerRepo->paginateCustomersWithWalletBalanceByArea($areaId, $perPage);
+    }
+    public function topUpCustomerWallet(int $customerId, float $amount): User
+    {
+        return DB::transaction(function () use ($customerId, $amount) {
+
+
+            /** @var User $user */
+            $user = User::query()
+                ->whereKey($customerId)
+                ->where('type', 'customer')
+                ->lockForUpdate()
+                ->firstOrFail();
+
+            if ($user->is_banned) {
+                abort(403, 'لا يمكن شحن محفظة زبون محظور.');
+            }
+
+
+            $user->wallet_balance = (float) $user->wallet_balance + (float) $amount;
+            $user->save();
+
+            return $user->fresh(['id','name','phone','wallet_balance','area_id']);
+        });
     }
 
 }

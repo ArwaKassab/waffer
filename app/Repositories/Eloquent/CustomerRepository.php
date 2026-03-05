@@ -142,4 +142,19 @@ class CustomerRepository implements CustomerRepositoryInterface
             ->orderByDesc('wallet_balance')
             ->paginate($perPage);
     }
+
+    public function findCustomerById(int $customerId): User
+    {
+        /** @var User|null $user */
+        $user = User::query()
+            ->whereKey($customerId)
+            ->where('type', 'customer')
+            ->first();
+
+        if (! $user) {
+            throw new ModelNotFoundException("Customer not found");
+        }
+
+        return $user;
+    }
 }
