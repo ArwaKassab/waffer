@@ -9,6 +9,7 @@ use App\Events\UserUnbanned;
 use App\Repositories\Contracts\CustomerRepositoryInterface;
 use Illuminate\Contracts\Pagination\LengthAwarePaginator;
 use Illuminate\Database\Eloquent\Collection;
+use Illuminate\Support\Facades\Cache;
 
 class CustomerService
 {
@@ -79,5 +80,25 @@ class CustomerService
         return $this->customerRepo->countCustomersByArea($areaId);
     }
 
+    public function getTotalWalletBalanceByArea(int $areaId): float
+    {
+        return Cache::rememberForever(
+            "area:{$areaId}:customers_wallet_total",
+            fn () => $this->customerRepo->sumCustomerWalletsByArea($areaId)
+        );
+    }
+
+    public function getCustomersWithBalanceCountByArea(int $areaId): int
+    {
+        return Cache::rememberForever(
+            "area:{$areaId}:customers_wallet_with_balance_count",
+            fn () => $this->customerRepo->countCustomersWithWalletBalanceByArea($areaId)
+        );
+    }
+
+    public function getCustomersWithBalanceByArea(int $areaId, int $perPage = 20): LengthAwarePaginator
+    {
+        return $this->customerRepo->paginateCustomersWithWalletBalanceByArea($areaId, $perPage);
+    }
 
 }

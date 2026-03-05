@@ -110,4 +110,36 @@ class CustomerRepository implements CustomerRepositoryInterface
             'not_banned_count' => (int) ($rows->not_banned_count ?? 0),
         ];
     }
+
+
+    // إجمالي رصيد محافظ زبائن منطقة معيّنة
+    public function sumCustomerWalletsByArea(int $areaId): float
+    {
+        return (float) User::query()
+            ->where('type', 'customer')
+            ->where('area_id', $areaId)
+            ->sum('wallet_balance');
+    }
+
+    // عدد الزبائن يلي رصيدهم > 0 ضمن منطقة معيّنة
+    public function countCustomersWithWalletBalanceByArea(int $areaId): int
+    {
+        return User::query()
+            ->where('type', 'customer')
+            ->where('area_id', $areaId)
+            ->where('wallet_balance', '>', 0)
+            ->count();
+    }
+
+    // معلومات الزبائن يلي عندهم رصيد ضمن منطقة معيّنة (اسم + موبايل + رصيد) مع pagination
+    public function paginateCustomersWithWalletBalanceByArea(int $areaId, int $perPage = 20): LengthAwarePaginator
+    {
+        return User::query()
+            ->where('type', 'customer')
+            ->where('area_id', $areaId)
+            ->where('wallet_balance', '>', 0)
+            ->select(['id', 'name', 'phone', 'wallet_balance'])
+            ->orderByDesc('wallet_balance')
+            ->paginate($perPage);
+    }
 }

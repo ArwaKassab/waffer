@@ -354,7 +354,11 @@ Route::prefix('customer')->group(function () {
         Route::get('customers/search-name',   [SubAdminCustomerController::class, 'searchByName']);
         Route::get('customers/search-phone',  [SubAdminCustomerController::class, 'searchByPhone']);
         Route::get('customers/count', [SubAdminCustomerController::class, 'customersCount']);
+// المحفظة
 
+        Route::get('wallets/total-balance', [SubAdminCustomerController::class, 'totalBalanceByArea']);
+        Route::get('wallets/with-balance/count', [SubAdminCustomerController::class, 'customersWithBalanceCountByArea']);
+        Route::get('wallets/with-balance', [SubAdminCustomerController::class, 'customersWithBalanceByArea']);
         //عناوبن المستخدمين
         Route::get('/customers/addresses/{user}', [SubAdminCustomerController::class, 'addresses']);
 

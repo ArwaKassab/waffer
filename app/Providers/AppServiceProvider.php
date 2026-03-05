@@ -3,6 +3,8 @@
 namespace App\Providers;
 
 
+use App\Models\User;
+use App\Observers\UserObserver;
 use Illuminate\Support\ServiceProvider;
 use App\Repositories\Contracts\{AdRepositoryInterface,
     CartRepositoryInterface,
@@ -57,10 +59,11 @@ class AppServiceProvider extends ServiceProvider
             SubAdminRepositoryInterface::class,
             SubAdminRepository::class
         );
+
     }
 
     public function boot(): void
     {
-        //
+        User::observe(UserObserver::class);
     }
 }
