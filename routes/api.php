@@ -353,7 +353,7 @@ Route::prefix('customer')->group(function () {
         Route::get('customers/AllCustomers', [SubAdminCustomerController::class, 'index']);
         Route::get('customers/search-name',   [SubAdminCustomerController::class, 'searchByName']);
         Route::get('customers/search-phone',  [SubAdminCustomerController::class, 'searchByPhone']);
-        Route::get('customers/count/{areaId}', [SubAdminCustomerController::class, 'customersCount']);
+        Route::get('customers/count', [SubAdminCustomerController::class, 'customersCount']);
 
         //عناوبن المستخدمين
         Route::get('/customers/addresses/{user}', [SubAdminCustomerController::class, 'addresses']);
@@ -378,8 +378,8 @@ Route::prefix('customer')->group(function () {
         Route::get('/orders/today/OnWay/ids',       [SubAdminOrderController::class, 'listOnWay']);
         Route::get('/orders/today/Done/count', [SubAdminOrderController::class, 'countDone']);
         Route::get('/orders/today/Done/ids',       [SubAdminOrderController::class, 'listDone']);
-        Route::get('/orders/orderDetails/{orderId}',[SubAdminOrderController::class, 'getOrderDetailsForSubAdmin']);
-        Route::get('orders/delivered-today-count/{areaId}', [SubAdminOrderController::class, 'deliveredTodayCount']);
+        Route::get('/orders/orderDetails',[SubAdminOrderController::class, 'getOrderDetailsForSubAdmin']);
+        Route::get('orders/delivered-today-count', [SubAdminOrderController::class, 'deliveredTodayCount']);
 //        طلبات المتاجر
         Route::post('/products/approve/{req}', [ProductRequestsController::class, 'approve']);
         Route::post('/products/reject/{req}', [ProductRequestsController::class, 'reject']);

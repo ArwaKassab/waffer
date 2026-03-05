@@ -261,9 +261,9 @@ class OrderController extends Controller
     /**
      * عرض تفاصيل طلب للأدمن الفرعي  .
      */
-    public function getOrderDetailsForSubAdmin(Request $request, int $orderId)
+    public function getOrderDetailsForSubAdmin(Request $request)
     {
-        $order = $this->orderService->getOrderDetailsForSubAdmin($orderId);
+        $order = $this->orderService->getOrderDetailsForSubAdmin($request->area_id);
 
         if (!$order) {
             return response()->json([
@@ -276,13 +276,13 @@ class OrderController extends Controller
             ->additional(['success' => true]);
     }
 
-    public function deliveredTodayCount(int $areaId): JsonResponse
+    public function deliveredTodayCount(Request $request): JsonResponse
     {
         return response()->json([
-            'area_id' => $areaId,
+            'area_id' => $request->area_id,
             'status'  => 'مستلم',
             'date'    => now(config('app.timezone'))->toDateString(),
-            'count'   => $this->orderService->getDeliveredTodayCountByArea($areaId),
+            'count'   => $this->orderService->getDeliveredTodayCountByArea($request->area_id),
         ]);
     }
 

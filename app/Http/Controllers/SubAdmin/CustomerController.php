@@ -143,12 +143,12 @@ class CustomerController extends Controller
     }
 
 
-    public function customersCount(int $areaId): JsonResponse
+    public function customersCount(Request $request): JsonResponse
     {
-        $counts = $this->customerService->getCustomersCountByBanStatus($areaId);
+        $counts = $this->customerService->getCustomersCountByBanStatus($request->area_id);
 
         return response()->json([
-            'area_id' => $areaId,
+            'area_id' => $request->area_id,
             'customers' => [
                 'not_banned' => $counts['not_banned_count'],
                 'banned' => $counts['banned_count'],
