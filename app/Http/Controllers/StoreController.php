@@ -44,7 +44,6 @@ class StoreController extends Controller
             return response()->json(['message' => 'Category not set'], 400);
         }
 
-        // مفترض يرجع Collection من Arrays
         $stores = $this->storeService->getStores($areaId, (int) $categoryId);
 
         return response()->json($stores);
@@ -52,7 +51,7 @@ class StoreController extends Controller
 
     public function show($id)
     {
-        // مفترض يرجع Array جاهزة
+
         $storeDetails = $this->storeService->getStoreDetails((int) $id);
 
         if (!$storeDetails) {

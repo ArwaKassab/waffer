@@ -213,11 +213,11 @@ class StoreController extends Controller
         ]);
     }
 
-    public function storesCount(int $areaId): JsonResponse
+    public function storesCount(Request $request): JsonResponse
     {
         return response()->json([
-            'area_id' => $areaId,
-            'stores_count' => $this->storeService->getStoresCount($areaId),
+            'area_id' => $request->area_id,
+            'stores_count' => $this->storeService->getStoresCount($request->area_id),
         ]);
     }
 
