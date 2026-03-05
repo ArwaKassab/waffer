@@ -378,7 +378,7 @@ Route::prefix('customer')->group(function () {
         Route::get('/orders/today/OnWay/ids',       [SubAdminOrderController::class, 'listOnWay']);
         Route::get('/orders/today/Done/count', [SubAdminOrderController::class, 'countDone']);
         Route::get('/orders/today/Done/ids',       [SubAdminOrderController::class, 'listDone']);
-        Route::get('/orders/orderDetails',[SubAdminOrderController::class, 'getOrderDetailsForSubAdmin']);
+        Route::get('/orders/orderDetails/{orderId}',[SubAdminOrderController::class, 'getOrderDetailsForSubAdmin']);
         Route::get('orders/delivered-today-count', [SubAdminOrderController::class, 'deliveredTodayCount']);
 //        طلبات المتاجر
         Route::post('/products/approve/{req}', [ProductRequestsController::class, 'approve']);
@@ -392,7 +392,7 @@ Route::prefix('customer')->group(function () {
         Route::get('stores/{storeId}', [SubAdminStoreController::class, 'show']);
         Route::PATCH('/stores/update/{storeId}', [SubAdminStoreController::class, 'update']);
         Route::delete('stores/destroy/{storeId}', [SubAdminStoreController::class, 'destroy']);
-        Route::get('stores/count/{areaId}', [SubAdminStoreController::class, 'storesCount']);
+        Route::get('stores/count', [SubAdminStoreController::class, 'storesCount']);
         //المنتجات
         Route::PATCH('products/status/{product}', [SubAdminStoreController::class, 'updateStatus']);
         Route::post('products/add', [SubAdminProductController::class, 'store']);
