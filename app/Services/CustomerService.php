@@ -97,7 +97,7 @@ class CustomerService
         );
     }
 
-    public function getCustomersWithBalanceByArea(int $areaId, int $perPage = 20): LengthAwarePaginator
+    public function getCustomersWithBalanceByArea(int $areaId, int $perPage): LengthAwarePaginator
     {
         return $this->customerRepo->paginateCustomersWithWalletBalanceByArea($areaId, $perPage);
     }

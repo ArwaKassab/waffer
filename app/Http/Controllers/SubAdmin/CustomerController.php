@@ -177,12 +177,19 @@ class CustomerController extends Controller
     // تفاصيل الزبائن يلي عندهم رصيد ضمن المنطقة (اسم + موبايل + رصيد)
     public function customersWithBalanceByArea(Request $request): JsonResponse
     {
-        $perPage = (int) $request->query('per_page', 20);
-        $perPage = max(1, min($perPage, 100));
 
-        return response()->json(
-            $this->customerService->getCustomersWithBalanceByArea($request->area_id, $perPage)
-        );
+        $paginator = $this->customerService->getCustomersWithBalanceByArea($request->area_id, $request->perPage);
+
+        $paginator->getCollection()->transform(function ($u) {
+            return [
+                'id' => $u->id,
+                'name' => $u->name,
+                'phone' => $u->phone,
+                'wallet_balance' => (float) $u->wallet_balance,
+            ];
+        });
+
+        return response()->json($paginator);
     }
 
     public function topUp(Request $request, int $customerId): JsonResponse

@@ -132,7 +132,7 @@ class CustomerRepository implements CustomerRepositoryInterface
     }
 
     // معلومات الزبائن يلي عندهم رصيد ضمن منطقة معيّنة (اسم + موبايل + رصيد) مع pagination
-    public function paginateCustomersWithWalletBalanceByArea(int $areaId, int $perPage = 20): LengthAwarePaginator
+    public function paginateCustomersWithWalletBalanceByArea(int $areaId, int $perPage): LengthAwarePaginator
     {
         return User::query()
             ->where('type', 'customer')
