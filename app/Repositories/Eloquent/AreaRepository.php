@@ -17,4 +17,17 @@ class AreaRepository implements AreaRepositoryInterface
     {
         return Area::create($data);
     }
+
+    public function findById(int $id): ?Area
+    {
+        return Area::find($id);
+    }
+
+    public function update(Area $area, array $data): Area
+    {
+        $area->fill($data);
+        $area->save();
+
+        return $area->fresh();
+    }
 }

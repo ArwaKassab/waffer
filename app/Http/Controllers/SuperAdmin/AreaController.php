@@ -78,7 +78,33 @@ class AreaController extends Controller
             'data' => $areas
         ]);
     }
+    public function update(Request $request, int $id): JsonResponse
+    {
+        $data = $request->validate([
+            'name' => ['sometimes','string','max:255'],
+            'delivery_fee' => ['sometimes','nullable','numeric','min:0'],
+            'free_delivery_from' => ['sometimes','nullable','numeric','min:0'],
+        ], [
+            'name.max' => 'اسم المنطقة يجب ألا يتجاوز 255 حرفًا.',
+            'delivery_fee.numeric' => 'رسوم التوصيل يجب أن تكون رقمًا.',
+            'free_delivery_from.numeric' => 'المبلغ المجاني يجب أن يكون رقمًا.',
+        ]);
 
+        if (empty($data)) {
+            return response()->json(['message' => 'لا توجد بيانات للتعديل.'], 422);
+        }
+
+        $area = $this->service->update($id, $data);
+
+        if (! $area) {
+            return response()->json(['message' => 'المنطقة غير موجودة.'], 404);
+        }
+
+        return response()->json([
+            'message' => 'تم تعديل المنطقة بنجاح.',
+            'data' => $area,
+        ]);
+    }
 }
 
 

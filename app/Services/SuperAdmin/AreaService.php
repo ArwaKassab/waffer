@@ -39,4 +39,15 @@ class AreaService
     {
         return Area::all();
     }
+
+    public function update(int $id, array $data): ?Area
+    {
+        $area = Area::find($id);
+        if (! $area) return null;
+
+        $area->fill($data);
+        $area->save();
+
+        return $area->fresh();
+    }
 }

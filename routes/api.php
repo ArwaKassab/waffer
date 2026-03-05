@@ -465,6 +465,7 @@ Route::prefix('Admin-auth')->middleware(['auth:sanctum','attach.user.area'])->gr
     Route::get('{id}', [SubAdminAreaController::class, 'show']);
     // حذف منطقة
     Route::delete('area/delete/{id}', [SubAdminAreaController::class, 'destroy']);
+    Route::patch('areas/update/{id}', [AreaController::class, 'update']);
 
 });
 
