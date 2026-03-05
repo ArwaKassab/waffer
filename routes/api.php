@@ -392,7 +392,7 @@ Route::prefix('customer')->group(function () {
         Route::get('stores/{storeId}', [SubAdminStoreController::class, 'show']);
         Route::PATCH('/stores/update/{storeId}', [SubAdminStoreController::class, 'update']);
         Route::delete('stores/destroy/{storeId}', [SubAdminStoreController::class, 'destroy']);
-        Route::get('stores/count-stores', [SubAdminStoreController::class, 'storesCount']);
+        Route::get('stores/count-number', [SubAdminStoreController::class, 'storesCount']);
         //المنتجات
         Route::PATCH('products/status/{product}', [SubAdminStoreController::class, 'updateStatus']);
         Route::post('products/add', [SubAdminProductController::class, 'store']);
