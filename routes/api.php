@@ -353,7 +353,7 @@ Route::prefix('customer')->group(function () {
         Route::get('customers/AllCustomers', [SubAdminCustomerController::class, 'index']);
         Route::get('customers/search-name',   [SubAdminCustomerController::class, 'searchByName']);
         Route::get('customers/search-phone',  [SubAdminCustomerController::class, 'searchByPhone']);
-        Route::get('areas/customers-count/{areaId}', [SubAdminCustomerController::class, 'customersCount']);
+        Route::get('customers/count/{areaId}', [SubAdminCustomerController::class, 'customersCount']);
 
         //عناوبن المستخدمين
         Route::get('/customers/addresses/{user}', [SubAdminCustomerController::class, 'addresses']);
@@ -392,6 +392,7 @@ Route::prefix('customer')->group(function () {
         Route::get('stores/{storeId}', [SubAdminStoreController::class, 'show']);
         Route::PATCH('/stores/update/{storeId}', [SubAdminStoreController::class, 'update']);
         Route::delete('stores/destroy/{storeId}', [SubAdminStoreController::class, 'destroy']);
+        Route::get('stores/count/{areaId}', [SubAdminStoreController::class, 'storesCount']);
         //المنتجات
         Route::PATCH('products/status/{product}', [SubAdminStoreController::class, 'updateStatus']);
         Route::post('products/add', [SubAdminProductController::class, 'store']);

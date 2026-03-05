@@ -212,5 +212,14 @@ class StoreController extends Controller
             ],
         ]);
     }
+
+    public function storesCount(int $areaId): JsonResponse
+    {
+        return response()->json([
+            'area_id' => $areaId,
+            'stores_count' => $this->storeService->getStoresCount($areaId),
+        ]);
+    }
+
 }
 

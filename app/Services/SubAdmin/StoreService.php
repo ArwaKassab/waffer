@@ -197,4 +197,10 @@ class StoreService
         });
     }
 
+    public function getStoresCount(int $areaId): int
+    {
+        return $this->storeRepository->countStoresByArea($areaId);
+    }
+
+
 }

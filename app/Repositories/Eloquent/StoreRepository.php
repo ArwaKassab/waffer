@@ -980,6 +980,12 @@ class StoreRepository implements StoreRepositoryInterface
         $product->status = $status;
         return (bool) $product->save();
     }
-
+    public function countStoresByArea(int $areaId): int
+    {
+        return User::query()
+            ->where('area_id', $areaId)
+            ->where('type', 'store')
+            ->count();
+    }
 
 }
