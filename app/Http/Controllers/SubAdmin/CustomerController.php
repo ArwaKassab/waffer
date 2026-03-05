@@ -157,31 +157,31 @@ class CustomerController extends Controller
     }
 
     // إجمالي رصيد محافظ زبائن المنطقة
-    public function totalBalanceByArea(int $areaId): JsonResponse
+    public function totalBalanceByArea(Request $request): JsonResponse
     {
         return response()->json([
-            'area_id' => $areaId,
-            'total_wallet_balance' => $this->customerService->getTotalWalletBalanceByArea($areaId),
+            'area_id' => $request->area_id,
+            'total_wallet_balance' => $this->customerService->getTotalWalletBalanceByArea($request->area_id),
         ]);
     }
 
     // عدد الزبائن يلي رصيدهم > 0 ضمن المنطقة
-    public function customersWithBalanceCountByArea(int $areaId): JsonResponse
+    public function customersWithBalanceCountByArea(Request $request: JsonResponse
     {
         return response()->json([
-            'area_id' => $areaId,
-            'customers_with_balance_count' => $this->customerService->getCustomersWithBalanceCountByArea($areaId),
+            'area_id' => $request->area_id,
+            'customers_with_balance_count' => $this->customerService->getCustomersWithBalanceCountByArea($request->area_id),
         ]);
     }
 
     // تفاصيل الزبائن يلي عندهم رصيد ضمن المنطقة (اسم + موبايل + رصيد)
-    public function customersWithBalanceByArea(Request $request, int $areaId): JsonResponse
+    public function customersWithBalanceByArea(Request $request): JsonResponse
     {
         $perPage = (int) $request->query('per_page', 20);
         $perPage = max(1, min($perPage, 100));
 
         return response()->json(
-            $this->customerService->getCustomersWithBalanceByArea($areaId, $perPage)
+            $this->customerService->getCustomersWithBalanceByArea($request->area_id, $perPage)
         );
     }
 
