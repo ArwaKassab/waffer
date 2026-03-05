@@ -17,7 +17,7 @@ class ProductRequestStore extends FormRequest
             'price'     => ['sometimes','numeric','min:0'],
             'status'    => ['sometimes','in:available,not_available'],
             'quantity'  => ['sometimes','numeric','min:0'],
-            'unit'      => ['sometimes','in:غرام,كيلوغرام,قطعة,لتر'],
+            'unit'      => ['sometimes','in: ميلي غرام,علبة,صندوق,مغ,مل,غرام,كيلوغرام,قطعة,لتر,ميلي ليتر,حبة'],
             'image'     => ['sometimes','file','mimes:jpg,jpeg,png,webp','max:4096'],
             'details'   => ['sometimes','string','max:255'],
         ];

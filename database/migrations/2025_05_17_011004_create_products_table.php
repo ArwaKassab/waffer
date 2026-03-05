@@ -16,7 +16,7 @@ class CreateProductsTable extends Migration
             $table->text('image')->nullable();
             $table->enum('status', ['available', 'not_available'])->default('available');
             $table->decimal('quantity', 8, 2);
-            $table->enum('unit', ['غرام', 'كيلوغرام', 'قطعة', 'لتر'])->default('غرام');
+            $table->enum('unit', ['غرام', 'كيلوغرام', 'قطعة','لتر'])->default('غرام');
             $table->text('details')->nullable();
             $table->foreignId('store_id')->constrained('users')->onDelete('cascade');
             $table->timestamps();
