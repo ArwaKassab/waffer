@@ -70,7 +70,8 @@ class WalletTopUpByPhoneSeeder extends Seeder
 
                 // أضف المبلغ للمحفظة
                 // نستخدم bcmul/bcadd لو احتجت دقة أعلى، لكن بما أن الحقل DECIMAL(10,2) فالجمع المباشر يكفي.
-                $user->increment('wallet_balance', (float) $amount);
+                $user->wallet_balance = (float) $user->wallet_balance + (float) $amount;
+                $user->save();
 
                 $this->command->info("تم شحن {$amount} إلى محفظة المستخدم ID={$user->id} ({$user->phone})");
             }
