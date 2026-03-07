@@ -459,14 +459,14 @@ class OrderRepository
      */
     public function countDoneByArea(int $areaId): int
     {
-        $today = Carbon::today(config('app.timezone'))->toDateString();
+        $today = Carbon::today(config('app.timezone'));
 
         return Order::query()
             ->where('area_id', $areaId)
             ->where('status', 'مستلم')
+            ->whereDate('created_at', $today)
             ->count();
     }
-
     /**
      * إرجاع قائمة طلبات اليوم بحالة "مستلمة" لمنطقة معيّنة (مع باجينيشن).
      */
