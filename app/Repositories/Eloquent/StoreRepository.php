@@ -11,6 +11,37 @@ use Illuminate\Pagination\LengthAwarePaginator;
 
 class StoreRepository implements StoreRepositoryInterface
 {
+
+    private function sortStoresArrayByAreaOrder(int $areaId, array $stores): array
+    {
+        $ids = array_values(array_filter(array_map(fn ($s) => $s['id'] ?? null, $stores)));
+        if (empty($ids)) {
+            return $stores;
+        }
+
+        $orders = AreaHomeOrder::query()
+            ->where('area_id', $areaId)
+            ->where('entity_type', 'store')
+            ->where('is_active', true)
+            ->whereIn('entity_id', $ids)
+            ->pluck('sort_order', 'entity_id')
+            ->map(fn ($v) => (int) $v)
+            ->all();
+
+        usort($stores, function ($a, $b) use ($orders) {
+            $ao = $orders[$a['id']] ?? PHP_INT_MAX;
+            $bo = $orders[$b['id']] ?? PHP_INT_MAX;
+
+            if ($ao === $bo) {
+                return strcmp((string) ($a['name'] ?? ''), (string) ($b['name'] ?? ''));
+            }
+
+            return $ao <=> $bo;
+        });
+
+        return $stores;
+    }
+
     /**
      * توحيد شكل إخراج المتجر في كل المسارات
      * - open_hour / close_hour دائماً بصيغة H:i
@@ -83,14 +114,49 @@ class StoreRepository implements StoreRepositoryInterface
         }
     }
 
+//    public function getStoresByArea(int $areaId, int $perPage = 20)
+//    {
+//        $paginator = User::query()
+//            ->where('type', 'store')
+//            ->where('area_id', $areaId)
+//            ->select('id', 'area_id', 'name', 'image', 'note', 'open_hour', 'close_hour', 'status')
+//            ->with(['categories:id'])
+//            ->orderBy('name')
+//            ->paginate($perPage);
+//
+//        $paginator->getCollection()->transform(function (User $store) {
+//            return $this->storePayload($store);
+//        });
+//
+//        return $paginator;
+//    }
+
     public function getStoresByArea(int $areaId, int $perPage = 20)
     {
         $paginator = User::query()
             ->where('type', 'store')
             ->where('area_id', $areaId)
-            ->select('id', 'area_id', 'name', 'image', 'note', 'open_hour', 'close_hour', 'status')
+            ->leftJoin('area_home_orders as aho', function ($join) use ($areaId) {
+                $join->on('aho.entity_id', '=', 'users.id')
+                    ->where('aho.area_id', '=', $areaId)
+                    ->where('aho.entity_type', '=', 'store')
+                    ->where('aho.is_active', '=', 1)
+                    ->whereNull('aho.deleted_at');
+            })
+            ->select(
+                'users.id',
+                'users.area_id',
+                'users.name',
+                'users.image',
+                'users.note',
+                'users.open_hour',
+                'users.close_hour',
+                'users.status'
+            )
             ->with(['categories:id'])
-            ->orderBy('name')
+            ->orderByRaw('CASE WHEN aho.sort_order IS NULL THEN 1 ELSE 0 END')
+            ->orderBy('aho.sort_order')
+            ->orderBy('users.name')
             ->paginate($perPage);
 
         $paginator->getCollection()->transform(function (User $store) {
@@ -100,15 +166,50 @@ class StoreRepository implements StoreRepositoryInterface
         return $paginator;
     }
 
+//    public function getStoresByAreaAndCategoryPaged(int $areaId, int $categoryId, int $perPage = 20)
+//    {
+//        $paginator = User::query()
+//            ->where('type', 'store')
+//            ->where('area_id', $areaId)
+//            ->whereHas('categories', fn ($q) => $q->where('categories.id', $categoryId))
+//            ->select('id', 'area_id', 'name', 'image', 'status', 'note', 'open_hour', 'close_hour')
+//            ->with(['categories:id'])
+//            ->orderBy('name')
+//            ->paginate($perPage);
+//
+//        $paginator->getCollection()->transform(function (User $store) {
+//            return $this->storePayload($store);
+//        });
+//
+//        return $paginator;
+//    }
     public function getStoresByAreaAndCategoryPaged(int $areaId, int $categoryId, int $perPage = 20)
     {
         $paginator = User::query()
             ->where('type', 'store')
             ->where('area_id', $areaId)
             ->whereHas('categories', fn ($q) => $q->where('categories.id', $categoryId))
-            ->select('id', 'area_id', 'name', 'image', 'status', 'note', 'open_hour', 'close_hour')
+            ->leftJoin('area_home_orders as aho', function ($join) use ($areaId) {
+                $join->on('aho.entity_id', '=', 'users.id')
+                    ->where('aho.area_id', '=', $areaId)
+                    ->where('aho.entity_type', '=', 'store')
+                    ->where('aho.is_active', '=', 1)
+                    ->whereNull('aho.deleted_at');
+            })
+            ->select(
+                'users.id',
+                'users.area_id',
+                'users.name',
+                'users.image',
+                'users.status',
+                'users.note',
+                'users.open_hour',
+                'users.close_hour'
+            )
             ->with(['categories:id'])
-            ->orderBy('name')
+            ->orderByRaw('CASE WHEN aho.sort_order IS NULL THEN 1 ELSE 0 END')
+            ->orderBy('aho.sort_order')
+            ->orderBy('users.name')
             ->paginate($perPage);
 
         $paginator->getCollection()->transform(function (User $store) {
@@ -313,9 +414,12 @@ class StoreRepository implements StoreRepositoryInterface
         $this->hydrateMissingCategoryIds($result);
 
         // ترتيب المتاجر وإرجاع مصفوفة
+//        $final = array_values($result);
+//        usort($final, fn ($a, $b) => strcmp($a['name'], $b['name']));
+//
+//        return $final;
         $final = array_values($result);
-        usort($final, fn ($a, $b) => strcmp($a['name'], $b['name']));
-
+        $final = $this->sortStoresArrayByAreaOrder($areaId, $final);
         return $final;
     }
 
@@ -561,11 +665,46 @@ class StoreRepository implements StoreRepositoryInterface
         // تعبئة category_ids للمتاجر التي جاءت من Product->store
         $this->hydrateMissingCategoryIds($result);
 
+//        $final = array_values($result);
+//        usort($final, fn ($a, $b) => strcmp($a['name'], $b['name']));
+//
+//        return $final;
         $final = array_values($result);
-        usort($final, fn ($a, $b) => strcmp($a['name'], $b['name']));
-
+        $final = $this->sortStoresArrayByAreaOrder($areaId, $final);
         return $final;
     }
+//
+//    public function getStoresByAreaAndCategoriesPaged(
+//        int $areaId,
+//        array $categoryIds,
+//        int $perPage = 20,
+//        string $matchMode = 'all'
+//    ) {
+//        $q = User::query()
+//            ->where('type', 'store')
+//            ->where('area_id', $areaId)
+//            ->with(['categories:id'])
+//            ->select('id', 'area_id', 'name', 'image', 'status', 'note', 'open_hour', 'close_hour');
+//
+//        if ($matchMode === 'all') {
+//            $q->where(function ($qq) use ($categoryIds) {
+//                foreach ($categoryIds as $cid) {
+//                    $qq->whereHas('categories', fn ($q2) => $q2->where('categories.id', $cid));
+//                }
+//            });
+//        } else {
+//            $q->whereHas('categories', fn ($qq) => $qq->whereIn('categories.id', $categoryIds));
+//        }
+//
+//        $paginator = $q->orderBy('name')->paginate($perPage);
+//
+//        $paginator->getCollection()->transform(function (User $store) {
+//            return $this->storePayload($store);
+//        });
+//
+//        return $paginator;
+//    }
+
 
     public function getStoresByAreaAndCategoriesPaged(
         int $areaId,
@@ -577,7 +716,23 @@ class StoreRepository implements StoreRepositoryInterface
             ->where('type', 'store')
             ->where('area_id', $areaId)
             ->with(['categories:id'])
-            ->select('id', 'area_id', 'name', 'image', 'status', 'note', 'open_hour', 'close_hour');
+            ->leftJoin('area_home_orders as aho', function ($join) use ($areaId) {
+                $join->on('aho.entity_id', '=', 'users.id')
+                    ->where('aho.area_id', '=', $areaId)
+                    ->where('aho.entity_type', '=', 'store')
+                    ->where('aho.is_active', '=', 1)
+                    ->whereNull('aho.deleted_at');
+            })
+            ->select(
+                'users.id',
+                'users.area_id',
+                'users.name',
+                'users.image',
+                'users.status',
+                'users.note',
+                'users.open_hour',
+                'users.close_hour'
+            );
 
         if ($matchMode === 'all') {
             $q->where(function ($qq) use ($categoryIds) {
@@ -589,7 +744,11 @@ class StoreRepository implements StoreRepositoryInterface
             $q->whereHas('categories', fn ($qq) => $qq->whereIn('categories.id', $categoryIds));
         }
 
-        $paginator = $q->orderBy('name')->paginate($perPage);
+        $paginator = $q
+            ->orderByRaw('CASE WHEN aho.sort_order IS NULL THEN 1 ELSE 0 END')
+            ->orderBy('aho.sort_order')
+            ->orderBy('users.name')
+            ->paginate($perPage);
 
         $paginator->getCollection()->transform(function (User $store) {
             return $this->storePayload($store);
@@ -597,7 +756,6 @@ class StoreRepository implements StoreRepositoryInterface
 
         return $paginator;
     }
-
     public function searchStoresAndProductsGroupedByCategories(
         int $areaId,
         array $categoryIds,
@@ -793,9 +951,12 @@ class StoreRepository implements StoreRepositoryInterface
         $this->hydrateMissingCategoryIds($result);
 
         // ترتيب وإرجاع
+//        $final = array_values($result);
+//        usort($final, fn ($a, $b) => strcmp($a['name'], $b['name']));
+//
+//        return $final;
         $final = array_values($result);
-        usort($final, fn ($a, $b) => strcmp($a['name'], $b['name']));
-
+        $final = $this->sortStoresArrayByAreaOrder($areaId, $final);
         return $final;
     }
 /////////////////////////////////////////subadmin////////////////////////////////
