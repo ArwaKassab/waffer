@@ -261,10 +261,9 @@ class OrderController extends Controller
     /**
      * عرض تفاصيل طلب للأدمن الفرعي  .
      */
-    public function getOrderDetailsForSubAdmin(Request $request)
+    public function getOrderDetailsForSubAdmin(Request $request , int $orderId)
     {
-        $order = $this->orderService->getOrderDetailsForSubAdmin($request->area_id);
-
+        $order = $this->orderService->getOrderDetailsForSubAdmin($orderId);
         if (!$order) {
             return response()->json([
                 'success' => false,
