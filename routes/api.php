@@ -400,6 +400,9 @@ Route::prefix('customer')->group(function () {
         Route::PATCH('/stores/update/{storeId}', [SubAdminStoreController::class, 'update']);
         Route::delete('stores/destroy/{storeId}', [SubAdminStoreController::class, 'destroy']);
         Route::get('stores/count/count', [SubAdminStoreController::class, 'storesCount']);
+        Route::post('home-order/stores', [AreaHomeOrderController::class, 'setStoresOrder']);
+        Route::patch('home-order/stores/toggle/{store_id}', [AreaHomeOrderController::class, 'toggleStore']);
+
         //المنتجات
         Route::PATCH('products/status/{product}', [SubAdminStoreController::class, 'updateStatus']);
         Route::post('products/add', [SubAdminProductController::class, 'store']);
@@ -408,8 +411,6 @@ Route::prefix('customer')->group(function () {
 
         Route::get('product-requests/create/{id}', [ProductRequestController::class, 'showCreateRequest']);
         Route::get('product-requests/create', [ProductRequestController::class, 'indexCreateRequests']);
-        Route::post('home-order/stores', [AreaHomeOrderController::class, 'setStoresOrder']);
-        Route::patch('home-order/stores/toggle/{store_id}', [AreaHomeOrderController::class, 'toggleStore']);
 
 //التصنيفات
 

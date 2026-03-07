@@ -2,6 +2,7 @@
 
 namespace App\Repositories\Eloquent;
 
+use App\Models\AreaHomeOrder;
 use App\Models\Product;
 use App\Models\User;
 use App\Repositories\Contracts\StoreRepositoryInterface;
