@@ -40,14 +40,31 @@ class CategoryRepository implements CategoryRepositoryInterface
             ->orderBy('name')
             ->paginate($perPage);
     }
+//
+//    public function getByArea(int $areaId)
+//    {
+//        return Area::findOrFail($areaId)
+//            ->categories()
+//            ->get();
+//    }
 
     public function getByArea(int $areaId)
     {
         return Area::findOrFail($areaId)
             ->categories()
+            ->leftJoin('area_home_orders as aho', function ($join) use ($areaId) {
+                $join->on('aho.entity_id', '=', 'categories.id')
+                    ->where('aho.area_id', '=', $areaId)
+                    ->where('aho.entity_type', '=', 'category')
+                    ->where('aho.is_active', '=', 1)
+                    ->whereNull('aho.deleted_at');
+            })
+            ->select('categories.*')
+            ->orderByRaw('CASE WHEN aho.sort_order IS NULL THEN 1 ELSE 0 END')
+            ->orderBy('aho.sort_order')
+            ->orderBy('categories.name')
             ->get();
     }
-
 
 
     public function findById(int $id): Category

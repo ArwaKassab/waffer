@@ -16,14 +16,10 @@ class CategoryController extends Controller
 
     public function index(Request $request)
     {
-        if (!$request->area_id) {
-            return response()->json([
-                'message' => 'المنطقة مطلوبة'
-            ], 422);
-        }
-
-        $categories = $this->categoryService
-            ->getCategoriesByArea($request->area_id);
+        $data = $request->validate([
+            'area_id' => ['required','integer','exists:areas,id'],
+        ]);
+        $categories = $this->categoryService->getCategoriesByArea((int)$data['area_id']);
 
         return response()->json([
             'data' => $categories
