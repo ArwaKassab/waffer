@@ -14,7 +14,8 @@ use Illuminate\Validation\ValidationException;
 class StoreService
 {
     public function __construct(
-        protected StoreRepositoryInterface $storeRepository
+        protected StoreRepositoryInterface $storeRepository,
+        protected AreaHomeOrderService $homeOrderAuto
     ) {
     }
 
@@ -68,7 +69,9 @@ class StoreService
             ];
 
             $store = $this->storeRepository->createStore($storeData, $categoryIds);
-
+            if ($store->area_id) {
+                $this->homeOrderAuto->addStoreToEnd((int) $store->area_id, (int) $store->id);
+            }
             return $store;
         });
     }

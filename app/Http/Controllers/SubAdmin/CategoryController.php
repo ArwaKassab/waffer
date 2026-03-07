@@ -159,10 +159,14 @@ class CategoryController extends Controller
     }
 
     // تصنيفات منطقة معينة
+
     public function byArea(Request $request)
     {
-        $areaId = $request->area_id;
-        $categories = $this->service->listForArea($areaId);
+        $data = $request->validate([
+            'area_id' => ['required','integer','exists:areas,id'],
+        ]);
+
+        $categories = $this->service->listForArea((int)$data['area_id']);
 
         return response()->json([
             'data' => $categories->map(fn($c) => [

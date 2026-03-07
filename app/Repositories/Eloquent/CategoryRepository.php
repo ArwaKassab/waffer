@@ -3,6 +3,7 @@
 namespace App\Repositories\Eloquent;
 
 use App\Models\Area;
+use App\Models\AreaHomeOrder;
 use App\Models\Category;
 use App\Repositories\Contracts\CategoryRepositoryInterface;
 use Illuminate\Contracts\Pagination\LengthAwarePaginator;
@@ -105,12 +106,37 @@ class CategoryRepository implements CategoryRepositoryInterface
             ->get();
     }
 
-    // تصنيفات مرتبطة بمنطقة معينة
     public function forArea(int $areaId): Collection
     {
-        return Category::whereHas('areas', fn($q) => $q->where('areas.id', $areaId))
-            ->orderBy('name')
-            ->get();
+        // IDs حسب ترتيب الأدمن
+        $orderedIds = AreaHomeOrder::query()
+            ->where('area_id', $areaId)
+            ->where('entity_type', 'category')
+            ->where('is_active', true)
+            ->orderBy('sort_order')
+            ->pluck('entity_id')
+            ->values();
+
+        // كل تصنيفات المنطقة (حسب pivot)
+        $allInArea = Category::query()
+            ->whereHas('areas', fn($q) => $q->where('areas.id', $areaId))
+            ->get()
+            ->keyBy('id');
+
+        // رجّعي المرتّب أولاً
+        $sorted = $orderedIds
+            ->map(fn ($id) => $allInArea->get($id))
+            ->filter()
+            ->values();
+
+        // (اختياري) تصنيفات موجودة بالمنطقة لكن ما إلها ترتيب بعد → آخر شي
+        $missing = $allInArea
+            ->except($orderedIds->all())
+            ->values()
+            ->sortBy('name')  // أو بدون sort إذا بدك كما هي
+            ->values();
+
+        return $sorted->concat($missing)->values();
     }
 
 

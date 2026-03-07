@@ -18,6 +18,7 @@ use App\Http\Controllers\OrderController;
 use App\Http\Controllers\ProductController;
 use App\Http\Controllers\ProductRequestsController;
 use App\Http\Controllers\StoreController;
+use App\Http\Controllers\SubAdmin\AreaHomeOrderController;
 use App\Http\Controllers\SubAdmin\DiscountController;
 use App\Http\Controllers\SubAdmin\ProductRequestController;
 use App\Http\Controllers\SupAdminAuthController;
@@ -407,6 +408,8 @@ Route::prefix('customer')->group(function () {
 
         Route::get('product-requests/create/{id}', [ProductRequestController::class, 'showCreateRequest']);
         Route::get('product-requests/create', [ProductRequestController::class, 'indexCreateRequests']);
+        Route::post('home-order/stores', [AreaHomeOrderController::class, 'setStoresOrder']);
+        Route::patch('home-order/stores/toggle/{store_id}', [AreaHomeOrderController::class, 'toggleStore']);
 
 //التصنيفات
 
@@ -416,6 +419,8 @@ Route::prefix('customer')->group(function () {
         Route::get('categories/unassigned-toarea', [SubAdminCategoryController::class, 'unassigned']);
         Route::post('categories/assign-toarea/{category}', [SubAdminCategoryController::class, 'assign']);
         Route::post('categories/detach/{category}', [SubAdminCategoryController::class, 'detach']);
+        Route::post('home-order/categories', [AreaHomeOrderController::class, 'setCategoriesOrder']);
+        Route::patch('home-order/categories/toggle/{category_id}', [AreaHomeOrderController::class, 'toggleCategory']);
 
 
 //        Route::post('categories/add', [SubAdminCategoryController::class, 'store']);

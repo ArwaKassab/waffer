@@ -13,7 +13,8 @@ use Illuminate\Support\Facades\Storage;
 class CategoryService
 {
     public function __construct(
-        protected CategoryRepositoryInterface $categories
+        protected CategoryRepositoryInterface $categories,
+        protected AreaHomeOrderService $homeOrderAuto
     ) {}
 
 
@@ -108,10 +109,12 @@ class CategoryService
         return $this->categories->notForArea($areaId);
     }
 
-    // ربط تصنيف بمنطقة
     public function assignToArea(int $categoryId, int $areaId): void
     {
         $this->categories->attachToArea($categoryId, $areaId);
+
+
+        $this->homeOrderAuto->addCategoryToEnd($areaId, $categoryId);
     }
 
     // فك الربط من منطقة
