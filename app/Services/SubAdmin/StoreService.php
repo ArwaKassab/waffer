@@ -37,12 +37,17 @@ class StoreService
         return DB::transaction(function () use ($payload) {
 
             $canonicalPhone = $this->normalizeCanonical00963($payload['phone']);
-            if (User::where('phone', $canonicalPhone)->exists()) {
+
+            if (
+                User::where('phone', $canonicalPhone)
+                    ->where('type', 'store')
+                    ->whereNull('deleted_at')
+                    ->exists()
+            ) {
                 throw ValidationException::withMessages([
-                    'phone' => 'هذا الرقم مستخدم من قبل.',
+                    'phone' => 'هذا الرقم مستخدم من قبل لمتجر آخر.',
                 ]);
             }
-
 
             $categoryIds = $payload['category_ids'] ?? [];
             unset($payload['category_ids']);
@@ -54,14 +59,13 @@ class StoreService
                 'area_id'        => $payload['area_id'] ?? null,
                 'open_hour'      => $payload['open_hour'] ?? null,
                 'close_hour'     => $payload['close_hour'] ?? null,
-                'status'         => isset($payload['status']) ? (bool)$payload['status'] : true,
+                'status'         => isset($payload['status']) ? (bool) $payload['status'] : true,
                 'image'          => $payload['image'] ?? null,
                 'type'           => 'store',
                 'password'       => Hash::make($payload['password']),
                 'note'           => $payload['note'] ?? null,
+                'phone_shadow'   => $canonicalPhone,
             ];
-
-            $storeData['phone_shadow'] = $canonicalPhone;
 
             $store = $this->storeRepository->createStore($storeData, $categoryIds);
 
