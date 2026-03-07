@@ -215,4 +215,28 @@ class CustomerController extends Controller
         ]);
     }
 
+    public function updateWalletBalance(Request $request, int $customerId): JsonResponse
+    {
+        $data = $request->validate([
+            'wallet_balance' => ['required', 'numeric', 'min:0'],
+        ], [
+            'wallet_balance.required' => 'الرصيد مطلوب.',
+            'wallet_balance.numeric'  => 'الرصيد يجب أن يكون رقمًا.',
+            'wallet_balance.min'      => 'الرصيد لا يمكن أن يكون أقل من 0.',
+        ]);
+
+        $user = $this->customerService->updateCustomerWalletBalance(
+            $customerId,
+            (float) $data['wallet_balance']
+        );
+
+        return response()->json([
+            'message' => 'تم تعديل رصيد المحفظة بنجاح.',
+            'data' => [
+                'id' => $user->id,
+                'wallet_balance' => (float) $user->wallet_balance,
+            ],
+        ]);
+    }
+
 }

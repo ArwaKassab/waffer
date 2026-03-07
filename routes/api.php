@@ -360,6 +360,7 @@ Route::prefix('customer')->group(function () {
         Route::get('wallets/with-balance/count', [SubAdminCustomerController::class, 'customersWithBalanceCountByArea']);
         Route::get('wallets/with-balance', [SubAdminCustomerController::class, 'customersWithBalanceByArea']);
         Route::post('wallet/top-up/{customerId}', [SubAdminCustomerController::class, 'topUp']);
+        Route::patch('wallet/update/{customerId}', [SubAdminCustomerController::class, 'updateWalletBalance']);
         //عناوبن المستخدمين
         Route::get('/customers/addresses/{user}', [SubAdminCustomerController::class, 'addresses']);
 

@@ -105,26 +105,27 @@ class CustomerService
     {
         return DB::transaction(function () use ($customerId, $amount) {
 
-
-            /** @var User $user */
-            $user = User::query()
-                ->whereKey($customerId)
-                ->where('type', 'customer')
-                ->lockForUpdate()
-                ->firstOrFail();
+            $user = $this->customerRepo->findCustomerByIdForUpdate($customerId);
 
             if ($user->is_banned) {
                 abort(403, 'لا يمكن شحن محفظة زبون محظور.');
             }
 
-
-            $user->wallet_balance = (float) $user->wallet_balance + (float) $amount;
-            $user->save();
-
-            $user->refresh();
-            return $user;
-
+            return $this->customerRepo->incrementWalletBalance($user, $amount);
         });
     }
+    public function updateCustomerWalletBalance(int $customerId, float $newBalance): User
+    {
+        return DB::transaction(function () use ($customerId, $newBalance) {
 
+            $user = $this->customerRepo->findCustomerByIdForUpdate($customerId);
+
+            if ($user->is_banned) {
+                abort(403, 'لا يمكن تعديل محفظة زبون محظور.');
+            }
+
+            return $this->customerRepo->setWalletBalance($user, $newBalance);
+        });
+
+    }
 }

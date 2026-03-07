@@ -157,4 +157,32 @@ class CustomerRepository implements CustomerRepositoryInterface
 
         return $user;
     }
+
+    public function findCustomerByIdForUpdate(int $customerId): User
+    {
+        /** @var User $user */
+        $user = User::query()
+            ->whereKey($customerId)
+            ->where('type', 'customer')
+            ->lockForUpdate()
+            ->firstOrFail();
+
+        return $user;
+    }
+
+    public function incrementWalletBalance(User $user, float $amount): User
+    {
+        $user->wallet_balance = (float) $user->wallet_balance + (float) $amount;
+        $user->save();
+
+        return $user;
+    }
+
+    public function setWalletBalance(User $user, float $newBalance): User
+    {
+        $user->wallet_balance = $newBalance;
+        $user->save();
+
+        return $user;
+    }
 }
