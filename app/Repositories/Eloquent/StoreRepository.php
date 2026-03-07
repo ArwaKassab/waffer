@@ -6,6 +6,7 @@ use App\Models\Product;
 use App\Models\User;
 use App\Repositories\Contracts\StoreRepositoryInterface;
 use Carbon\Carbon;
+use Illuminate\Pagination\LengthAwarePaginator;
 
 class StoreRepository implements StoreRepositoryInterface
 {
@@ -803,28 +804,41 @@ class StoreRepository implements StoreRepositoryInterface
      */
     public function getStoresByAreaForAdmin(int $areaId, int $perPage = 20)
     {
-        $paginator = User::where('type', 'store')
+        // 1) Page من جدول الترتيب (stores فقط)
+        $orderPage = AreaHomeOrder::query()
             ->where('area_id', $areaId)
-            ->select(
-                'id',
-                'name',
-                'phone',
-                'open_hour',
-                'close_hour',
-                'status'
-            )
-            ->with(['categories:id,name']) // فقط id + name
-            ->orderBy('name')
-            ->paginate($perPage);
+            ->where('entity_type', 'store')
+            ->where('is_active', true)
+            ->orderBy('sort_order')
+            ->paginate($perPage, ['entity_id'], 'page');
 
-        // هون أهم خطوة: نرجع "Array" نظيف بدل موديل
-        $paginator->getCollection()->transform(function ($store) {
+        $storeIds = collect($orderPage->items())->pluck('entity_id')->values();
+
+        // إذا ما في ترتيب محفوظ، fallback: ترتيب بالاسم + paginate طبيعي
+        if ($storeIds->isEmpty()) {
+            return $this->getStoresByAreaForAdminFallback($areaId, $perPage);
+        }
+
+        // 2) جيبي بيانات المتاجر لهالصفحة فقط
+        $stores = User::query()
+            ->where('type', 'store')
+            ->where('area_id', $areaId)
+            ->whereIn('id', $storeIds)
+            ->select('id','name','phone','open_hour','close_hour','status','image') // image إذا بدك
+            ->with(['categories:id,name'])
+            ->get()
+            ->keyBy('id');
+
+        // 3) رجّعي بنفس ترتيب sort_order
+        $sorted = $storeIds->map(fn($id) => $stores->get($id))->filter()->values();
+
+        // 4) نفس transform تبعك
+        $sorted = $sorted->map(function ($store) {
 
             $workHours = null;
-
             if (!empty($store->open_hour) && !empty($store->close_hour)) {
                 $from = Carbon::parse($store->open_hour)->format('H:i');
-                $to = Carbon::parse($store->close_hour)->format('H:i');
+                $to   = Carbon::parse($store->close_hour)->format('H:i');
                 $workHours = $from . '-' . $to;
             }
 
@@ -833,14 +847,61 @@ class StoreRepository implements StoreRepositoryInterface
                 'name' => $store->name,
                 'phone' => $store->phone_display,
                 'is_open_now' => (bool) $store->is_open_now,
-                'status' => $store->status,
+                'status' => (bool) $store->status,
                 'work_hours' => $workHours,
-                'categories' => $store->categories->map(function ($category) {
-                    return [
-                        'id' => $category->id,
-                        'name' => $category->name,
-                    ];
-                })->values(),
+                'categories' => $store->categories->map(fn($c) => [
+                    'id' => $c->id,
+                    'name' => $c->name,
+                ])->values(),
+            ];
+        });
+
+        // 5) ركب paginator جديد بنفس meta تبع orderPage
+        return new LengthAwarePaginator(
+            $sorted,
+            $orderPage->total(),
+            $orderPage->perPage(),
+            $orderPage->currentPage(),
+            [
+                'path' => request()->url(),
+                'query' => request()->query(),
+            ]
+        );
+    }
+
+    /**
+     * fallback في حال ما في أي ترتيب محفوظ للمتاجر
+     */
+    private function getStoresByAreaForAdminFallback(int $areaId, int $perPage = 20)
+    {
+        $paginator = User::query()
+            ->where('type', 'store')
+            ->where('area_id', $areaId)
+            ->select('id','name','phone','open_hour','close_hour','status','image')
+            ->with(['categories:id,name'])
+            ->orderBy('name')
+            ->paginate($perPage);
+
+        $paginator->getCollection()->transform(function ($store) {
+
+            $workHours = null;
+            if (!empty($store->open_hour) && !empty($store->close_hour)) {
+                $from = Carbon::parse($store->open_hour)->format('H:i');
+                $to   = Carbon::parse($store->close_hour)->format('H:i');
+                $workHours = $from . '-' . $to;
+            }
+
+            return [
+                'id' => $store->id,
+                'name' => $store->name,
+                'phone' => $store->phone_display,
+                'is_open_now' => (bool) $store->is_open_now,
+                'status' => (bool) $store->status,
+                'work_hours' => $workHours,
+                'categories' => $store->categories->map(fn($c) => [
+                    'id' => $c->id,
+                    'name' => $c->name,
+                ])->values(),
             ];
         });
 
