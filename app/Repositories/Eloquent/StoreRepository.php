@@ -134,8 +134,8 @@ class StoreRepository implements StoreRepositoryInterface
     public function getStoresByArea(int $areaId, int $perPage = 20)
     {
         $paginator = User::query()
-            ->where('type', 'store')
-            ->where('area_id', $areaId)
+            ->where('users.type', 'store')
+            ->where('users.area_id', $areaId)
             ->leftJoin('area_home_orders as aho', function ($join) use ($areaId) {
                 $join->on('aho.entity_id', '=', 'users.id')
                     ->where('aho.area_id', '=', $areaId)
@@ -186,8 +186,8 @@ class StoreRepository implements StoreRepositoryInterface
     public function getStoresByAreaAndCategoryPaged(int $areaId, int $categoryId, int $perPage = 20)
     {
         $paginator = User::query()
-            ->where('type', 'store')
-            ->where('area_id', $areaId)
+            ->where('users.type', 'store')
+            ->where('users.area_id', $areaId)
             ->whereHas('categories', fn ($q) => $q->where('categories.id', $categoryId))
             ->leftJoin('area_home_orders as aho', function ($join) use ($areaId) {
                 $join->on('aho.entity_id', '=', 'users.id')
@@ -713,8 +713,8 @@ class StoreRepository implements StoreRepositoryInterface
         string $matchMode = 'all'
     ) {
         $q = User::query()
-            ->where('type', 'store')
-            ->where('area_id', $areaId)
+            ->where('users.type', 'store')
+            ->where('users.area_id', $areaId)
             ->with(['categories:id'])
             ->leftJoin('area_home_orders as aho', function ($join) use ($areaId) {
                 $join->on('aho.entity_id', '=', 'users.id')
